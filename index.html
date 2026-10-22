@@ -120,7 +120,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <button class="sec" id="btnPrev">← Anterior</button><button id="btnNext">Siguiente →</button><button id="btnFin" class="hidden">Hasta aquí el filtro</button></div>
 <div class="card" id="imssCard"><h3>Pagos IMSS</h3><div id="imssRows"></div><div id="bajaBox"><label>Fecha de baja (leída del SUA)</label><input type="date" id="f_baja"><div id="bajaMsg"></div><div id="solInfo"></div></div><div id="imssWarn" class="alert hidden"></div></div>
 <div class="card" id="tramCard"><h3>Pendientes del trámite</h3><div id="tramRows"></div></div>
-<div class="card" id="precalCard"><h3>Precalificación</h3><label class="chk"><input type="checkbox" id="f_precal"> Precalificado (tiene semanas, saldo y 5 años)</label><div id="precalInfo"></div><div id="semCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Constancia de semanas cotizadas (IMSS)</b><br><label class="file">📄 Subir constancia (foto o PDF)<input type="file" id="f_constSem" accept="image/*,application/pdf,.pdf"></label> <span id="semDoc"></span><div id="semMsg"></div>
+<div class="card" id="precalCard"><h3>Precalificación</h3><label class="chk"><input type="checkbox" id="f_precal"> Precalificado (tiene semanas, saldo y 5 años)</label><div id="precalInfo"></div><div id="edoPreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Estado de cuenta de la Afore</b><br><label class="file">📄 Subir estado de cuenta (foto o PDF)<input type="file" id="f_edoPre" accept="image/*,application/pdf,.pdf"></label><div id="ocrPre"><small></small></div><table id="preSubs"><tbody></tbody></table><div id="preSaldo"></div></div><div id="r5PreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Comprobante de 5 años del último retiro</b><br><label class="file">📄 Subir comprobante (foto o PDF)<input type="file" id="f_comp5" accept="image/*,application/pdf,.pdf"></label> <span id="comp5Doc"></span><div id="r5PreInfo"></div></div><div id="semCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Constancia de semanas cotizadas (IMSS)</b><br><label class="file">📄 Subir constancia (foto o PDF)<input type="file" id="f_constSem" accept="image/*,application/pdf,.pdf"></label> <span id="semDoc"></span><div id="semMsg"></div>
 <div class="semGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label><small>Semanas cotizadas</small><input type="number" id="s_cot" min="0"></label><label><small>Semanas descontadas</small><input type="number" id="s_desc" min="0"></label><label><small>Semanas reintegradas</small><input type="number" id="s_reint" min="0"></label><label><small><b>Semanas restantes</b></small><input type="number" id="s_rest" min="0"></label>
 <label style="grid-column:1/-1"><small>Patrón(es) vigente(s) (vacío = ninguno)</small><input type="text" id="s_vig" placeholder="Sin patrón vigente"></label><label style="grid-column:1/-1"><small>Última fecha de baja</small><input type="date" id="s_baja"></label></div><div id="semVigInfo"></div></div></div>
 <div class="card" id="seg2Card"><h3>Mensaje al cliente: segundo paso</h3><div id="seg2Locked" class="warn"><small>Sube el SUA o captura la fecha de baja para preparar el mensaje.</small></div>
@@ -656,18 +656,19 @@ async function pdfText(buf,onOcr){const L=await loadPdf();const doc=await openPd
  if(all.replace(/\s/g,'').length>=30)return all;
  onOcr&&onOcr();let t='';for(let p=1;p<=Math.min(doc.numPages,6);p++){const pg=await doc.getPage(p);const vp=pg.getViewport({scale:2.5});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;t+=await ocr(c.toDataURL('image/png'))+'\n'}return t}
 let edoQ=Promise.resolve();
-function runOcr4(f,id){edoQ=edoQ.then(()=>readEdo(f,id)).catch(()=>{});return edoQ}
-async function readEdo(f,id){const m=$('ocr4');const msg=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};msg('Leyendo archivo… (puedes capturar los montos manualmente)');
- let t;try{const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);if(isPdf)t=await pdfText(await f.arrayBuffer(),Object.assign(()=>msg('El PDF no tiene texto; leyéndolo con OCR…'),{opened:()=>msg('Leyendo archivo…')}));else if(/^image\//.test(f.type))t=await ocr(await prepImg(await readURL(f)));else{msg('No se detectaron montos. Captúralos manualmente.');return}}
+function runOcr4(f,id,box){edoQ=edoQ.then(()=>readEdo(f,id,box)).catch(()=>{}).finally(()=>{pwBox='ocr4'});return edoQ}
+async function readEdo(f,id,box){box=box||'ocr4';pwBox=box;const m=$(box);let usoOcr=false;const msg=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};msg('Leyendo archivo… (puedes capturar los montos manualmente)');
+ let t;try{const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);if(isPdf)t=await pdfText(await f.arrayBuffer(),Object.assign(()=>(usoOcr=true,msg('El PDF no tiene texto; leyéndolo con OCR…')),{opened:()=>msg('Leyendo archivo…')}));else if(/^image\//.test(f.type)){usoOcr=true;t=await ocr(await prepImg(await readURL(f)))}else{msg('No se detectaron montos. Captúralos manualmente.');return}}
  catch(x){if(x&&x.cancel){msg('PDF no abierto. Captura los montos manualmente.');return}msg('No se pudo leer el archivo automáticamente (OCR/PDF no disponible). Captura los montos manualmente.');return}
  const a=parseAfore(t);const c=S.clients[id];if(!c)return;let n=0;const conf=[];
  for(const k of ['r97','rcv','cs','av','as','viv']){if(a[k]==null)continue;const cv=c.sub[k];if(cv===''||cv==null){c.sub[k]=String(a[k]);n++}else if(num(cv)!==a[k])conf.push([k,a[k]])}
  for(const o of a.otras){const e=c.sub.otras.find(x=>nrm(x.n).trim()===nrm(o.n));if(!e){c.sub.otras.push({n:o.n,v:String(o.v)});n++}else if(e.v===''){e.v=String(o.v);n++}else if(num(e.v)!==o.v)conf.push([{o:e},o.v])}
- if(n)histMontos(c,a);save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render()}
+ if(n||conf.length){c.edoRevisa=usoOcr||conf.length>0;c.subLeidas=[...new Set([...(c.subLeidas||[]),...['r97','rcv','cs','av','as','viv'].filter(k=>a[k]!=null),...a.otras.map(o=>'o:'+nrm(o.n).trim())])]}
+ if(n)histMontos(c,a);save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render();renderPrecal(c)}
  const tot=n+conf.length;if(!tot){msg('No se detectaron montos. Captúralos manualmente.');return}
  let h=n?'✔ Se detectaron '+n+' montos, revísalos.':'Se detectaron montos.';
  if(conf.length){h+=' '+conf.length+' campo(s) ya tenían un valor distinto y no se cambiaron. <button class="sec" id="btnEdoRepl">Reemplazar con lo detectado</button>'}
- msg(h);const b=$('btnEdoRepl');if(b)b.onclick=()=>{const c=S.clients[id];for(const [k,v] of conf){if(k.o)k.o.v=String(v);else c.sub[k]=String(v)}save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render()}msg('✔ Se reemplazaron '+conf.length+' montos con lo detectado. Revísalos.')}}
+ msg(h);const b=$('btnEdoRepl');if(b)b.onclick=()=>{const c=S.clients[id];for(const [k,v] of conf){if(k.o)k.o.v=String(v);else c.sub[k]=String(v)}save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render();renderPrecal(c)}msg('✔ Se reemplazaron '+conf.length+' montos con lo detectado. Revísalos.')}}
 // validación
 function e1(c){const e=[];if(c.alta)e.push('El cliente está dado de alta actualmente en un trabajo: no puede tramitar.');if(c.semanas===''||num(c.semanas)<104)e.push('Menos de 104 semanas cotizadas (mínimo 104).');if(!CURP_RE.test(c.curp||''))e.push(c.curp?'CURP inválida (18 caracteres con formato oficial).':'Falta la CURP.');return e}
 function r5Status(c){if(c.r5!=='no'||!c.last)return null;const el=addY(c.last,5),t=todayStr();if(t>=el)return{k:'past',el};if(el<=addM(t,2))return{k:'soon',el};return{k:'far',el}}
@@ -694,17 +695,20 @@ if(!firmadoOK(c))add('Falta firma del contrato','or',10);
 docFalta(c).forEach(x=>add('Falta '+x,'or',20));
 if(firmadoOK(c)){if(!c.altaEnviada)add('Enviar mensaje de alta','or',30);else if(confPend(c))add('Proveedor sin confirmar alta',Date.now()-c.altaEnviada>=2*864e5?'red':'or',31)}
 pagosPend(c).forEach(x=>add('Falta pago de '+x,'or',40));
-if(c.fechaSolicitud&&!c.dineroSolicitado){if(c.fechaSolicitud<=t)add(c.fechaSolicitud===t?'Solicitar dinero HOY':'Solicitar dinero (vencido)','red',1);else if(c.fechaSolicitud<=addDias(t,7))add('Solicitar dinero el '+c.fechaSolicitud.split('-').reverse().slice(0,2).join('/'),'or',5)}
+normSol(c);if(c.fechaSolicitud&&!c.dineroSolicitado){if(c.fechaSolicitud<=t)add(c.fechaSolicitud===t?'Solicitar dinero HOY':'Solicitar dinero (vencido)','red',1);else if(c.fechaSolicitud<=addDias(t,7))add('Solicitar dinero el '+c.fechaSolicitud.split('-').reverse().slice(0,2).join('/'),'or',5)}
 if(c.dineroSolicitado&&!c.semanasEnviadas)add('Enviar semanas cotizadas','or',50);
 tramPend(c).forEach(x=>add(x+' pendiente','or',60));
 return A.sort((a,b)=>(a.lvl==='red'?0:1)-(b.lvl==='red'?0:1)||a.o-b.o)}
 const phScore=c=>{const a=porHacer(c);return a.length?(a[0].lvl==='red'?0:1e3)+a[0].o:9e9};
 // ===== Etapas del trámite (antes de la fecha de solicitud) =====
 function r5OK(c){if(c.r5==='si'||c.r5==='nunca')return true;if(c.r5==='no'){const st=r5Status(c);return!!st&&st.k==='past'}return false}
-function precalData(c){return{sem:c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104,saldo:calc(c).total>0,r5:r5OK(c),vig:String(c.semVigente||'').trim()}}
+const VIV_RE=/vivienda|infonavit|fovissste/i;
+function saldoRetiro(c){const s=c.sub||{};return r2(SUBS.reduce((a,[k])=>a+num(s[k]),0)+(s.otras||[]).filter(o=>!VIV_RE.test(o.n||'')).reduce((a,o)=>a+num(o.v),0))}
+function r5Pre(c){const d=c.semDesc;if(d!==''&&d!=null&&String(d).trim()!==''&&num(d)===0)return{ok:true,na:true,req:false};const req=d!==''&&d!=null&&String(d).trim()!==''&&num(d)>0;return{ok:!!c.comp5||r5OK(c),na:false,req}}
+function precalData(c){return{sem:c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104,saldo:saldoRetiro(c)>0,r5:r5Pre(c).ok,vig:String(c.semVigente||'').trim()}}
 const ETAPAS=[['precal','Precalif.'],['firma','Firma'],['exp','Exp./N4'],['alta','Alta'],['pagos','Pagos']];
 function etapa(c,k){let done=false,par=false,f=[];
- if(k==='precal'){const d=precalData(c);done=!d.vig&&(!!c.precalificado||(d.sem&&d.saldo&&d.r5));if(d.vig)f.push('⚠ VIGENTE con: '+d.vig+' (no puede tramitar)');if(!done){if(!d.sem)f.push('semanas restantes (≥104'+(c.semanas!==''&&c.semanas!=null?', tiene '+c.semanas:'')+')');if(!d.saldo)f.push('saldo de la Afore');if(!d.r5)f.push('5 años desde el último retiro');f.push('o marcar «Precalificado»')}par=!done&&(c.semanas!==''&&c.semanas!=null||!!c.r5||calc(c).total>0)}
+ if(k==='precal'){const d=precalData(c);done=!d.vig&&(!!c.precalificado||(d.sem&&d.saldo&&d.r5));if(d.vig)f.push('⚠ VIGENTE con: '+d.vig+' (no puede tramitar)');if(!done){if(!d.sem)f.push('semanas restantes (≥104'+(c.semanas!==''&&c.semanas!=null?', tiene '+c.semanas:'')+')');if(!d.saldo)f.push('saldo para retiro (sin vivienda)');if(!d.r5)f.push(r5Pre(c).req?'comprobante de 5 años del último retiro':'5 años desde el último retiro');f.push('o marcar «Precalificado»')}par=!done&&(c.semanas!==''&&c.semanas!=null||!!c.r5||calc(c).total>0)}
  else if(k==='firma'){const df=docFalta(c);done=firmadoOK(c)&&!df.length;if(!firmadoOK(c))f.push('firma del contrato');df.forEach(x=>f.push(x));par=!done&&(firmadoOK(c)||!!c.pagareVenc)}
  else if(k==='exp'){f=tramPend(c);done=!f.length;par=!done&&f.length<TRAM.length}
  else if(k==='alta'){done=!!c.altaConfirmada;if(!done)f.push(c.altaEnviada?'confirmación del proveedor':'enviar alta y baja al proveedor');par=!done&&!!c.altaEnviada}
@@ -720,12 +724,12 @@ let stF='',qF='';
 const enGrupo=c=>tab==='tramite'?activo(c)&&tramPend(c).length:tab==='pagos'?c.estado!=='cancelado'&&pagosPend(c).length:tab==='todos'?c.estado!=='cancelado'&&c.estado!=='finalizado':c.estado===tab;
 const normQ=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 function renderList(){renderTabs();const q=normQ(qF.trim());const G=Object.values(S.clients).filter(enGrupo).filter(c=>!q||normQ(c.nombre).includes(q)||normQ(c.curp).includes(q));
- const cnt={};G.forEach(c=>{const e=estadoSol(c);cnt[e]=(cnt[e]||0)+1});
+ G.forEach(normSol);const cnt={};G.forEach(c=>{const e=estadoSol(c);cnt[e]=(cnt[e]||0)+1});
  $('sumBar').innerHTML=SUMS.map(([k,t])=>`<button class="sb sb-${k}${stF===k?' on':''}" data-st="${k}"><b>${cnt[k]||0}</b><span>${t}</span></button>`).join('');
  const L=G.filter(c=>!stF||estadoSol(c)===stF),rk={atrasado:0,riesgo:1};
  const LC=L.filter(c=>c.fechaSolicitud).sort((a,b)=>((rk[estadoSol(a)]??2)-(rk[estadoSol(b)]??2))||a.fechaSolicitud.localeCompare(b.fechaSolicitud)||b.created-a.created),LS=L.filter(c=>!c.fechaSolicitud).sort((a,b)=>b.created-a.created);
  const row=c=>{const e=estadoSol(c),E=etapas(c);return `<div class="client st-${e}" data-id="${c.id}" data-st="${e}"><div class="cMain"><b>${esc(c.nombre||'(sin nombre)')}</b>${c.nuevoForm?' <span class="badge b-nuevo">Nuevo (formulario)</span>':''}<br><small>${esc(c.curp||'Sin CURP')} · <span class="badge b-${c.estado}">${GNOM[c.estado]}</span>${c.estado==='espera'&&c.cond?' · Condición: '+esc(c.cond):''}${c.ubic?' · 📁 '+esc(c.ubic):''}</small>${tab==='tramite'?'<div class="pagosPills">'+tramPend(c).map(x=>'<span class="pill-or">'+x+'</span>').join(' ')+'</div>':''}${tab==='pagos'?'<div class="pagosPills">'+pagosPend(c).map(x=>'<span class="pill-or">Falta pago de '+x+'</span>').join(' ')+'</div>':''}</div>`+
- `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/'):'')}</span><div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
+ `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(solMovida(c)?' (domingo → lunes)':''):'')}</span><div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
  `<div class="etRow">${E.map((x,i)=>`<button class="et et-${x.st}" data-et="${x.k}" title="${esc(ETAPAS[i][1]+': '+(x.done?'listo'+(x.k==='precal'&&c.semanas!==''&&c.semanas!=null?' · '+c.semanas+' semanas restantes':''):'falta '+x.falta.join(', ')))}">${x.done?'✓ ':''}${ETAPAS[i][1]}</button>`).join('')}</div><div class="etFalta hidden"></div></div>`};
  $('clientList').innerHTML=L.length?LC.map(row).join('')+(LS.length?'<div class="solSep" id="solSep">Sin fecha de solicitud ('+LS.length+')</div>'+LS.map(row).join(''):''):'<p><small>No hay clientes'+(Object.keys(S.clients).length?' en este grupo'+(stF?' con ese estado':'')+'.':'. Crea un nuevo caso.')+'</small></p>'}
 $('sumBar').onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;stF=stF===b.dataset.st?'':b.dataset.st;renderList()};
@@ -888,7 +892,7 @@ gUI();if(gCid()&&location.protocol!=='file:')loadGIS().catch(()=>{});
 const GRUPOS=[['todos','Todos'],['firmado','Firmados'],['pendiente','Pendientes de firma'],['espera','En espera'],['finalizado','Finalizado'],['sinetapa','Sin etapa'],['cancelado','Cancelados']];
 const GNOM={firmado:'Firmado',pendiente:'Pendiente de firma',espera:'En espera',finalizado:'Finalizado',cancelado:'Cancelado',sinetapa:'Sin etapa'};
 let tab='todos';
-function fix(c){if(!c.estado)c.estado='pendiente';['cond','ubic','tel','email','afore','calle','colonia','municipio','cp','notas'].forEach(k=>{if(c[k]==null)c[k]=''});docSync(c);return c}
+function fix(c){normSol(c);if(!c.estado)c.estado='pendiente';['cond','ubic','tel','email','afore','calle','colonia','municipio','cp','notas'].forEach(k=>{if(c[k]==null)c[k]=''});docSync(c);return c}
 function docSync(c){c.docIne=!!c.ine;c.docDom=!!c.dom;return c}
 Object.values(S.clients).forEach(fix);
 const firmadoOK=c=>c.estado==='firmado'||c.estado==='finalizado';
@@ -1039,7 +1043,13 @@ function findBaja(text){const L=String(text||'').split(/\r?\n/).map(nrm);const c
   else if(movHdr&&/(^|\s)0?2(\s|$)/.test(l.replace(/\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}/g,' '))){const ds=fechasEn(l);if(ds.length)cand.push(ds[0].iso)}}
  return cand.sort().pop()||null}
 function addDias(iso,n){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m-1,d+n);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
-function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?addDias(iso,46):'';c.seg2Txt=null}
+function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?solDesdeBaja(iso):'';c.seg2Txt=null}
+// Regla: si la fecha de solicitud cae en domingo, se recorre al lunes siguiente
+function esDomingo(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return false;const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).getDay()===0}
+function sinDomingo(iso){return esDomingo(iso)?addDias(iso,1):iso}
+function solDesdeBaja(iso){return sinDomingo(addDias(iso,46))}
+function solMovida(c){return !!(c&&c.fechaSolicitud&&(c.solDomingo||(c.fechaBaja&&esDomingo(addDias(c.fechaBaja,46))&&c.fechaSolicitud===solDesdeBaja(c.fechaBaja))))}
+function normSol(c){if(!c||!c.fechaSolicitud)return c;if(esDomingo(c.fechaSolicitud)){const old=c.fechaSolicitud;c.fechaSolicitud=addDias(old,1);c.solDomingo=true;if(c.seg2Txt&&typeof fechaTexto==='function')c.seg2Txt=c.seg2Txt.split(fechaTexto(old)).join(fechaTexto(c.fechaSolicitud))}return c}
 async function leerSua(f,id){const m=$('bajaMsg'),say=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};say('Leyendo la fecha de baja del SUA…');
  let t='';try{t=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)?await pdfText(await f.arrayBuffer()):await ocr(await prepImg(await readURL(f)))}catch(x){}
  const iso=findBaja(t),c=S.clients[id];if(!c)return;
@@ -1050,7 +1060,7 @@ function fechaTexto(iso){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m
 function seg2Default(c){return'Hola '+primerNombre(c)+', te informo que el '+fechaTexto(c.fechaSolicitud)+' podremos realizar el segundo paso de tu trámite: solicitar tu dinero del retiro por desempleo. Te contactamos ese día para hacerlo. ¡Saludos!'}
 function telCliente(v){let s=String(v??'').trim().replace(/\.0$/,''),d=s.replace(/\D/g,'');if(d.length===13&&d.startsWith('521'))d='52'+d.slice(3);else if(d.length===10)d='52'+d;return /^52\d{10}$/.test(d)?d:null}
 function renderSeg2(c){if(!c||!$('seg2Card'))return;$('f_baja').value=c.fechaBaja||'';
- $('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero (baja + 46 días): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>':'';
+ normSol(c);$('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero (baja + 46 días): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>'+(solMovida(c)?' <small class="domNote">(domingo → lunes)</small>':''):'';
  if(!c.fechaBaja&&c.pago_sua&&!/Leyendo/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='<small>No se detectó la fecha de baja, escríbela</small>';if(c.fechaBaja&&/No se detectó la fecha de baja, escríbela/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='';
  const has=!!c.fechaSolicitud;$('seg2Body').classList.toggle('hidden',!has);$('seg2Locked').classList.toggle('hidden',has);if(!has)return;
  const ta=$('seg2Text');if(document.activeElement!==ta)ta.value=c.seg2Txt||seg2Default(c);
@@ -1066,13 +1076,25 @@ $('btnSeg2Wa').onclick=()=>{const c=C(),tel=telCliente(c.tel)||telCliente(c.celu
 /*TRAM*/const TRAM=[['expElectronico','Expediente electrónico'],['tarjetaN4','Tarjeta nivel 4']];
 function activo(c){return c.estado!=='cancelado'&&c.estado!=='finalizado'}
 function tramPend(c){return TRAM.filter(([k])=>!c[k]).map(x=>x[1])}
-function renderPrecal(c){if(!c||!$('f_precal'))return;renderSem(c);$('f_precal').checked=!!c.precalificado;const d=precalData(c),m=v=>v?'✅':'❌';$('precalInfo').innerHTML='<small>Datos en la app: '+m(d.sem)+' semanas ≥104 · '+m(d.saldo)+' saldo Afore · '+m(d.r5)+' 5 años'+(d.vig?' · ⚠️ vigente con patrón: no precalifica':d.sem&&d.saldo&&d.r5?' — ya cuenta como precalificado':'')+'</small>'}
+function renderPrecal(c){if(!c||!$('f_precal'))return;renderSem(c);renderPreEdo(c);renderPreR5(c);$('f_precal').checked=!!c.precalificado;const d=precalData(c),m=v=>v?'✅':'❌';$('precalInfo').innerHTML='<small>Datos en la app: '+m(d.sem)+' semanas ≥104 · '+m(d.saldo)+' saldo para retiro · '+m(d.r5)+' 5 años'+(d.vig?' · ⚠️ vigente con patrón: no precalifica':d.sem&&d.saldo&&d.r5?' — ya cuenta como precalificado':'')+'</small>'}
 function renderSem(c){const set=(i,v)=>{const e=$(i);if(document.activeElement!==e)e.value=v??''};set('s_cot',c.semCot);set('s_desc',c.semDesc);set('s_reint',c.semReint);set('s_rest',c.semanas);set('s_vig',c.semVigente);set('s_baja',c.semUltBaja);
  $('semDoc').innerHTML=c.constSem?'<small>✔ Constancia guardada'+(c.semRevisa?' · <b style="color:#b3261e">revisa</b>':'')+'</small>':'';const v=String(c.semVigente||'').trim(),rv=$('s_rest');rv.classList.toggle('red',c.semanas!==''&&c.semanas!=null&&num(c.semanas)<104);rv.classList.toggle('green',c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104);
  $('semVigInfo').innerHTML=(v?'<div class="alert semVig" style="color:#b3261e;font-weight:bold">⚠️ Vigente con: '+esc(v)+' — no puede hacer el retiro por desempleo</div>':(c.semLeida||c.semUltBaja?'<div class="semVig" style="color:#0b5d3b;margin-top:6px">✓ Sin patrón vigente</div>':''))+(c.semUltBaja?'<small>Última baja: '+human(c.semUltBaja)+(c.semUltBajaPat?' ('+esc(c.semUltBajaPat)+')':'')+'</small>':'')}
 $('f_constSem').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;await subirDoc('constSem',f);if(S.clients[id]&&S.clients[id].constSem)readSemanas(f,id)};
 const semRecalc=c=>{if(c.semCot==='')return;c.semanas=String(num(c.semCot)-num(c.semDesc||0)+num(c.semReint||0))};
 [['s_cot','semCot',1],['s_desc','semDesc',1],['s_reint','semReint',1],['s_rest','semanas'],['s_vig','semVigente'],['s_baja','semUltBaja']].forEach(([i,k,rc])=>$(i).oninput=e=>{const c=C();c[k]=e.target.value;if(rc)semRecalc(c);c.semRevisa=false;if(k==='semUltBaja')c.semUltBajaPat='';save();render();renderPrecal(c)});
+function renderPreEdo(c){if(!$('preSubs'))return;const s=c.sub,L=c.subLeidas||[],rv=k=>c.edoRevisa&&L.includes(k)?' <b class="revisa" style="color:#b3261e">revisa</b>':'';
+ const rows=SUBS.map(([k,l])=>'<tr><td>'+l+rv(k)+'</td><td><input type="number" step="0.01" data-pk="'+k+'" value="'+esc(s[k])+'"></td></tr>').join('')+s.otras.map((o,i)=>VIV_RE.test(o.n||'')?'':'<tr><td>'+esc(o.n||'Otra')+rv('o:'+nrm(o.n||'').trim())+'</td><td><input type="number" step="0.01" data-po="'+i+'" value="'+esc(o.v)+'"></td></tr>').join('')
+  +'<tr><td>Vivienda (no se suma)'+rv('viv')+'</td><td><input type="number" step="0.01" data-pk="viv" value="'+esc(s.viv)+'"></td></tr>';
+ const tb=$('preSubs').tBodies[0];if(!tb.contains(document.activeElement))tb.innerHTML=rows;
+ const t=saldoRetiro(c);$('preSaldo').innerHTML='<b>Saldo para retiro (sin vivienda): <span id="preTotal">'+fmt(t)+'</span></b>'+(c.edoRevisa?' <b class="revisa" style="color:#b3261e">revisa</b>':'')}
+function renderPreR5(c){if(!$('r5PreInfo'))return;const r=r5Pre(c);$('comp5Doc').innerHTML=c.comp5?'<small>✔ Comprobante guardado'+(c.comp5Fecha?' (fecha detectada: '+human(c.comp5Fecha)+')':'')+'</small>':'';
+ $('r5PreInfo').innerHTML=r.na?'<div class="r5na" style="color:#0b5d3b">✓ No aplica: nunca ha retirado (0 semanas descontadas)</div>':r.ok?'<div style="color:#0b5d3b">✓ Regla de 5 años cumplida</div>':'<div class="r5falta" style="color:#b3261e;font-weight:bold">Falta comprobante de 5 años</div>'}
+$('preSubs').addEventListener('input',e=>{const t=e.target,c=C();if(t.dataset.pk){c.sub[t.dataset.pk]=t.value;if(t.dataset.pk==='viv')$('f_viv').value=t.value}else if(t.dataset.po!=null)c.sub.otras[+t.dataset.po].v=t.value;else return;c.edoRevisa=false;save();renderSubs();render();renderPrecal(c)});
+$('f_edoPre').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;let data;try{data=f.type.startsWith('image/')?await compress(f):await readURL(f)}catch(x){alert('No se pudo leer el archivo.');return}
+ const c=S.clients[id];c.files.push({name:f.name,type:f.type.startsWith('image/')?'image/jpeg':(f.type||'application/octet-stream'),data});if(!save()){c.files.pop();alert('No hay espacio para guardar el archivo.');return}if(cur===id){render();renderPrecal(c)}runOcr4(f,id,'ocrPre')};
+$('f_comp5').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;await subirDoc('comp5',f);const c=S.clients[id];if(!c||!c.comp5)return;c.comp5At=Date.now();save();if(cur===id)renderPrecal(c);
+ if(/^image\//.test(f.type))try{const dt=findDate(await ocr(c.comp5));if(dt){c.comp5Fecha=dt;if(!c.last)c.last=dt;save();if(cur===id)renderPrecal(c)}}catch(x){}};
 $('f_precal').onchange=e=>{const c=C();c.precalificado=e.target.checked;c.precalificadoAt=e.target.checked?Date.now():null;save();renderPrecal(c)};
 function renderTram(c){renderPrecal(c);if(!c||!$('tramRows'))return;$('tramRows').innerHTML=TRAM.map(([k,n])=>'<label class="chk"><input type="checkbox" data-tk="'+k+'"'+(c[k]?' checked':'')+'> '+n+' — '+(c[k]?'✅ Listo <small>('+new Date(c[k+'At']||Date.now()).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})+')</small>':'⏳ Pendiente')+'</label>').join('')}
 $('tramRows').addEventListener('change',e=>{const k=e.target.dataset.tk;if(!k)return;const c=C();c[k]=e.target.checked;c[k+'At']=e.target.checked?Date.now():null;save();renderTram(c)});
@@ -1221,7 +1243,7 @@ const H_DOCS={ine:'INE',dom:'Comprobante de domicilio',proof:'Imagen del último
 const H_FECHA=k=>v=>{try{return human(v)}catch(e){return v}};
 const H_CAMPOS=[['fechaBaja','fecha',v=>'Fecha de baja: '+H_FECHA()(v)],['fechaSolicitud','fecha',v=>'Fecha de solicitud del dinero: '+H_FECHA()(v)],['last','fecha',v=>'Fecha del último retiro: '+H_FECHA()(v)],
  ['pagareVenc','contrato',v=>'Contrato y pagaré PDF generados (vence el '+H_FECHA()(v)+')'],['altaEnviada','alta',()=>'Mensaje de alta enviado por WhatsApp Business'],['altaConfirmada','alta',()=>'Proveedor confirmó el alta'],
- ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado']];
+ ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado'],['comp5At','documento',()=>'Comprobante de 5 años del último retiro subido']];
 const H_MAX_ARCH=400e3,H_MAX_ARCH_TOT=1.5e6;
 let hsnap={},hMute=false;
 function hSnap(c){const o={estado:c.estado,files:(c.files||[]).map(f=>f.name+'|'+(f.data||'').length),fdata:(c.files||[]).map(f=>f),tram:{expElectronico:!!c.expElectronico,tarjetaN4:!!c.tarjetaN4},ev:c.recordEventId||null,ev2:c.semanasEventId||null};
