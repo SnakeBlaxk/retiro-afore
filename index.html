@@ -68,7 +68,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <input type="text" id="shSearch" placeholder="Buscar cliente por nombre" class="hidden"><div id="shList"></div></section>
 <section id="listView" class="card"><h2>Clientes</h2>
 <div class="row"><input type="text" id="newName" placeholder="Nombre del nuevo cliente"><button id="btnNew" style="flex:0 0 auto">+ Nuevo caso</button></div>
-<small id="driveStatus"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
+<small id="driveStatus"></small> <button class="sec" id="btnSyncNow" style="padding:2px 8px;font-size:.8rem">Sincronizar ahora</button><br><small id="lastWriter"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
 <div id="histPanel" class="hidden"><div class="hHead"><b>Historial y documentos · <span id="histName"></span></b><button class="sec" id="hClose">✕ Cerrar</button></div>
 <div class="row" style="gap:6px"><button id="hTabH">Historial</button><button class="sec" id="hTabD">Documentos</button></div>
 <div id="hHistBox"><div class="row" style="gap:6px;flex-wrap:wrap"><textarea id="hNota" rows="2" placeholder="Agregar nota (p. ej. «Me debe papeles», «Ya habíamos iniciado antes»)" style="flex:1 1 220px"></textarea><button id="hAddNota" style="flex:0 0 auto">Agregar nota</button></div>
@@ -1210,11 +1210,15 @@ function needConnect(){const g=gGranted();return !gCid()||!((gValid()||lsG(GK.ok
 function driveListo(){return !!gCid()&&!!(gValid()||lsG(GK.ok))&&gGranted().includes(DRIVE_SCOPE)}
 // updatedAt: se marca en cada edición (se detecta comparando contra una instantánea)
 const snap={};const sj=c=>{const o=Object.assign({},c);delete o.updatedAt;delete o.nuevoForm;return JSON.stringify(o)};
-function snapAll(){Object.values(S.clients).forEach(c=>snap[c.id]=sj(c))}
+const snapF={},F_SKIP={id:1,updatedAt:1,nuevoForm:1,fieldTs:1};
+const fmap=c=>{const m={};for(const k in c)if(!F_SKIP[k])m[k]=JSON.stringify(c[k]);return m};
+function snapAll(){Object.values(S.clients).forEach(c=>{snap[c.id]=sj(c);snapF[c.id]=fmap(c)})}
+const DOC_F=new Set(['ine','dom','proof','comp5','constSem','evidenciaSol','files','contratoFirm','pago_sua','pago_sipare','pago_infonavit','pago_suaPagado','pago_siparePagado','pago_infonavitPagado']);
 snapAll();
 const _save=save;let dTimer=null;
-save=function(){const now=Date.now();let ch=false;Object.values(S.clients).forEach(c=>{const j=sj(c);if(snap[c.id]!==j){c.updatedAt=Math.max(now,(c.updatedAt||0)+1);snap[c.id]=j;ch=true}});
-const ok=_save();lsG(DK.dirty,'1');clearTimeout(dTimer);dTimer=setTimeout(()=>syncDrive(false),3000);return ok};
+save=function(){const now=Date.now();let ch=false,doc=false;Object.values(S.clients).forEach(c=>{const j=sj(c);if(snap[c.id]!==j){c.updatedAt=Math.max(now,(c.updatedAt||0)+1);snap[c.id]=j;ch=true;
+ const o=snapF[c.id]||{},n=fmap(c);c.fieldTs=c.fieldTs||{};for(const k of new Set([...Object.keys(o),...Object.keys(n)]))if(o[k]!==n[k]){c.fieldTs[k]=c.updatedAt;if(DOC_F.has(k))doc=true}snapF[c.id]=n;snap[c.id]=sj(c)}});
+const ok=_save();lsG(DK.dirty,'1');clearTimeout(dTimer);dTimer=setTimeout(()=>syncDrive(false),doc?50:3000);return ok};
 /*SOL*/// ===== Solicitud de dinero → solicitud de semanas cotizadas (evento automático en Calendar) =====
 function semMsgDefault(c){return'Solicitud de semanas cotizadas\nNombre: '+String(c.nombre||'').trim()+'\nCURP: '+(c.curp||'')+'\nNSS: '+(c.nss||'')}
 function fechaCorta(d){return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
@@ -1325,15 +1329,28 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
  const d=a.dataset.vercf!=null?((c.contratoFirm||[])[+a.dataset.vercf]||{}).data:a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
 try{updVer()}catch(x){}
 
-function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),clients:S.clients,reminders:S.reminders,form:S.form||null,
+function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
+function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
+function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),writer:{dev:devName(),id:devId(),origin:location.origin==='null'?location.protocol:location.origin,ts:Date.now()},clients:S.clients,reminders:S.reminders,form:S.form||null,
 flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,shared:{waTel:lsG('retiroApp.waTel')||''}}}
 const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared]);
+// Fusión por campo: gana el más reciente según fieldTs (o updatedAt si no hay); las listas se unen por id/nombre+fecha.
+const M_LIST={files:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,contratoFirm:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,historial:h=>h.ts+'|'+h.tipo+'|'+h.texto,docsArchivo:a=>a.k+'|'+a.removed+'|'+(a.data||'').length,segHist:a=>(a.id||'')+'|'+a.fecha+'|'+a.hora+'|'+a.ts};
+function mergeClient(lc,rc){const n={id:lc.id},ft={},tl=k=>(lc.fieldTs&&lc.fieldTs[k])||lc.updatedAt||0,tr=k=>(rc.fieldTs&&rc.fieldTs[k])||rc.updatedAt||0;
+ for(const k of new Set([...Object.keys(lc),...Object.keys(rc)])){if(F_SKIP[k])continue;const a=tl(k),b=tr(k);
+  if(M_LIST[k]&&(Array.isArray(lc[k])||Array.isArray(rc[k]))){const key=M_LIST[k],seen=new Set(),out=[];const[p,q]=b>a?[rc[k],lc[k]]:[lc[k],rc[k]];[...(p||[]),...(q||[])].forEach(x=>{if(!x)return;const id=key(x);if(seen.has(id))return;seen.add(id);out.push(x)});
+   if(k==='historial')out.sort((x,y)=>x.ts-y.ts);else if(k==='segHist'){out.sort((x,y)=>(y.ts||0)-(x.ts||0));out.forEach((x,i)=>{if(i)x.hecho=true})}n[k]=out}
+  else n[k]=b>a?rc[k]:lc[k];
+  if(k in lc&&!(k in rc)&&b>a&&rc.fieldTs&&rc.fieldTs[k])delete n[k];if(k in rc&&!(k in lc)&&a>=b&&lc.fieldTs&&lc.fieldTs[k])delete n[k];
+  const m=Math.max(a,b);if((lc.fieldTs&&lc.fieldTs[k])||(rc.fieldTs&&rc.fieldTs[k]))ft[k]=m}
+ if(lc.nuevoForm&&!(rc.nuevoForm===undefined&&(rc.updatedAt||0)>(lc.updatedAt||0)))n.nuevoForm=lc.nuevoForm;
+ n.fieldTs=ft;n.updatedAt=Math.max(lc.updatedAt||0,rc.updatedAt||0);return n}
 function mergeState(R){let changed=false;const L=S.clients,bySeed={},byCurp={};
 const idx=c=>{if(c.seedKey)bySeed[c.seedKey]=c;if(c.curp)(byCurp[c.curp]=byCurp[c.curp]||[]).push(c)};Object.values(L).forEach(idx);const idMap={};
 for(const rc of Object.values(R.clients||{})){let lc=L[rc.id]||(rc.seedKey&&bySeed[rc.seedKey])||null;
 if(!lc&&rc.curp)lc=(byCurp[rc.curp]||[]).find(x=>!x.seedKey||!rc.seedKey)||null;
 if(!lc){L[rc.id]=rc;idx(rc);idMap[rc.id]=rc.id;changed=true;continue}idMap[rc.id]=lc.id;
-if((rc.updatedAt||0)>(lc.updatedAt||0)){const n=Object.assign({},rc,{id:lc.id});if(lc.nuevoForm&&!rc.nuevoForm)delete n.nuevoForm;L[lc.id]=n;bySeed[n.seedKey]=n;changed=true;if(cur===lc.id)cur=lc.id}}
+const n=mergeClient(lc,rc);if(JSON.stringify(n)!==JSON.stringify(lc)){L[lc.id]=n;if(n.seedKey)bySeed[n.seedKey]=n;changed=true}}
 for(const r of R.reminders||[]){const cid=idMap[r.clientId]||r.clientId;if(!S.reminders.some(x=>x.id===r.id||(x.clientId===cid&&x.date===r.date))){S.reminders.push(Object.assign({},r,{clientId:cid}));changed=true}}
 if(R.form){const F=syncMeta();if(R.form.maxRow>F.maxRow){F.maxRow=R.form.maxRow;changed=true}(R.form.ignore||[]).forEach(f=>{if(!F.ignore.includes(f)){F.ignore.push(f);changed=true}})}
 if(R.flags){if(R.flags.seeded&&!lsG('retiroApp.seeded'))lsG('retiroApp.seeded','1');if(R.flags.migFinal&&!lsG('retiroApp.migFinal'))lsG('retiroApp.migFinal','1')}
@@ -1346,9 +1363,13 @@ async function dGet(t,id){const r=await fetch(DAPI+'/'+id+'?alt=media',{headers:
 async function dCreate(t){const r=await fetch(DAPI,{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:DFILE,parents:['appDataFolder'],mimeType:'application/json'})});if(!r.ok)throw new Error('Drive respondió '+r.status);return(await r.json()).id}
 async function dPut(t,id,body){const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media',{method:'PATCH',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body});if(!r.ok)throw new Error('Drive respondió '+r.status)}
 let dBusy=false,dAgain=false,dRetry=null,dState='off';
+$('btnSyncNow').onclick=()=>{clearTimeout(dTimer);syncDrive(true)};
+(()=>{const h=location.hostname;if(/^https?:$/.test(location.protocol)&&h&&h!=='snakeblaxk.github.io'&&!/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(h)){const d=document.createElement('div');d.id='oldOrigin';d.className='alert';d.style.cssText='margin:8px;padding:10px;background:#fdecea;color:#b3261e;font-weight:bold';d.innerHTML='⚠️ Esta es una dirección antigua: sus datos NO se comparten con los demás equipos. Usa <a href="https://snakeblaxk.github.io/retiro-afore/" style="color:#1565c0;text-decoration:underline">https://snakeblaxk.github.io/retiro-afore/</a>';document.body.prepend(d)}})();
 function hace(ms){const s=Math.round(ms/1000);if(s<45)return'unos segundos';const m=Math.round(s/60);if(m<60)return m+' min';const h=Math.round(m/60);return h<24?h+' h':Math.round(h/24)+' días'}
 function dStatus(st){if(st)dState=st;const e=$('driveStatus'),l=+lsG(DK.last)||0;
-e.textContent=dState==='busy'?'⟳ Sincronizando…':dState==='ok'?'☁ Sincronizado hace '+hace(Date.now()-l)+(lsG(DK.dirty)?' · cambios pendientes':''):'⚠ Sin conexión a Google'+(lsG(DK.dirty)?' · cambios guardados en este equipo':'')}
+let W=null;try{W=JSON.parse(lsG('retiroApp.lastWriter')||'null')}catch(x){}const er=lsG('retiroApp.syncErr');
+e.textContent=(dState==='busy'?'⟳ Sincronizando…':dState==='ok'?'☁ Sincronizado hace '+hace(Date.now()-l)+(lsG(DK.dirty)?' · cambios pendientes':''):'⚠ Sin conexión a Google'+(lsG(DK.dirty)?' · cambios guardados en este equipo':''))+(er?(dState==='err'?' · ⚠ Error al sincronizar: ':' · último error: ')+er:'');
+$('lastWriter').textContent=W?'Última subida desde: '+W.dev+(W.id===devId()?' (este equipo)':'')+' · '+W.origin+' hace '+hace(Date.now()-W.ts):''}
 async function syncDrive(interactivo){if(dBusy){dAgain=true;return}if(!interactivo&&!driveListo()){dStatus('off');$('syncBanner').classList.toggle('hidden',!needConnect());return}
 dBusy=true;dStatus('busy');clearTimeout(dRetry);
 try{const t=await gToken([DRIVE_SCOPE]);let f=await dFind(t);const R=f?await dGet(t,f.id):null;
@@ -1356,9 +1377,10 @@ if(R&&R.app==='retiroApp'&&mergeState(R)){renderList();renderRem();if(cur&&S.cli
 const mine=buildState();
 // Protección contra pérdida de datos: si el archivo remoto existe pero no se pudo leer/validar y este equipo no tiene clientes, nunca se sobrescribe
 if(f&&!(R&&R.app==='retiroApp')&&!Object.keys(S.clients).length)throw new Error('Copia remota ilegible; no se sobrescribe con una lista vacía');
-if(!f){const id=await dCreate(t);await dPut(t,id,JSON.stringify(mine))}else if(lsG(DK.dirty)||!R||coreJ(R)!==coreJ(mine))await dPut(t,f.id,JSON.stringify(mine));
-lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));dStatus('ok')}
-catch(e){dStatus('err');dRetry=setTimeout(()=>syncDrive(false),30000)}
+let W=R&&R.writer||null;
+if(!f){const id=await dCreate(t);await dPut(t,id,JSON.stringify(mine));W=mine.writer}else if(lsG(DK.dirty)||!R||coreJ(R)!==coreJ(mine)){await dPut(t,f.id,JSON.stringify(mine));W=mine.writer}
+lsG('retiroApp.lastWriter',W?JSON.stringify(W):null);lsG('retiroApp.syncErr',null);lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));dStatus('ok')}
+catch(e){lsG('retiroApp.syncErr',(e&&e.message)||String(e));dStatus('err');dRetry=setTimeout(()=>syncDrive(false),30000)}
 finally{dBusy=false;$('syncBanner').classList.toggle('hidden',!needConnect());if(dAgain){dAgain=false;syncDrive(false)}}}
 setInterval(()=>dStatus(),30000);
 (async()=>{await syncDrive(false);syncFormulario(false)})();setInterval(()=>syncFormulario(false),5*60*1000);setInterval(()=>syncDrive(false),60000);addEventListener('focus',()=>syncDrive(false));addEventListener('online',()=>syncDrive(false));
