@@ -84,7 +84,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <div class="card" id="contractCard"><h3>Contrato y firma</h3>
 <div class="row"><div><label>Grupo</label><select id="f_estado"><option value="pendiente">Pendiente de firma</option><option value="firmado">Ya está firmado</option><option value="espera">En espera</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option><option value="sinetapa">Sin etapa (por asignar)</option></select></div>
 <div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button></div></div></div>
-<label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div>
+<label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div><div class="docSt" id="cfBox"><span id="stCf"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir contrato firmado (fotos o PDF)<input type="file" id="f_cf" accept="image/*,application/pdf,.pdf" multiple hidden></label><div id="cfList"></div></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
 <div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
 <div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <a href="#" class="verL hidden" data-ver="dom">ver</a> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
@@ -1246,7 +1246,7 @@ const H_CAMPOS=[['fechaBaja','fecha',v=>'Fecha de baja: '+H_FECHA()(v)],['fechaS
  ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado'],['comp5At','documento',()=>'Comprobante de 5 años del último retiro subido']];
 const H_MAX_ARCH=400e3,H_MAX_ARCH_TOT=1.5e6;
 let hsnap={},hMute=false;
-function hSnap(c){const o={estado:c.estado,files:(c.files||[]).map(f=>f.name+'|'+(f.data||'').length),fdata:(c.files||[]).map(f=>f),tram:{expElectronico:!!c.expElectronico,tarjetaN4:!!c.tarjetaN4},ev:c.recordEventId||null,ev2:c.semanasEventId||null};
+function hSnap(c){const o={estado:c.estado,files:(c.files||[]).map(f=>f.name+'|'+(f.data||'').length),fdata:(c.files||[]).map(f=>f),cf:(c.contratoFirm||[]).map(f=>f.name+'|'+(f.data||'').length),cfdata:(c.contratoFirm||[]).slice(),tram:{expElectronico:!!c.expElectronico,tarjetaN4:!!c.tarjetaN4},ev:c.recordEventId||null,ev2:c.semanasEventId||null};
  for(const k in H_DOCS)o[k]=c[k]||'';for(const [k] of H_CAMPOS)o[k]=c[k]||null;return o}
 function hSnapAll(){hsnap={};Object.values(S.clients).forEach(c=>hsnap[c.id]=hSnap(c))}
 function hist(c,tipo,texto,ts){if(!c)return;(c.historial=c.historial||[]);const now=ts||Date.now(),L=c.historial[c.historial.length-1];
@@ -1259,6 +1259,7 @@ function hDiff(){if(hMute)return;for(const c of Object.values(S.clients)){const 
  for(const k in H_DOCS){if(o[k]===n[k])continue;const L=H_DOCS[k];if(n[k]){c.docTs[k]=Date.now();hist(c,'documento',(o[k]?'Documento reemplazado: ':'Documento subido: ')+L+(o[k]?hArchivar(c,k,L,o[k]):''))}else{hist(c,'documento','Documento quitado: '+L+hArchivar(c,k,L,o[k]));delete c.docTs[k]}}
  if(o.files.join()!==n.files.join()){const on=new Set(o.files),nn=new Set(n.files);(c.files||[]).forEach(f=>{const id=f.name+'|'+(f.data||'').length;if(!on.has(id)){f.ts=f.ts||Date.now();hist(c,'documento','Estado de cuenta Afore subido: '+f.name)}});
   o.fdata.forEach(f=>{const id=f.name+'|'+(f.data||'').length;if(!nn.has(id))hist(c,'documento','Estado de cuenta Afore quitado: '+f.name+hArchivar(c,'edo','Estado de cuenta Afore: '+f.name,f.data))})}
+ if((o.cf||[]).join()!==n.cf.join()){const on=new Set(o.cf||[]),nn=new Set(n.cf);(c.contratoFirm||[]).forEach(f=>{if(!on.has(f.name+'|'+(f.data||'').length))hist(c,'documento','Contrato firmado subido: '+f.name)});(o.cfdata||[]).forEach(f=>{if(!nn.has(f.name+'|'+(f.data||'').length))hist(c,'documento','Contrato firmado quitado: '+f.name+hArchivar(c,'cf','Contrato firmado: '+f.name,f.data))})}
  for(const [k,t,fx] of H_CAMPOS)if(o[k]!==n[k]&&n[k]){hist.k=k;hist(c,t,fx(n[k]))}
  for(const k in n.tram)if(o.tram[k]!==n.tram[k])hist(c,'pendiente',(n.tram[k]?'Marcado listo: ':'Desmarcado (pendiente): ')+(k==='expElectronico'?'Expediente electrónico':'Tarjeta nivel 4'));
  if(o.ev!==n.ev){if(o.ev)hist(c,'calendario','Evento de Google Calendar eliminado: recordatorio al proveedor');if(n.ev)hist(c,'calendario','Evento de Google Calendar creado: recordatorio al proveedor cada 2 días')}
@@ -1284,7 +1285,7 @@ const H_ICO={nota:'📝',estado:'🔀',documento:'📄',montos:'💲',fecha:'�
 let hTab='hist';
 function hFmt(t){return new Date(t).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}
 function hDocs(c){const D=[];const add=(label,data,ts,extra)=>{if(data)D.push(Object.assign({label,data,ts},extra||{}))};
- for(const k in H_DOCS)add(H_DOCS[k],c[k],c.docTs&&c.docTs[k]);(c.files||[]).forEach(f=>add('Estado de cuenta Afore: '+f.name,f.data,f.ts));(c.docsArchivo||[]).forEach(a=>add(a.label,a.data,a.ts,{arch:a.removed}));return D}
+ for(const k in H_DOCS)add(H_DOCS[k],c[k],c.docTs&&c.docTs[k]);(c.files||[]).forEach(f=>add('Estado de cuenta Afore: '+f.name,f.data,f.ts));(c.contratoFirm||[]).forEach(f=>add('Contrato firmado: '+f.name,f.data,f.ts));(c.docsArchivo||[]).forEach(a=>add(a.label,a.data,a.ts,{arch:a.removed}));return D}
 const isImg=d=>/^data:image\//.test(d),isPdf=d=>/^data:application\/pdf/.test(d);
 function renderHist(){const c=C();if(!c)return;$('histName').textContent=c.nombre||'';$('hTabH').className=hTab==='hist'?'':'sec';$('hTabD').className=hTab==='docs'?'':'sec';$('hHistBox').classList.toggle('hidden',hTab!=='hist');$('hDocsBox').classList.toggle('hidden',hTab!=='docs');
  const solo=$('hSoloNotas').checked,L=(c.historial||[]).filter(h=>!solo||h.tipo==='nota').slice().sort((a,b)=>b.ts-a.ts);
@@ -1301,10 +1302,15 @@ $('hNota').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('
 $('hDocList').onclick=e=>{const d=e.target.closest('.hDoc');if(d)abrirDoc(window.__hDocs[+d.dataset.i])};
 $('hViewer').onclick=()=>$('hViewer').classList.add('hidden');
 // Enlaces «ver» junto a cada documento del detalle
-function updVer(){const c=C();document.querySelectorAll('#caseView [data-ver]').forEach(a=>a.classList.toggle('hidden',!(c&&c[a.dataset.ver])))}
-for(const n of ['render','renderPrecal','renderSol','renderImss']){const o=window[n];if(typeof o==='function')window[n]=function(){const r=o.apply(this,arguments);try{updVer()}catch(x){}return r}}
+function renderCf(){const c=C();if(!c||!$('stCf'))return;const L=c.contratoFirm||[];$('stCf').textContent=L.length?'✅ Contrato firmado cargado'+(L.length>1?' ('+L.length+' archivos)':''):'❌ Falta contrato firmado';
+ $('cfList').innerHTML=L.map((f,i)=>'<div><small>📎 '+esc(f.name||('Archivo '+(i+1)))+'</small> <a href="#" class="verL" data-vercf="'+i+'">ver</a> <button class="sec" data-cfdel="'+i+'">Quitar</button></div>').join('')}
+$('f_cf').onchange=async e=>{const fs=[...e.target.files];e.target.value='';const id=cur;for(const f of fs){let d;try{if(/^image\//.test(f.type))d=await compress(f);else if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>1.5e6){alert('El PDF pesa más de 1.5 MB; sube fotos.');continue}d=await readURL(f)}else{alert('Sube imágenes o un PDF.');continue}}catch(x){alert('No se pudo leer el archivo.');continue}
+ const c=S.clients[id];c.contratoFirm=c.contratoFirm||[];c.contratoFirm.push({name:f.name,type:/^image\//.test(f.type)?'image/jpeg':'application/pdf',data:d,ts:Date.now()});if(!save()){c.contratoFirm.pop();alert('No hay espacio para guardar el archivo.');break}}if(cur===id)render()};
+$('cfList').addEventListener('click',e=>{const b=e.target.closest('[data-cfdel]');if(!b)return;const c=C();c.contratoFirm.splice(+b.dataset.cfdel,1);save();render()});
+function updVer(){renderCf();const c=C();document.querySelectorAll('#caseView [data-ver]').forEach(a=>a.classList.toggle('hidden',!(c&&c[a.dataset.ver])))}
+for(const n of ['renderContract','render','renderPrecal','renderSol','renderImss']){const o=window[n];if(typeof o==='function')window[n]=function(){const r=o.apply(this,arguments);try{updVer()}catch(x){}return r}}
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.verL');if(!a)return;e.preventDefault();e.stopPropagation();const c=C();if(!c)return;
- const d=a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
+ const d=a.dataset.vercf!=null?((c.contratoFirm||[])[+a.dataset.vercf]||{}).data:a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
 try{updVer()}catch(x){}
 
 function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),clients:S.clients,reminders:S.reminders,form:S.form||null,
