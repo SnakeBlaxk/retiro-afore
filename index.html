@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 .chk input{width:22px;height:22px;flex:none}small{color:#555}
 .chip{padding:5px 10px;font-size:.85rem}.tab{font-size:.85rem;padding:6px 10px}.badge{display:inline-block;font-size:.75rem;padding:1px 7px;border-radius:10px;background:#e3e8ef}.b-nuevo{background:#ffd54f;font-weight:700}.b-firmado{background:#9fd6b8}.b-finalizado{background:#b9d3f5}.b-espera{background:#ffe2a8}.b-cancelado{background:#f4b6b2}.b-sinetapa{background:#d9d2f0}
 #printDoc{display:none}@media print{body>*{display:none!important}#printDoc{display:block!important}#printDoc .pp{page-break-after:always;font:11pt Arial,sans-serif;text-align:justify}}
-.pill-or{display:inline-block;background:#fb8c00;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin:2px 2px 0 0}#altaArea .row{flex-wrap:wrap}.waBtn{flex:1 1 220px;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25;height:auto}#altaArea pre{white-space:pre-wrap;overflow-wrap:anywhere}#histPanel{position:fixed;inset:0;background:#fff;z-index:50;overflow:auto;padding:12px;box-sizing:border-box}.hHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.hItem{border-left:3px solid #ccc;padding:4px 8px;margin:6px 0}.hNota{border-left-color:#fb8c00;background:#fff3e0}.hDoc{display:flex;gap:10px;align-items:center;padding:6px;border-bottom:1px solid #eee;cursor:pointer}.hDoc img,.hPdf{width:56px;height:56px;object-fit:cover;border-radius:4px;flex:0 0 56px}.hPdf{background:#e53935;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold}#hViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}#hViewer.hidden{display:none}#hViewer img{max-width:100%;max-height:92vh}
+.verL{color:#1565c0;text-decoration:underline;cursor:pointer;margin:0 4px}.verL.hidden{display:none}.pill-or{display:inline-block;background:#fb8c00;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin:2px 2px 0 0}#altaArea .row{flex-wrap:wrap}.waBtn{flex:1 1 220px;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25;height:auto}#altaArea pre{white-space:pre-wrap;overflow-wrap:anywhere}#histPanel{position:fixed;inset:0;background:#fff;z-index:50;overflow:auto;padding:12px;box-sizing:border-box}.hHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.hItem{border-left:3px solid #ccc;padding:4px 8px;margin:6px 0}.hNota{border-left-color:#fb8c00;background:#fff3e0}.hDoc{display:flex;gap:10px;align-items:center;padding:6px;border-bottom:1px solid #eee;cursor:pointer}.hDoc img,.hPdf{width:56px;height:56px;object-fit:cover;border-radius:4px;flex:0 0 56px}.hPdf{background:#e53935;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold}#hViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}#hViewer.hidden{display:none}#hViewer img{max-width:100%;max-height:92vh}
 .sumBar{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0}.sb{margin:0;padding:8px 4px;border-radius:10px;background:#f3f5f8;color:#1d2433;border:2px solid transparent;display:flex;flex-direction:column;align-items:center;line-height:1.1;min-width:0}
 .sb b{font-size:1.45rem}.sb span{font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.sb.on{border-color:#1d2433;box-shadow:0 0 0 2px #fff inset}
 .sb-atrasado b{color:#c62828}.sb-riesgo b{color:#ef6c00}.sb-proceso b{color:#546e7a}.sb-listo b{color:#2e7d32}.sb-sinfecha b{color:#78909c}.sb-solicitado b{color:#1565c0}
@@ -80,14 +80,14 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <div class="row"><div><label>Nombre</label><input type="text" id="f_nombre"></div>
 <div><label>CURP</label><input type="text" id="f_curp" maxlength="18" style="text-transform:uppercase"></div>
 <div><label>NSS (11 dígitos)</label><input type="text" id="f_nss" maxlength="11" inputmode="numeric"></div></div>
-<label>Foto de INE</label><input type="file" id="f_ine" accept="image/*"><img id="inePrev" class="prev hidden" alt="INE"></div>
+</div>
 <div class="card" id="contractCard"><h3>Contrato y firma</h3>
 <div class="row"><div><label>Grupo</label><select id="f_estado"><option value="pendiente">Pendiente de firma</option><option value="firmado">Ya está firmado</option><option value="espera">En espera</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option><option value="sinetapa">Sin etapa (por asignar)</option></select></div>
 <div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button></div></div></div>
 <label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
-<div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
-<div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
+<div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
+<div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <a href="#" class="verL hidden" data-ver="dom">ver</a> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
 <div id="docOcr"></div>
 <div id="docWarn" class="alert hidden"></div>
 <label>Cita de firma</label><div class="row"><input type="date" data-fe="citaFecha"><input type="time" data-fe="citaHora"><button class="sec" data-ag="cita" style="flex:0 0 auto">📅 Agendar</button></div>
@@ -100,12 +100,11 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <button id="btnPdf">📄 Generar contrato PDF</button><button class="sec hidden" data-ag="pagare" id="btnAgPag">📅 Agendar vencimiento del pagaré</button><div id="pdfMsg"></div></div>
 <div class="steps" id="stepBar"></div>
 <div class="card step" data-s="1"><h3>Paso 1 · Filtro</h3>
-<label>Semanas cotizadas</label><input type="number" id="f_sem" min="0"><div id="semHint"><small>Mínimo 104 · ideal 150 o más</small></div>
-<label class="chk"><input type="checkbox" id="f_alta"> ¿Está dado de alta actualmente en un trabajo?</label></div>
+<div id="paso1Info"></div><small>Semanas restantes y alta en un trabajo se capturan en <a href="#semCard" style="color:#1565c0;text-decoration:underline">Precalificación › Semanas cotizadas</a>.</small></div>
 <div class="card step" data-s="2"><h3>Paso 2 · Último retiro</h3>
 <label>¿Han pasado 5 años desde su último retiro por desempleo?</label>
 <select id="f_r5"><option value="">— Selecciona —</option><option value="si">Sí</option><option value="no">No</option><option value="nunca">Nunca ha retirado</option></select>
-<div id="r5No" class="hidden"><label>Comprobante del último retiro (imagen)</label><input type="file" id="f_proof" accept="image/*">
+<div id="r5No" class="hidden"><label>Comprobante del último retiro (imagen)</label><input type="file" id="f_proof" accept="image/*"> <a href="#" class="verL hidden" data-ver="proof">ver</a>
 <img id="proofPrev" class="prev hidden" alt="Comprobante"><div id="ocrMsg"><small></small></div>
 <label>Fecha del último retiro</label><input type="date" id="f_last"><div id="r5Info"></div></div></div>
 <div class="card step" data-s="3"><h3>Paso 3 · Aviso al cliente</h3>
@@ -118,15 +117,15 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <tr><td>Subcuenta de vivienda (aparte, no se suma)</td><td><input type="number" id="f_viv" step="0.01"></td></tr></table></div>
 <div class="card"><div id="errBox" class="alert hidden"></div>
 <button class="sec" id="btnPrev">← Anterior</button><button id="btnNext">Siguiente →</button><button id="btnFin" class="hidden">Hasta aquí el filtro</button></div>
+<div class="card" id="precalCard"><h3>Precalificación</h3><label class="chk"><input type="checkbox" id="f_precal"> Precalificado (tiene semanas, saldo y 5 años)</label><div id="precalInfo"></div><div id="edoPreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Estado de cuenta de la Afore</b><br><label class="file">📄 Subir estado de cuenta (foto o PDF)<input type="file" id="f_edoPre" accept="image/*,application/pdf,.pdf"></label><div id="ocrPre"><small></small></div><table id="preSubs"><tbody></tbody></table><div id="preSaldo"></div></div><div id="r5PreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Comprobante de 5 años del último retiro</b><br><label class="file">📄 Subir comprobante (foto o PDF)<input type="file" id="f_comp5" accept="image/*,application/pdf,.pdf"></label> <span id="comp5Doc"></span> <a href="#" class="verL hidden" data-ver="comp5">ver</a><div id="r5PreInfo"></div></div><div id="semCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Semanas cotizadas (IMSS)</b> <small>· Mínimo 104 · ideal 150 o más</small><br><label class="file">📄 Subir constancia (foto o PDF)<input type="file" id="f_constSem" accept="image/*,application/pdf,.pdf"></label> <span id="semDoc"></span> <a href="#" class="verL hidden" data-ver="constSem">ver</a><div id="semMsg"></div>
+<div class="semGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label><small>Semanas cotizadas</small><input type="number" id="s_cot" min="0"></label><label><small>Semanas descontadas</small><input type="number" id="s_desc" min="0"></label><label><small>Semanas reintegradas</small><input type="number" id="s_reint" min="0"></label><label><small><b>Semanas restantes</b></small><input type="number" id="s_rest" min="0"></label><div id="semHint" style="grid-column:1/-1"><small>Mínimo 104 · ideal 150 o más</small></div>
+<label style="grid-column:1/-1"><small>Patrón(es) vigente(s) (vacío = ninguno)</small><input type="text" id="s_vig" placeholder="Sin patrón vigente"></label><label style="grid-column:1/-1"><small>Última fecha de baja</small><input type="date" id="s_baja"></label></div><div id="semVigInfo"></div><label class="chk"><input type="checkbox" id="f_alta"> ¿Está dado de alta actualmente en un trabajo? <small id="altaAuto"></small></label></div></div>
 <div class="card" id="imssCard"><h3>Pagos IMSS</h3><div id="imssRows"></div><div id="bajaBox"><label>Fecha de baja (leída del SUA)</label><input type="date" id="f_baja"><div id="bajaMsg"></div><div id="solInfo"></div></div><div id="imssWarn" class="alert hidden"></div></div>
 <div class="card" id="tramCard"><h3>Pendientes del trámite</h3><div id="tramRows"></div></div>
-<div class="card" id="precalCard"><h3>Precalificación</h3><label class="chk"><input type="checkbox" id="f_precal"> Precalificado (tiene semanas, saldo y 5 años)</label><div id="precalInfo"></div><div id="edoPreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Estado de cuenta de la Afore</b><br><label class="file">📄 Subir estado de cuenta (foto o PDF)<input type="file" id="f_edoPre" accept="image/*,application/pdf,.pdf"></label><div id="ocrPre"><small></small></div><table id="preSubs"><tbody></tbody></table><div id="preSaldo"></div></div><div id="r5PreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Comprobante de 5 años del último retiro</b><br><label class="file">📄 Subir comprobante (foto o PDF)<input type="file" id="f_comp5" accept="image/*,application/pdf,.pdf"></label> <span id="comp5Doc"></span><div id="r5PreInfo"></div></div><div id="semCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Constancia de semanas cotizadas (IMSS)</b><br><label class="file">📄 Subir constancia (foto o PDF)<input type="file" id="f_constSem" accept="image/*,application/pdf,.pdf"></label> <span id="semDoc"></span><div id="semMsg"></div>
-<div class="semGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label><small>Semanas cotizadas</small><input type="number" id="s_cot" min="0"></label><label><small>Semanas descontadas</small><input type="number" id="s_desc" min="0"></label><label><small>Semanas reintegradas</small><input type="number" id="s_reint" min="0"></label><label><small><b>Semanas restantes</b></small><input type="number" id="s_rest" min="0"></label>
-<label style="grid-column:1/-1"><small>Patrón(es) vigente(s) (vacío = ninguno)</small><input type="text" id="s_vig" placeholder="Sin patrón vigente"></label><label style="grid-column:1/-1"><small>Última fecha de baja</small><input type="date" id="s_baja"></label></div><div id="semVigInfo"></div></div></div>
 <div class="card" id="seg2Card"><h3>Mensaje al cliente: segundo paso</h3><div id="seg2Locked" class="warn"><small>Sube el SUA o captura la fecha de baja para preparar el mensaje.</small></div>
 <div id="seg2Body" class="hidden"><textarea id="seg2Text" rows="5" style="width:100%;box-sizing:border-box"></textarea><div id="seg2TelBox" class="hidden"><label>Celular del cliente</label><input type="tel" id="seg2Tel" placeholder="10 dígitos" inputmode="tel"></div>
 <small id="seg2TelInfo"></small><div class="row" style="flex-wrap:wrap"><button class="sec" id="btnSeg2Copy" style="flex:0 0 auto">Copiar</button><button id="btnSeg2Wa" class="waBtn">Enviar por WhatsApp Business al cliente</button></div><small id="seg2Sent"></small></div></div>
-<div class="card" id="solCard"><h3>Solicitud de dinero</h3><div id="solStatus"></div>
+<div class="card" id="solCard"><h3>Solicitud de dinero</h3><div id="solStatus"></div><a href="#" class="verL hidden" data-ver="evidenciaSol">ver</a>
 <div id="solAsk"><button id="btnSolYa">Ya se solicitó el dinero</button><div id="solPick" class="hidden"><small>Sube la evidencia de la solicitud (foto, imagen o PDF):</small><div class="row" style="flex-wrap:wrap;gap:6px">
 <label class="btn sec" style="display:inline-block;cursor:pointer">📷 Tomar foto<input type="file" id="f_solFoto" accept="image/*" capture="environment" hidden></label>
 <label class="btn sec" style="display:inline-block;cursor:pointer">Subir imagen o PDF<input type="file" id="f_solArch" accept="image/*,application/pdf" hidden></label></div></div></div>
@@ -670,6 +669,8 @@ async function readEdo(f,id,box){box=box||'ocr4';pwBox=box;const m=$(box);let us
  if(conf.length){h+=' '+conf.length+' campo(s) ya tenían un valor distinto y no se cambiaron. <button class="sec" id="btnEdoRepl">Reemplazar con lo detectado</button>'}
  msg(h);const b=$('btnEdoRepl');if(b)b.onclick=()=>{const c=S.clients[id];for(const [k,v] of conf){if(k.o)k.o.v=String(v);else c.sub[k]=String(v)}save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render();renderPrecal(c)}msg('✔ Se reemplazaron '+conf.length+' montos con lo detectado. Revísalos.')}}
 // validación
+// «Dado de alta» se deriva del patrón vigente; se puede cambiar a mano (se re-deriva sólo si cambia el patrón vigente)
+function altaSync(c){const v=String(c.semVigente||'').trim();if(c.altaVigRef===undefined){c.altaVigRef=v;if(v)c.alta=true;return}if(c.altaVigRef!==v){c.altaVigRef=v;c.alta=!!v}}
 function e1(c){const e=[];if(c.alta)e.push('El cliente está dado de alta actualmente en un trabajo: no puede tramitar.');if(c.semanas===''||num(c.semanas)<104)e.push('Menos de 104 semanas cotizadas (mínimo 104).');if(!CURP_RE.test(c.curp||''))e.push(c.curp?'CURP inválida (18 caracteres con formato oficial).':'Falta la CURP.');return e}
 function r5Status(c){if(c.r5!=='no'||!c.last)return null;const el=addY(c.last,5),t=todayStr();if(t>=el)return{k:'past',el};if(el<=addM(t,2))return{k:'soon',el};return{k:'far',el}}
 function e2(c){if(!c.r5)return['Indica si han pasado 5 años desde su último retiro.'];if(c.r5!=='no')return[];if(!c.last)return['Captura la fecha del último retiro (o súbela para leerla automáticamente).'];const s=r5Status(c);if(s.k==='far')return['Aún no pasan 5 años: podrá tramitar a partir del '+human(s.el)+' (faltan más de 2 meses).'];return[]}
@@ -745,22 +746,22 @@ $('btnBack').onclick=()=>{cur=null;$('caseView').classList.add('hidden');$('list
 $('btnRem').onclick=()=>$('remPanel').classList.toggle('hidden');
 // caso
 const C=()=>S.clients[cur];
-function openCase(id){cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;$('f_sem').value=c.semanas;$('f_alta').checked=c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
+function openCase(id){cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;altaSync(c);$('f_alta').checked=!!c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
 function setImg(el,src){el.src=src||'';el.classList.toggle('hidden',!src)}
 function render(){const c=C();if(!c)return;
 document.querySelectorAll('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==c.step));
 $('stepBar').innerHTML=[1,2,3,4].map(i=>`<span class="${i===c.step?'cur':(i<c.step&&!VAL[i](c).length?'done':'')}">Paso ${i}</span>`).join('');
-setImg($('inePrev'),c.ine);setImg($('proofPrev'),c.proof);
+setImg($('proofPrev'),c.proof);
 $('f_curp').classList.toggle('red',!!c.curp&&!CURP_RE.test(c.curp));$('f_curp').classList.toggle('green',CURP_RE.test(c.curp));
 $('f_nss').classList.toggle('red',!!c.nss&&!/^\d{11}$/.test(c.nss));$('f_nss').classList.toggle('green',/^\d{11}$/.test(c.nss));
-const sm=$('f_sem'),n=num(c.semanas);sm.classList.toggle('red',c.semanas!==''&&n<104);sm.classList.toggle('green',c.semanas!==''&&n>=104);
+const n=num(c.semanas);altaSync(c);$('f_alta').checked=!!c.alta;$('altaAuto').textContent=String(c.semVigente||'').trim()?'(detectado: patrón vigente)':'';$('paso1Info').innerHTML=(c.semanas===''||c.semanas==null?'':'<b>'+esc(String(c.semanas))+'</b> semanas restantes · ')+(c.alta?'⚠️ dado de alta en un trabajo':'no está dado de alta');
 $('semHint').innerHTML=c.semanas===''?'<small>Mínimo 104 · ideal 150 o más</small>':n<104?'<div class="alert">Menos de 104 semanas: no califica.</div>':n<150?'<div class="warn">Califica (≥104). Ideal 150 o más.</div>':'<div class="ok">✔ Ideal: 150 semanas o más.</div>';
 $('r5No').classList.toggle('hidden',c.r5!=='no');
 const st=r5Status(c),inf=$('r5Info');inf.innerHTML='';
 if(st){if(st.k==='past')inf.innerHTML='<div class="ok">✔ Ya pasaron 5 años (desde el '+human(st.el)+').</div>';
 else if(st.k==='soon')inf.innerHTML='<div class="warn">Podrá tramitar a partir del <b>'+human(st.el)+'</b> (menos de 2 meses). Se creó un recordatorio. <button class="sec" id="icsNow">📅 Agendar</button></div>';
 else inf.innerHTML='<div class="alert">Faltan más de 2 meses: podrá tramitar a partir del <b>'+human(st.el)+'</b>. <button class="sec" id="saveRem">Guardar recordatorio</button></div>';}
-$('edoList').innerHTML=c.files.map((f,i)=>`<div class="client"><span>📎 ${esc(f.name)}</span>${f.type.startsWith('image/')?`<img src="${f.data}" style="max-height:50px">`:''}<button class="danger" data-i="${i}">Quitar</button></div>`).join('');
+$('edoList').innerHTML=c.files.map((f,i)=>`<div class="client"><span>📎 ${esc(f.name)} ${f.data?`<a href="#" class="verL" data-verf="${i}">ver</a>`:''}</span>${f.type.startsWith('image/')?`<img src="${f.data}" style="max-height:50px">`:''}<button class="danger" data-i="${i}">Quitar</button></div>`).join('');
 const k=calc(c);$('t_total').textContent=fmt(k.total);$('t_monto').textContent=fmt(k.monto);$('t_com').textContent=fmt(k.com);$('t_libre').textContent=fmt(k.libre);
 $('btnPrev').disabled=c.step===1;$('btnNext').classList.toggle('hidden',c.step===4);$('btnFin').classList.toggle('hidden',c.step!==4);
 const ok=!allErr(c).length;if(!ok&&c.confirmed){c.confirmed=false;save()}
@@ -776,13 +777,12 @@ function upd(f){const c=C();f(c);save();if(c.step===2){const s=r5Status(c);if(s&
 $('f_nombre').oninput=e=>upd(c=>c.nombre=e.target.value);
 $('f_curp').oninput=e=>{const p=e.target.selectionStart;e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9Ñ]/g,'');upd(c=>c.curp=e.target.value)};
 $('f_nss').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'');upd(c=>c.nss=e.target.value)};
-$('f_sem').oninput=e=>upd(c=>c.semanas=e.target.value);
-$('f_alta').onchange=e=>upd(c=>c.alta=e.target.checked);
+$('f_alta').onchange=e=>upd(c=>{altaSync(c);c.alta=e.target.checked});
 $('f_r5').onchange=e=>upd(c=>c.r5=e.target.value);
 $('f_last').oninput=$('f_last').onchange=e=>upd(c=>c.last=e.target.value);
 $('f_aviso').onchange=e=>upd(c=>c.aviso=e.target.checked);
 $('f_viv').oninput=e=>upd(c=>c.sub.viv=e.target.value);
-$('f_ine').onchange=e=>{subirDoc('ine',e.target.files[0]);e.target.value=''};
+
 $('f_proof').onchange=async e=>{const f=e.target.files[0];if(!f)return;const id=cur;let d;try{d=await compress(f)}catch(x){alert('No se pudo leer la imagen.');return}upd(c=>c.proof=d);e.target.value='';
 const m=$('ocrMsg');m.innerHTML='<small>Leyendo fecha con OCR… (puedes capturarla manualmente)</small>';
 try{const t=await ocr(d);const dt=findDate(t);if(cur!==id)return;if(dt){$('f_last').value=dt;upd(c=>c.last=dt);m.innerHTML='<small>✔ Fecha detectada: '+human(dt)+'. Verifícala y corrígela si es necesario.</small>'}else m.innerHTML='<small>No se detectó una fecha. Escríbela manualmente.</small>'}
@@ -1021,8 +1021,8 @@ const imssFalta=c=>PAGOS.filter(([k,,req])=>req&&!c[pk(k)]).map(x=>x[1]);
 const pagosPend=c=>PAGOS.filter(([k])=>c[pk(k)]&&!c[pkp(k)]).map(x=>x[1]);
 function renderImss(c){if(!c||!$('imssRows'))return;$('imssRows').innerHTML=PAGOS.map(([k,n,req])=>{const has=!!c[pk(k)],paid=!!c[pkp(k)];
  return '<div class="docSt" data-pk="'+k+'"><b>'+n+':</b> '+(has?'✅ '+n+' cargado':(req?'❌ Falta '+n:'— Opcional, súbelo cuando llegue'))+
- ' <label class="btn sec" style="display:inline-block;cursor:pointer">Subir<input type="file" data-up="'+pk(k)+'" accept="image/*,application/pdf" hidden></label>'+(has?' <button class="sec" data-del="'+pk(k)+'">Quitar</button>':'')+
- (has?'<div style="margin-left:12px">'+(paid?'✅ Pagado <button class="sec" data-del="'+pkp(k)+'">Quitar comprobante</button>':'<span class="pill-or">Pago pendiente</span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de pago<input type="file" data-up="'+pkp(k)+'" accept="image/*,application/pdf" hidden></label>')+'</div>':'')+'</div>'}).join('');
+ ' <label class="btn sec" style="display:inline-block;cursor:pointer">Subir<input type="file" data-up="'+pk(k)+'" accept="image/*,application/pdf" hidden></label>'+(has?' <a href="#" class="verL" data-ver="'+pk(k)+'">ver</a> <button class="sec" data-del="'+pk(k)+'">Quitar</button>':'')+
+ (has?'<div style="margin-left:12px">'+(paid?'✅ Pagado <a href="#" class="verL" data-ver="'+pkp(k)+'">ver</a> <button class="sec" data-del="'+pkp(k)+'">Quitar comprobante</button>':'<span class="pill-or">Pago pendiente</span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de pago<input type="file" data-up="'+pkp(k)+'" accept="image/*,application/pdf" hidden></label>')+'</div>':'')+'</div>'}).join('');
  const f=imssFalta(c),w=$('imssWarn');w.classList.toggle('hidden',!f.length);w.textContent='⚠️ Falta subir: '+f.join(' y ')}
 $('imssRows').addEventListener('change',e=>{const k=e.target.dataset.up;if(k){subirDoc(k,e.target.files[0]);e.target.value=''}});
 $('imssRows').addEventListener('click',e=>{const k=e.target.dataset.del;if(k)quitarDoc(k)});
@@ -1300,6 +1300,12 @@ $('hAddNota').onclick=()=>{const t=$('hNota').value.trim();if(!t)return;hist(C()
 $('hNota').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('hAddNota').click()}};
 $('hDocList').onclick=e=>{const d=e.target.closest('.hDoc');if(d)abrirDoc(window.__hDocs[+d.dataset.i])};
 $('hViewer').onclick=()=>$('hViewer').classList.add('hidden');
+// Enlaces «ver» junto a cada documento del detalle
+function updVer(){const c=C();document.querySelectorAll('#caseView [data-ver]').forEach(a=>a.classList.toggle('hidden',!(c&&c[a.dataset.ver])))}
+for(const n of ['render','renderPrecal','renderSol','renderImss']){const o=window[n];if(typeof o==='function')window[n]=function(){const r=o.apply(this,arguments);try{updVer()}catch(x){}return r}}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.verL');if(!a)return;e.preventDefault();e.stopPropagation();const c=C();if(!c)return;
+ const d=a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
+try{updVer()}catch(x){}
 
 function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),clients:S.clients,reminders:S.reminders,form:S.form||null,
 flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,shared:{waTel:lsG('retiroApp.waTel')||''}}}
