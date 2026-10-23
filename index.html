@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 .chk input{width:22px;height:22px;flex:none}small{color:#555}
 .chip{padding:5px 10px;font-size:.85rem}.tab{font-size:.85rem;padding:6px 10px}.badge{display:inline-block;font-size:.75rem;padding:1px 7px;border-radius:10px;background:#e3e8ef}.b-nuevo{background:#ffd54f;font-weight:700}.b-firmado{background:#9fd6b8}.b-finalizado{background:#b9d3f5}.b-espera{background:#ffe2a8}.b-cancelado{background:#f4b6b2}.b-sinetapa{background:#d9d2f0}
 #printDoc{display:none}@media print{body>*{display:none!important}#printDoc{display:block!important}#printDoc .pp{page-break-after:always;font:11pt Arial,sans-serif;text-align:justify}}
-.pill-or{display:inline-block;background:#fb8c00;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin:2px 2px 0 0}#altaArea .row{flex-wrap:wrap}.waBtn{flex:1 1 220px;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25;height:auto}#altaArea pre{white-space:pre-wrap;overflow-wrap:anywhere}#histPanel{position:fixed;inset:0;background:#fff;z-index:50;overflow:auto;padding:12px;box-sizing:border-box}.hHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.hItem{border-left:3px solid #ccc;padding:4px 8px;margin:6px 0}.hNota{border-left-color:#fb8c00;background:#fff3e0}.hDoc{display:flex;gap:10px;align-items:center;padding:6px;border-bottom:1px solid #eee;cursor:pointer}.hDoc img,.hPdf{width:56px;height:56px;object-fit:cover;border-radius:4px;flex:0 0 56px}.hPdf{background:#e53935;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold}#hViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}#hViewer.hidden{display:none}#hViewer img{max-width:100%;max-height:92vh}
+.agOk{color:#1b5e20;font-weight:bold;margin-left:6px}.segH{font-size:.9em;color:#555}.verL{color:#1565c0;text-decoration:underline;cursor:pointer;margin:0 4px}.verL.hidden{display:none}.pill-or{display:inline-block;background:#fb8c00;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin:2px 2px 0 0}#altaArea .row{flex-wrap:wrap}.waBtn{flex:1 1 220px;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25;height:auto}#altaArea pre{white-space:pre-wrap;overflow-wrap:anywhere}#histPanel{position:fixed;inset:0;background:#fff;z-index:50;overflow:auto;padding:12px;box-sizing:border-box}.hHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.hItem{border-left:3px solid #ccc;padding:4px 8px;margin:6px 0}.hNota{border-left-color:#fb8c00;background:#fff3e0}.hDoc{display:flex;gap:10px;align-items:center;padding:6px;border-bottom:1px solid #eee;cursor:pointer}.hDoc img,.hPdf{width:56px;height:56px;object-fit:cover;border-radius:4px;flex:0 0 56px}.hPdf{background:#e53935;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold}#hViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}#hViewer.hidden{display:none}#hViewer img{max-width:100%;max-height:92vh}
 .sumBar{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0}.sb{margin:0;padding:8px 4px;border-radius:10px;background:#f3f5f8;color:#1d2433;border:2px solid transparent;display:flex;flex-direction:column;align-items:center;line-height:1.1;min-width:0}
 .sb b{font-size:1.45rem}.sb span{font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.sb.on{border-color:#1d2433;box-shadow:0 0 0 2px #fff inset}
 .sb-atrasado b{color:#c62828}.sb-riesgo b{color:#ef6c00}.sb-proceso b{color:#546e7a}.sb-listo b{color:#2e7d32}.sb-sinfecha b{color:#78909c}.sb-solicitado b{color:#1565c0}
@@ -47,7 +47,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 #clientList .client.st-solicitado{border-left-color:#1565c0}.st-solicitado .dBadge{background:#1565c0;color:#fff}.st-solicitado .stLbl{color:#1565c0}
 </style></head><body>
 <header><h1>Retiro por desempleo · Afore</h1><div>
-<button class="sec" id="btnSync">Actualizar desde formulario</button>
+<button class="sec" id="btnSync">Actualizar desde formulario</button><small id="ignInfo" class="hidden" style="display:block;color:#666;margin-top:4px"></small>
 <button class="sec" id="btnContrato">Generar nuevo contrato</button>
 <button class="sec" id="btnRem">Recordatorios <span id="remCount"></span></button>
 <button class="sec" id="btnExport">Exportar</button><button class="sec" id="btnImport">Importar</button>
@@ -68,7 +68,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <input type="text" id="shSearch" placeholder="Buscar cliente por nombre" class="hidden"><div id="shList"></div></section>
 <section id="listView" class="card"><h2>Clientes</h2>
 <div class="row"><input type="text" id="newName" placeholder="Nombre del nuevo cliente"><button id="btnNew" style="flex:0 0 auto">+ Nuevo caso</button></div>
-<small id="driveStatus"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
+<small id="driveStatus"></small> <button class="sec" id="btnSyncNow" style="padding:2px 8px;font-size:.8rem">Sincronizar ahora</button><br><small id="lastWriter"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
 <div id="histPanel" class="hidden"><div class="hHead"><b>Historial y documentos · <span id="histName"></span></b><button class="sec" id="hClose">✕ Cerrar</button></div>
 <div class="row" style="gap:6px"><button id="hTabH">Historial</button><button class="sec" id="hTabD">Documentos</button></div>
 <div id="hHistBox"><div class="row" style="gap:6px;flex-wrap:wrap"><textarea id="hNota" rows="2" placeholder="Agregar nota (p. ej. «Me debe papeles», «Ya habíamos iniciado antes»)" style="flex:1 1 220px"></textarea><button id="hAddNota" style="flex:0 0 auto">Agregar nota</button></div>
@@ -80,32 +80,31 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <div class="row"><div><label>Nombre</label><input type="text" id="f_nombre"></div>
 <div><label>CURP</label><input type="text" id="f_curp" maxlength="18" style="text-transform:uppercase"></div>
 <div><label>NSS (11 dígitos)</label><input type="text" id="f_nss" maxlength="11" inputmode="numeric"></div></div>
-<label>Foto de INE</label><input type="file" id="f_ine" accept="image/*"><img id="inePrev" class="prev hidden" alt="INE"></div>
+</div>
 <div class="card" id="contractCard"><h3>Contrato y firma</h3>
 <div class="row"><div><label>Grupo</label><select id="f_estado"><option value="pendiente">Pendiente de firma</option><option value="firmado">Ya está firmado</option><option value="espera">En espera</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option><option value="sinetapa">Sin etapa (por asignar)</option></select></div>
-<div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button></div></div></div>
-<label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div>
+<div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
+<label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div><div class="docSt" id="cfBox"><span id="stCf"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir contrato firmado (fotos o PDF)<input type="file" id="f_cf" accept="image/*,application/pdf,.pdf" multiple hidden></label><div id="cfList"></div></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
-<div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
-<div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
+<div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
+<div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <a href="#" class="verL hidden" data-ver="dom">ver</a> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
 <div id="docOcr"></div>
 <div id="docWarn" class="alert hidden"></div>
-<label>Cita de firma</label><div class="row"><input type="date" data-fe="citaFecha"><input type="time" data-fe="citaHora"><button class="sec" data-ag="cita" style="flex:0 0 auto">📅 Agendar</button></div>
-<label>Seguimiento</label><div class="row"><input type="date" data-fe="segFecha"><input type="time" data-fe="segHora"><input type="text" data-fe="segNota" placeholder="Motivo del seguimiento"><button class="sec" data-ag="seg" style="flex:0 0 auto">📅 Agendar</button></div>
+<label>Cita de firma</label><div class="row"><input type="date" data-fe="citaFecha"><input type="time" data-fe="citaHora"><button class="sec" data-ag="cita" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cita"></span></div>
+<label>Seguimiento</label><div class="row"><input type="date" data-fe="segFecha"><input type="time" data-fe="segHora"><input type="text" data-fe="segNota" placeholder="Motivo del seguimiento"><button class="sec" data-ag="seg" style="flex:0 0 auto">📅 Agendar</button></div><div id="segBox"></div>
 <details id="datosContrato"><summary>Datos para el contrato</summary><div class="row">
 <div><label>Teléfono</label><input type="text" data-f="tel"></div><div><label>Correo</label><input type="text" data-f="email"></div><div><label>Afore</label><input type="text" data-f="afore"></div></div>
 <div class="row"><div><label>Calle y número</label><input type="text" data-f="calle"></div><div><label>Colonia</label><input type="text" data-f="colonia"></div></div>
 <div class="row"><div><label>Municipio</label><input type="text" data-f="municipio"></div><div><label>Código postal</label><input type="text" data-f="cp"></div></div>
 <label>Comentarios</label><input type="text" data-f="notas"></details>
-<button id="btnPdf">📄 Generar contrato PDF</button><button class="sec hidden" data-ag="pagare" id="btnAgPag">📅 Agendar vencimiento del pagaré</button><div id="pdfMsg"></div></div>
+<button id="btnPdf">📄 Generar contrato PDF</button><button class="sec hidden" data-ag="pagare" id="btnAgPag">📅 Agendar vencimiento del pagaré</button><span class="agOk" data-agok="pagare"></span><div id="pdfMsg"></div></div>
 <div class="steps" id="stepBar"></div>
 <div class="card step" data-s="1"><h3>Paso 1 · Filtro</h3>
-<label>Semanas cotizadas</label><input type="number" id="f_sem" min="0"><div id="semHint"><small>Mínimo 104 · ideal 150 o más</small></div>
-<label class="chk"><input type="checkbox" id="f_alta"> ¿Está dado de alta actualmente en un trabajo?</label></div>
+<div id="paso1Info"></div><small>Semanas restantes y alta en un trabajo se capturan en <a href="#semCard" style="color:#1565c0;text-decoration:underline">Precalificación › Semanas cotizadas</a>.</small></div>
 <div class="card step" data-s="2"><h3>Paso 2 · Último retiro</h3>
 <label>¿Han pasado 5 años desde su último retiro por desempleo?</label>
 <select id="f_r5"><option value="">— Selecciona —</option><option value="si">Sí</option><option value="no">No</option><option value="nunca">Nunca ha retirado</option></select>
-<div id="r5No" class="hidden"><label>Comprobante del último retiro (imagen)</label><input type="file" id="f_proof" accept="image/*">
+<div id="r5No" class="hidden"><label>Comprobante del último retiro (imagen)</label><input type="file" id="f_proof" accept="image/*"> <a href="#" class="verL hidden" data-ver="proof">ver</a>
 <img id="proofPrev" class="prev hidden" alt="Comprobante"><div id="ocrMsg"><small></small></div>
 <label>Fecha del último retiro</label><input type="date" id="f_last"><div id="r5Info"></div></div></div>
 <div class="card step" data-s="3"><h3>Paso 3 · Aviso al cliente</h3>
@@ -118,15 +117,15 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <tr><td>Subcuenta de vivienda (aparte, no se suma)</td><td><input type="number" id="f_viv" step="0.01"></td></tr></table></div>
 <div class="card"><div id="errBox" class="alert hidden"></div>
 <button class="sec" id="btnPrev">← Anterior</button><button id="btnNext">Siguiente →</button><button id="btnFin" class="hidden">Hasta aquí el filtro</button></div>
+<div class="card" id="precalCard"><h3>Precalificación</h3><label class="chk"><input type="checkbox" id="f_precal"> Precalificado (tiene semanas, saldo y 5 años)</label><div id="precalInfo"></div><div id="edoPreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Estado de cuenta de la Afore</b><br><label class="file">📄 Subir estado de cuenta (foto o PDF)<input type="file" id="f_edoPre" accept="image/*,application/pdf,.pdf"></label><div id="ocrPre"><small></small></div><table id="preSubs"><tbody></tbody></table><div id="preSaldo"></div></div><div id="r5PreCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Comprobante de 5 años del último retiro</b><br><label class="file">📄 Subir comprobante (foto o PDF)<input type="file" id="f_comp5" accept="image/*,application/pdf,.pdf"></label> <span id="comp5Doc"></span> <a href="#" class="verL hidden" data-ver="comp5">ver</a><div id="r5PreInfo"></div></div><div id="semCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Semanas cotizadas (IMSS)</b> <small>· Mínimo 104 · ideal 150 o más</small><br><label class="file">📄 Subir constancia (foto o PDF)<input type="file" id="f_constSem" accept="image/*,application/pdf,.pdf"></label> <span id="semDoc"></span> <a href="#" class="verL hidden" data-ver="constSem">ver</a><div id="semMsg"></div>
+<div class="semGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label><small>Semanas cotizadas</small><input type="number" id="s_cot" min="0"></label><label><small>Semanas descontadas</small><input type="number" id="s_desc" min="0"></label><label><small>Semanas reintegradas</small><input type="number" id="s_reint" min="0"></label><label><small><b>Semanas restantes</b></small><input type="number" id="s_rest" min="0"></label><div id="semHint" style="grid-column:1/-1"><small>Mínimo 104 · ideal 150 o más</small></div>
+<label style="grid-column:1/-1"><small>Patrón(es) vigente(s) (vacío = ninguno)</small><input type="text" id="s_vig" placeholder="Sin patrón vigente"></label><label style="grid-column:1/-1"><small>Última fecha de baja</small><input type="date" id="s_baja"></label></div><div id="semVigInfo"></div><label class="chk"><input type="checkbox" id="f_alta"> ¿Está dado de alta actualmente en un trabajo? <small id="altaAuto"></small></label></div></div>
 <div class="card" id="imssCard"><h3>Pagos IMSS</h3><div id="imssRows"></div><div id="bajaBox"><label>Fecha de baja (leída del SUA)</label><input type="date" id="f_baja"><div id="bajaMsg"></div><div id="solInfo"></div></div><div id="imssWarn" class="alert hidden"></div></div>
 <div class="card" id="tramCard"><h3>Pendientes del trámite</h3><div id="tramRows"></div></div>
-<div class="card" id="precalCard"><h3>Precalificación</h3><label class="chk"><input type="checkbox" id="f_precal"> Precalificado (tiene semanas, saldo y 5 años)</label><div id="precalInfo"></div><div id="semCard" style="margin-top:10px;border-top:1px solid #ddd;padding-top:8px"><b>Constancia de semanas cotizadas (IMSS)</b><br><label class="file">📄 Subir constancia (foto o PDF)<input type="file" id="f_constSem" accept="image/*,application/pdf,.pdf"></label> <span id="semDoc"></span><div id="semMsg"></div>
-<div class="semGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label><small>Semanas cotizadas</small><input type="number" id="s_cot" min="0"></label><label><small>Semanas descontadas</small><input type="number" id="s_desc" min="0"></label><label><small>Semanas reintegradas</small><input type="number" id="s_reint" min="0"></label><label><small><b>Semanas restantes</b></small><input type="number" id="s_rest" min="0"></label>
-<label style="grid-column:1/-1"><small>Patrón(es) vigente(s) (vacío = ninguno)</small><input type="text" id="s_vig" placeholder="Sin patrón vigente"></label><label style="grid-column:1/-1"><small>Última fecha de baja</small><input type="date" id="s_baja"></label></div><div id="semVigInfo"></div></div></div>
 <div class="card" id="seg2Card"><h3>Mensaje al cliente: segundo paso</h3><div id="seg2Locked" class="warn"><small>Sube el SUA o captura la fecha de baja para preparar el mensaje.</small></div>
 <div id="seg2Body" class="hidden"><textarea id="seg2Text" rows="5" style="width:100%;box-sizing:border-box"></textarea><div id="seg2TelBox" class="hidden"><label>Celular del cliente</label><input type="tel" id="seg2Tel" placeholder="10 dígitos" inputmode="tel"></div>
 <small id="seg2TelInfo"></small><div class="row" style="flex-wrap:wrap"><button class="sec" id="btnSeg2Copy" style="flex:0 0 auto">Copiar</button><button id="btnSeg2Wa" class="waBtn">Enviar por WhatsApp Business al cliente</button></div><small id="seg2Sent"></small></div></div>
-<div class="card" id="solCard"><h3>Solicitud de dinero</h3><div id="solStatus"></div>
+<div class="card" id="solCard"><h3>Solicitud de dinero</h3><div id="solStatus"></div><a href="#" class="verL hidden" data-ver="evidenciaSol">ver</a>
 <div id="solAsk"><button id="btnSolYa">Ya se solicitó el dinero</button><div id="solPick" class="hidden"><small>Sube la evidencia de la solicitud (foto, imagen o PDF):</small><div class="row" style="flex-wrap:wrap;gap:6px">
 <label class="btn sec" style="display:inline-block;cursor:pointer">📷 Tomar foto<input type="file" id="f_solFoto" accept="image/*" capture="environment" hidden></label>
 <label class="btn sec" style="display:inline-block;cursor:pointer">Subir imagen o PDF<input type="file" id="f_solArch" accept="image/*,application/pdf" hidden></label></div></div></div>
@@ -656,19 +655,22 @@ async function pdfText(buf,onOcr){const L=await loadPdf();const doc=await openPd
  if(all.replace(/\s/g,'').length>=30)return all;
  onOcr&&onOcr();let t='';for(let p=1;p<=Math.min(doc.numPages,6);p++){const pg=await doc.getPage(p);const vp=pg.getViewport({scale:2.5});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;t+=await ocr(c.toDataURL('image/png'))+'\n'}return t}
 let edoQ=Promise.resolve();
-function runOcr4(f,id){edoQ=edoQ.then(()=>readEdo(f,id)).catch(()=>{});return edoQ}
-async function readEdo(f,id){const m=$('ocr4');const msg=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};msg('Leyendo archivo… (puedes capturar los montos manualmente)');
- let t;try{const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);if(isPdf)t=await pdfText(await f.arrayBuffer(),Object.assign(()=>msg('El PDF no tiene texto; leyéndolo con OCR…'),{opened:()=>msg('Leyendo archivo…')}));else if(/^image\//.test(f.type))t=await ocr(await prepImg(await readURL(f)));else{msg('No se detectaron montos. Captúralos manualmente.');return}}
+function runOcr4(f,id,box){edoQ=edoQ.then(()=>readEdo(f,id,box)).catch(()=>{}).finally(()=>{pwBox='ocr4'});return edoQ}
+async function readEdo(f,id,box){box=box||'ocr4';pwBox=box;const m=$(box);let usoOcr=false;const msg=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};msg('Leyendo archivo… (puedes capturar los montos manualmente)');
+ let t;try{const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);if(isPdf)t=await pdfText(await f.arrayBuffer(),Object.assign(()=>(usoOcr=true,msg('El PDF no tiene texto; leyéndolo con OCR…')),{opened:()=>msg('Leyendo archivo…')}));else if(/^image\//.test(f.type)){usoOcr=true;t=await ocr(await prepImg(await readURL(f)))}else{msg('No se detectaron montos. Captúralos manualmente.');return}}
  catch(x){if(x&&x.cancel){msg('PDF no abierto. Captura los montos manualmente.');return}msg('No se pudo leer el archivo automáticamente (OCR/PDF no disponible). Captura los montos manualmente.');return}
  const a=parseAfore(t);const c=S.clients[id];if(!c)return;let n=0;const conf=[];
  for(const k of ['r97','rcv','cs','av','as','viv']){if(a[k]==null)continue;const cv=c.sub[k];if(cv===''||cv==null){c.sub[k]=String(a[k]);n++}else if(num(cv)!==a[k])conf.push([k,a[k]])}
  for(const o of a.otras){const e=c.sub.otras.find(x=>nrm(x.n).trim()===nrm(o.n));if(!e){c.sub.otras.push({n:o.n,v:String(o.v)});n++}else if(e.v===''){e.v=String(o.v);n++}else if(num(e.v)!==o.v)conf.push([{o:e},o.v])}
- if(n)histMontos(c,a);save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render()}
+ if(n||conf.length){c.edoRevisa=usoOcr||conf.length>0;c.subLeidas=[...new Set([...(c.subLeidas||[]),...['r97','rcv','cs','av','as','viv'].filter(k=>a[k]!=null),...a.otras.map(o=>'o:'+nrm(o.n).trim())])]}
+ if(n)histMontos(c,a);save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render();renderPrecal(c)}
  const tot=n+conf.length;if(!tot){msg('No se detectaron montos. Captúralos manualmente.');return}
  let h=n?'✔ Se detectaron '+n+' montos, revísalos.':'Se detectaron montos.';
  if(conf.length){h+=' '+conf.length+' campo(s) ya tenían un valor distinto y no se cambiaron. <button class="sec" id="btnEdoRepl">Reemplazar con lo detectado</button>'}
- msg(h);const b=$('btnEdoRepl');if(b)b.onclick=()=>{const c=S.clients[id];for(const [k,v] of conf){if(k.o)k.o.v=String(v);else c.sub[k]=String(v)}save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render()}msg('✔ Se reemplazaron '+conf.length+' montos con lo detectado. Revísalos.')}}
+ msg(h);const b=$('btnEdoRepl');if(b)b.onclick=()=>{const c=S.clients[id];for(const [k,v] of conf){if(k.o)k.o.v=String(v);else c.sub[k]=String(v)}save();if(cur===id){$('f_viv').value=c.sub.viv;renderSubs();render();renderPrecal(c)}msg('✔ Se reemplazaron '+conf.length+' montos con lo detectado. Revísalos.')}}
 // validación
+// «Dado de alta» se deriva del patrón vigente; se puede cambiar a mano (se re-deriva sólo si cambia el patrón vigente)
+function altaSync(c){const v=String(c.semVigente||'').trim();if(c.altaVigRef===undefined){c.altaVigRef=v;if(v)c.alta=true;return}if(c.altaVigRef!==v){c.altaVigRef=v;c.alta=!!v}}
 function e1(c){const e=[];if(c.alta)e.push('El cliente está dado de alta actualmente en un trabajo: no puede tramitar.');if(c.semanas===''||num(c.semanas)<104)e.push('Menos de 104 semanas cotizadas (mínimo 104).');if(!CURP_RE.test(c.curp||''))e.push(c.curp?'CURP inválida (18 caracteres con formato oficial).':'Falta la CURP.');return e}
 function r5Status(c){if(c.r5!=='no'||!c.last)return null;const el=addY(c.last,5),t=todayStr();if(t>=el)return{k:'past',el};if(el<=addM(t,2))return{k:'soon',el};return{k:'far',el}}
 function e2(c){if(!c.r5)return['Indica si han pasado 5 años desde su último retiro.'];if(c.r5!=='no')return[];if(!c.last)return['Captura la fecha del último retiro (o súbela para leerla automáticamente).'];const s=r5Status(c);if(s.k==='far')return['Aún no pasan 5 años: podrá tramitar a partir del '+human(s.el)+' (faltan más de 2 meses).'];return[]}
@@ -685,7 +687,7 @@ function ics(r){const d=r.date.replace(/-/g,''),n=new Date(parseD(r.date).getTim
 const s=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//RetiroApp//ES','BEGIN:VEVENT','UID:'+r.id+'@retiroapp','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+d,'DTEND;VALUE=DATE:'+d2,'SUMMARY:Retiro por desempleo: '+t.split(' (')[0],'DESCRIPTION:'+t,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+t,'TRIGGER:PT9H','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
 const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/calendar'}));a.download='recordatorio-'+(r.nombre||'cliente').replace(/\W+/g,'_')+'-'+r.date+'.ics';document.body.appendChild(a);a.click();a.remove()}
 function renderRem(){const t=todayStr(),L=[...S.reminders].sort((a,b)=>a.date.localeCompare(b.date));const due=L.filter(r=>r.date<=t).length;$('remCount').textContent=L.length?'('+L.length+(due?' · '+due+' hoy':'')+')':'';
-$('remList').innerHTML=L.length?L.map(r=>`<div class="rem ${r.date<=t?'due':''}" data-id="${r.id}"><b>${human(r.date)}</b>${r.date<=t?' · <b>¡Ya vence!</b>':''}<br>${esc(remText(r))}<br><button class="sec" data-a="ics">📅 Agendar</button><button class="sec" data-a="open">Abrir caso</button><button class="danger" data-a="del">Eliminar</button></div>`).join(''):'<small>Sin recordatorios.</small>'}
+$('remList').innerHTML=L.length?L.map(r=>`<div class="rem ${r.date<=t?'due':''}" data-id="${r.id}"><b>${human(r.date)}</b>${r.date<=t?' · <b>¡Ya vence!</b>':''}<br>${esc(remText(r))}<br><button class="sec" data-a="ics">📅 Agendar</button>${agOkHtml((S.clients[r.clientId]||{}).agendados,'r5:'+r.date)}<button class="sec" data-a="open">Abrir caso</button><button class="danger" data-a="del">Eliminar</button></div>`).join(''):'<small>Sin recordatorios.</small>'}
 $('remList').onclick=e=>{const b=e.target.closest('button');if(!b)return;const id=b.closest('.rem').dataset.id,r=S.reminders.find(x=>x.id===id);if(b.dataset.a==='ics')agendar(r);if(b.dataset.a==='open'&&S.clients[r.clientId])openCase(r.clientId);if(b.dataset.a==='del'&&confirm('¿Eliminar recordatorio?')){S.reminders=S.reminders.filter(x=>x.id!==id);save();renderRem()}};
 function notifyDue(){const t=todayStr(),due=S.reminders.filter(r=>r.date<=t);if(!due.length)return;$('remPanel').classList.remove('hidden');if(!('Notification'in window))return;const go=()=>due.filter(r=>!r.notified).forEach(r=>{try{new Notification('Retiro por desempleo',{body:remText(r)});r.notified=true;save()}catch(e){}});if(Notification.permission==='granted')go();else if(Notification.permission!=='denied')Notification.requestPermission().then(p=>p==='granted'&&go()).catch(()=>{})}
 // lista
@@ -694,17 +696,20 @@ if(!firmadoOK(c))add('Falta firma del contrato','or',10);
 docFalta(c).forEach(x=>add('Falta '+x,'or',20));
 if(firmadoOK(c)){if(!c.altaEnviada)add('Enviar mensaje de alta','or',30);else if(confPend(c))add('Proveedor sin confirmar alta',Date.now()-c.altaEnviada>=2*864e5?'red':'or',31)}
 pagosPend(c).forEach(x=>add('Falta pago de '+x,'or',40));
-if(c.fechaSolicitud&&!c.dineroSolicitado){if(c.fechaSolicitud<=t)add(c.fechaSolicitud===t?'Solicitar dinero HOY':'Solicitar dinero (vencido)','red',1);else if(c.fechaSolicitud<=addDias(t,7))add('Solicitar dinero el '+c.fechaSolicitud.split('-').reverse().slice(0,2).join('/'),'or',5)}
+normSol(c);if(c.fechaSolicitud&&!c.dineroSolicitado){if(c.fechaSolicitud<=t)add(c.fechaSolicitud===t?'Solicitar dinero HOY':'Solicitar dinero (vencido)','red',1);else if(c.fechaSolicitud<=addDias(t,7))add('Solicitar dinero el '+c.fechaSolicitud.split('-').reverse().slice(0,2).join('/'),'or',5)}
 if(c.dineroSolicitado&&!c.semanasEnviadas)add('Enviar semanas cotizadas','or',50);
 tramPend(c).forEach(x=>add(x+' pendiente','or',60));
 return A.sort((a,b)=>(a.lvl==='red'?0:1)-(b.lvl==='red'?0:1)||a.o-b.o)}
 const phScore=c=>{const a=porHacer(c);return a.length?(a[0].lvl==='red'?0:1e3)+a[0].o:9e9};
 // ===== Etapas del trámite (antes de la fecha de solicitud) =====
 function r5OK(c){if(c.r5==='si'||c.r5==='nunca')return true;if(c.r5==='no'){const st=r5Status(c);return!!st&&st.k==='past'}return false}
-function precalData(c){return{sem:c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104,saldo:calc(c).total>0,r5:r5OK(c),vig:String(c.semVigente||'').trim()}}
+const VIV_RE=/vivienda|infonavit|fovissste/i;
+function saldoRetiro(c){const s=c.sub||{};return r2(SUBS.reduce((a,[k])=>a+num(s[k]),0)+(s.otras||[]).filter(o=>!VIV_RE.test(o.n||'')).reduce((a,o)=>a+num(o.v),0))}
+function r5Pre(c){const d=c.semDesc;if(d!==''&&d!=null&&String(d).trim()!==''&&num(d)===0)return{ok:true,na:true,req:false};const req=d!==''&&d!=null&&String(d).trim()!==''&&num(d)>0;return{ok:!!c.comp5||r5OK(c),na:false,req}}
+function precalData(c){return{sem:c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104,saldo:saldoRetiro(c)>0,r5:r5Pre(c).ok,vig:String(c.semVigente||'').trim()}}
 const ETAPAS=[['precal','Precalif.'],['firma','Firma'],['exp','Exp./N4'],['alta','Alta'],['pagos','Pagos']];
 function etapa(c,k){let done=false,par=false,f=[];
- if(k==='precal'){const d=precalData(c);done=!d.vig&&(!!c.precalificado||(d.sem&&d.saldo&&d.r5));if(d.vig)f.push('⚠ VIGENTE con: '+d.vig+' (no puede tramitar)');if(!done){if(!d.sem)f.push('semanas restantes (≥104'+(c.semanas!==''&&c.semanas!=null?', tiene '+c.semanas:'')+')');if(!d.saldo)f.push('saldo de la Afore');if(!d.r5)f.push('5 años desde el último retiro');f.push('o marcar «Precalificado»')}par=!done&&(c.semanas!==''&&c.semanas!=null||!!c.r5||calc(c).total>0)}
+ if(k==='precal'){const d=precalData(c);done=!d.vig&&(!!c.precalificado||(d.sem&&d.saldo&&d.r5));if(d.vig)f.push('⚠ VIGENTE con: '+d.vig+' (no puede tramitar)');if(!done){if(!d.sem)f.push('semanas restantes (≥104'+(c.semanas!==''&&c.semanas!=null?', tiene '+c.semanas:'')+')');if(!d.saldo)f.push('saldo para retiro (sin vivienda)');if(!d.r5)f.push(r5Pre(c).req?'comprobante de 5 años del último retiro':'5 años desde el último retiro');f.push('o marcar «Precalificado»')}par=!done&&(c.semanas!==''&&c.semanas!=null||!!c.r5||calc(c).total>0)}
  else if(k==='firma'){const df=docFalta(c);done=firmadoOK(c)&&!df.length;if(!firmadoOK(c))f.push('firma del contrato');df.forEach(x=>f.push(x));par=!done&&(firmadoOK(c)||!!c.pagareVenc)}
  else if(k==='exp'){f=tramPend(c);done=!f.length;par=!done&&f.length<TRAM.length}
  else if(k==='alta'){done=!!c.altaConfirmada;if(!done)f.push(c.altaEnviada?'confirmación del proveedor':'enviar alta y baja al proveedor');par=!done&&!!c.altaEnviada}
@@ -720,12 +725,12 @@ let stF='',qF='';
 const enGrupo=c=>tab==='tramite'?activo(c)&&tramPend(c).length:tab==='pagos'?c.estado!=='cancelado'&&pagosPend(c).length:tab==='todos'?c.estado!=='cancelado'&&c.estado!=='finalizado':c.estado===tab;
 const normQ=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 function renderList(){renderTabs();const q=normQ(qF.trim());const G=Object.values(S.clients).filter(enGrupo).filter(c=>!q||normQ(c.nombre).includes(q)||normQ(c.curp).includes(q));
- const cnt={};G.forEach(c=>{const e=estadoSol(c);cnt[e]=(cnt[e]||0)+1});
+ G.forEach(normSol);const cnt={};G.forEach(c=>{const e=estadoSol(c);cnt[e]=(cnt[e]||0)+1});
  $('sumBar').innerHTML=SUMS.map(([k,t])=>`<button class="sb sb-${k}${stF===k?' on':''}" data-st="${k}"><b>${cnt[k]||0}</b><span>${t}</span></button>`).join('');
  const L=G.filter(c=>!stF||estadoSol(c)===stF),rk={atrasado:0,riesgo:1};
  const LC=L.filter(c=>c.fechaSolicitud).sort((a,b)=>((rk[estadoSol(a)]??2)-(rk[estadoSol(b)]??2))||a.fechaSolicitud.localeCompare(b.fechaSolicitud)||b.created-a.created),LS=L.filter(c=>!c.fechaSolicitud).sort((a,b)=>b.created-a.created);
  const row=c=>{const e=estadoSol(c),E=etapas(c);return `<div class="client st-${e}" data-id="${c.id}" data-st="${e}"><div class="cMain"><b>${esc(c.nombre||'(sin nombre)')}</b>${c.nuevoForm?' <span class="badge b-nuevo">Nuevo (formulario)</span>':''}<br><small>${esc(c.curp||'Sin CURP')} · <span class="badge b-${c.estado}">${GNOM[c.estado]}</span>${c.estado==='espera'&&c.cond?' · Condición: '+esc(c.cond):''}${c.ubic?' · 📁 '+esc(c.ubic):''}</small>${tab==='tramite'?'<div class="pagosPills">'+tramPend(c).map(x=>'<span class="pill-or">'+x+'</span>').join(' ')+'</div>':''}${tab==='pagos'?'<div class="pagosPills">'+pagosPend(c).map(x=>'<span class="pill-or">Falta pago de '+x+'</span>').join(' ')+'</div>':''}</div>`+
- `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/'):'')}</span><div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
+ `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(solMovida(c)?' (domingo → lunes)':''):'')}</span><div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
  `<div class="etRow">${E.map((x,i)=>`<button class="et et-${x.st}" data-et="${x.k}" title="${esc(ETAPAS[i][1]+': '+(x.done?'listo'+(x.k==='precal'&&c.semanas!==''&&c.semanas!=null?' · '+c.semanas+' semanas restantes':''):'falta '+x.falta.join(', ')))}">${x.done?'✓ ':''}${ETAPAS[i][1]}</button>`).join('')}</div><div class="etFalta hidden"></div></div>`};
  $('clientList').innerHTML=L.length?LC.map(row).join('')+(LS.length?'<div class="solSep" id="solSep">Sin fecha de solicitud ('+LS.length+')</div>'+LS.map(row).join(''):''):'<p><small>No hay clientes'+(Object.keys(S.clients).length?' en este grupo'+(stF?' con ese estado':'')+'.':'. Crea un nuevo caso.')+'</small></p>'}
 $('sumBar').onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;stF=stF===b.dataset.st?'':b.dataset.st;renderList()};
@@ -741,22 +746,22 @@ $('btnBack').onclick=()=>{cur=null;$('caseView').classList.add('hidden');$('list
 $('btnRem').onclick=()=>$('remPanel').classList.toggle('hidden');
 // caso
 const C=()=>S.clients[cur];
-function openCase(id){cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;$('f_sem').value=c.semanas;$('f_alta').checked=c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
+function openCase(id){cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;altaSync(c);$('f_alta').checked=!!c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
 function setImg(el,src){el.src=src||'';el.classList.toggle('hidden',!src)}
 function render(){const c=C();if(!c)return;
 document.querySelectorAll('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==c.step));
 $('stepBar').innerHTML=[1,2,3,4].map(i=>`<span class="${i===c.step?'cur':(i<c.step&&!VAL[i](c).length?'done':'')}">Paso ${i}</span>`).join('');
-setImg($('inePrev'),c.ine);setImg($('proofPrev'),c.proof);
+setImg($('proofPrev'),c.proof);
 $('f_curp').classList.toggle('red',!!c.curp&&!CURP_RE.test(c.curp));$('f_curp').classList.toggle('green',CURP_RE.test(c.curp));
 $('f_nss').classList.toggle('red',!!c.nss&&!/^\d{11}$/.test(c.nss));$('f_nss').classList.toggle('green',/^\d{11}$/.test(c.nss));
-const sm=$('f_sem'),n=num(c.semanas);sm.classList.toggle('red',c.semanas!==''&&n<104);sm.classList.toggle('green',c.semanas!==''&&n>=104);
+const n=num(c.semanas);altaSync(c);$('f_alta').checked=!!c.alta;$('altaAuto').textContent=String(c.semVigente||'').trim()?'(detectado: patrón vigente)':'';$('paso1Info').innerHTML=(c.semanas===''||c.semanas==null?'':'<b>'+esc(String(c.semanas))+'</b> semanas restantes · ')+(c.alta?'⚠️ dado de alta en un trabajo':'no está dado de alta');
 $('semHint').innerHTML=c.semanas===''?'<small>Mínimo 104 · ideal 150 o más</small>':n<104?'<div class="alert">Menos de 104 semanas: no califica.</div>':n<150?'<div class="warn">Califica (≥104). Ideal 150 o más.</div>':'<div class="ok">✔ Ideal: 150 semanas o más.</div>';
 $('r5No').classList.toggle('hidden',c.r5!=='no');
 const st=r5Status(c),inf=$('r5Info');inf.innerHTML='';
 if(st){if(st.k==='past')inf.innerHTML='<div class="ok">✔ Ya pasaron 5 años (desde el '+human(st.el)+').</div>';
-else if(st.k==='soon')inf.innerHTML='<div class="warn">Podrá tramitar a partir del <b>'+human(st.el)+'</b> (menos de 2 meses). Se creó un recordatorio. <button class="sec" id="icsNow">📅 Agendar</button></div>';
+else if(st.k==='soon')inf.innerHTML='<div class="warn">Podrá tramitar a partir del <b>'+human(st.el)+'</b> (menos de 2 meses). Se creó un recordatorio. <button class="sec" id="icsNow">📅 Agendar</button>'+agOkHtml(c.agendados,'r5:'+st.el)+'</div>';
 else inf.innerHTML='<div class="alert">Faltan más de 2 meses: podrá tramitar a partir del <b>'+human(st.el)+'</b>. <button class="sec" id="saveRem">Guardar recordatorio</button></div>';}
-$('edoList').innerHTML=c.files.map((f,i)=>`<div class="client"><span>📎 ${esc(f.name)}</span>${f.type.startsWith('image/')?`<img src="${f.data}" style="max-height:50px">`:''}<button class="danger" data-i="${i}">Quitar</button></div>`).join('');
+$('edoList').innerHTML=c.files.map((f,i)=>`<div class="client"><span>📎 ${esc(f.name)} ${f.data?`<a href="#" class="verL" data-verf="${i}">ver</a>`:''}</span>${f.type.startsWith('image/')?`<img src="${f.data}" style="max-height:50px">`:''}<button class="danger" data-i="${i}">Quitar</button></div>`).join('');
 const k=calc(c);$('t_total').textContent=fmt(k.total);$('t_monto').textContent=fmt(k.monto);$('t_com').textContent=fmt(k.com);$('t_libre').textContent=fmt(k.libre);
 $('btnPrev').disabled=c.step===1;$('btnNext').classList.toggle('hidden',c.step===4);$('btnFin').classList.toggle('hidden',c.step!==4);
 const ok=!allErr(c).length;if(!ok&&c.confirmed){c.confirmed=false;save()}
@@ -772,13 +777,12 @@ function upd(f){const c=C();f(c);save();if(c.step===2){const s=r5Status(c);if(s&
 $('f_nombre').oninput=e=>upd(c=>c.nombre=e.target.value);
 $('f_curp').oninput=e=>{const p=e.target.selectionStart;e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9Ñ]/g,'');upd(c=>c.curp=e.target.value)};
 $('f_nss').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'');upd(c=>c.nss=e.target.value)};
-$('f_sem').oninput=e=>upd(c=>c.semanas=e.target.value);
-$('f_alta').onchange=e=>upd(c=>c.alta=e.target.checked);
+$('f_alta').onchange=e=>upd(c=>{altaSync(c);c.alta=e.target.checked});
 $('f_r5').onchange=e=>upd(c=>c.r5=e.target.value);
 $('f_last').oninput=$('f_last').onchange=e=>upd(c=>c.last=e.target.value);
 $('f_aviso').onchange=e=>upd(c=>c.aviso=e.target.checked);
 $('f_viv').oninput=e=>upd(c=>c.sub.viv=e.target.value);
-$('f_ine').onchange=e=>{subirDoc('ine',e.target.files[0]);e.target.value=''};
+
 $('f_proof').onchange=async e=>{const f=e.target.files[0];if(!f)return;const id=cur;let d;try{d=await compress(f)}catch(x){alert('No se pudo leer la imagen.');return}upd(c=>c.proof=d);e.target.value='';
 const m=$('ocrMsg');m.innerHTML='<small>Leyendo fecha con OCR… (puedes capturarla manualmente)</small>';
 try{const t=await ocr(d);const dt=findDate(t);if(cur!==id)return;if(dt){$('f_last').value=dt;upd(c=>c.last=dt);m.innerHTML='<small>✔ Fecha detectada: '+human(dt)+'. Verifícala y corrígela si es necesario.</small>'}else m.innerHTML='<small>No se detectó una fecha. Escríbela manualmente.</small>'}
@@ -874,12 +878,18 @@ else if(!o.confirm('Tu calendario está ocupado el '+cuando()+' y no encontré u
 else if(!o.confirm('Ese horario está libre en tu Google Calendar.\n\n¿Agendar '+et+' el '+cuando()+'?'))return no()}
 else{var n=busy.length;if(!o.confirm((n?'Ese día ya tienes '+n+' compromiso(s) en tu calendario.':'Ese día tu calendario está libre.')+'\n\n¿Agendar '+et+' el '+cuando()+'?'))return no()}}
 catch(e){var m=(e&&e.message)||'error';if(!o.confirm('No se pudo consultar Google Calendar ('+m+').\n\n¿Descargar '+et+' del '+cuando()+' como archivo .ics?'))return no();icsEv(ev,s,dur);return fin('ics','No se pudo agendar en Google Calendar ('+m+'). Se descargó el archivo .ics en su lugar.')}
-try{await conAuth(tok,function(t){return insertar(t,ev,s,dur)});return fin('google','✔ '+et+' agendado en tu Google Calendar: '+cuando()+'.')}
+try{var j=await conAuth(tok,function(t){return insertar(t,ev,s,dur)});ev.result={id:(j&&j.id)||'',link:(j&&j.htmlLink)||'',fecha:fstr(s),hora:ev.hora?hstr(s):''};return fin('google','✔ '+et+' agendado en tu Google Calendar: '+cuando()+'.')}
 catch(e){icsEv(ev,s,dur);return fin('ics','No se pudo agendar en Google Calendar ('+((e&&e.message)||'error')+'). Se descargó el archivo .ics en su lugar.')}}
 return{programar:programar,sugerir:sugerir}}
 const AG=crearAgenda({cid:gCid,token:()=>gToken([GSCOPE]),reauth:()=>{lsG(GK.tok,null);lsG(GK.exp,null);return gToken([GSCOPE],true)},toast:gToast,confirm:t=>confirm(t),onUnauthorized:()=>{lsG(GK.tok,null);lsG(GK.exp,null);gUI()}});
-const programar=async ev=>{const c=C(),r=await AG.programar(ev);if(r==='google'&&c&&typeof hist==='function'){hist(c,'calendario','Evento agendado en Google Calendar: '+ev.tipo+' — '+ev.titulo+(ev.fecha?' ('+ev.fecha+(ev.hora?' '+ev.hora:'')+')':''));save()}return r};
-function agendar(r){if(!r)return;return programar({tipo:'Regla de 5 años',titulo:'Retiro por desempleo: '+r.nombre,desc:remText(r),fecha:r.date,uid:r.id,archivo:'recordatorio-'+(r.nombre||'cliente').replace(/\W+/g,'_')+'-'+r.date})}
+const agFmt=a=>{const[y,m,d]=(a.fecha||'').split('-');return d+'/'+m+'/'+y+(a.hora?' '+a.hora:'')};
+const programar=async ev=>{const c=(ev.cid&&S.clients[ev.cid])||C();
+ if(c&&ev.k&&ev.k!=='seg'){const a=(c.agendados||{})[ev.k];if(a&&!confirm('Ya está agendado el '+agFmt(a)+' ('+(a.motivo||ev.tipo)+').\n\n¿Agendar otra vez?'))return'cancelado'}
+ const r=await AG.programar(ev);
+ if(r==='google'&&c&&ev.k&&ev.result){const x=Object.assign({motivo:ev.motivo||ev.tipo,ts:Date.now()},ev.result);
+  if(ev.k==='seg'){c.segHist=c.segHist||[];c.segHist.forEach(h=>h.hecho=true);c.segHist.unshift(x);hist(c,'calendario','Seguimiento agendado: '+agFmt(x)+' — '+x.motivo)}
+  else{c.agendados=c.agendados||{};c.agendados[ev.k]=x}save();if(c.id===cur){try{render()}catch(e){}}if(typeof renderRem==='function')try{renderRem()}catch(e){}}if(r==='google'&&c&&typeof hist==='function'){hist(c,'calendario','Evento agendado en Google Calendar: '+ev.tipo+' — '+ev.titulo+(ev.fecha?' ('+ev.fecha+(ev.hora?' '+ev.hora:'')+')':''));save()}return r};
+function agendar(r){if(!r)return;return programar({k:'r5:'+r.date,cid:r.clientId,tipo:'Regla de 5 años',titulo:'Retiro por desempleo: '+r.nombre,desc:remText(r),fecha:r.date,uid:r.id,archivo:'recordatorio-'+(r.nombre||'cliente').replace(/\W+/g,'_')+'-'+r.date})}
 $('btnGCid').onclick=()=>{const v=$('gCidInput').value.trim();if(v!==gCid()){lsG(GK.tok,null);lsG(GK.exp,null);lsG(GK.ok,null);lsG(GK.sc,null)}lsG(GK.cid,v||null);gUI();gToast(v?'Client ID guardado.':'Client ID eliminado.','ok');if(v)loadGIS().catch(()=>{})};
 $('gSignOut').onclick=e=>{e.preventDefault();const t=lsG(GK.tok);try{if(t&&window.google&&google.accounts&&google.accounts.oauth2)google.accounts.oauth2.revoke(t,()=>{})}catch(x){}
 lsG(GK.tok,null);lsG(GK.exp,null);lsG(GK.ok,null);lsG(GK.sc,null);gUI();gToast('Sesión de Google cerrada.','ok')};
@@ -888,7 +898,7 @@ gUI();if(gCid()&&location.protocol!=='file:')loadGIS().catch(()=>{});
 const GRUPOS=[['todos','Todos'],['firmado','Firmados'],['pendiente','Pendientes de firma'],['espera','En espera'],['finalizado','Finalizado'],['sinetapa','Sin etapa'],['cancelado','Cancelados']];
 const GNOM={firmado:'Firmado',pendiente:'Pendiente de firma',espera:'En espera',finalizado:'Finalizado',cancelado:'Cancelado',sinetapa:'Sin etapa'};
 let tab='todos';
-function fix(c){if(!c.estado)c.estado='pendiente';['cond','ubic','tel','email','afore','calle','colonia','municipio','cp','notas'].forEach(k=>{if(c[k]==null)c[k]=''});docSync(c);return c}
+function fix(c){normSol(c);if(!c.estado)c.estado='pendiente';['cond','ubic','tel','email','afore','calle','colonia','municipio','cp','notas'].forEach(k=>{if(c[k]==null)c[k]=''});docSync(c);return c}
 function docSync(c){c.docIne=!!c.ine;c.docDom=!!c.dom;return c}
 Object.values(S.clients).forEach(fix);
 const firmadoOK=c=>c.estado==='firmado'||c.estado==='finalizado';
@@ -913,6 +923,23 @@ function migrarFinalizado(){try{if(localStorage.getItem('retiroApp.migFinal'))re
 Object.values(S.clients).forEach(c=>{if(!c.seedKey||!verdes.has(c.seedKey)||c.estado!=='firmado'||c.estadoManual)return;if(c.seedEstado&&c.seedEstado!=='firmado')return;c.estado='finalizado';c.seedEstado='finalizado';n++});
 if(save())try{localStorage.setItem('retiroApp.migFinal','1')}catch(e){}return n}
 migrarFinalizado();
+// ===== Limpieza única: clientes anteriores pasan a «ignorados» (memoria; no se reimportan desde la hoja) =====
+const LIMPIAR_FLAG='retiroApp.migLimpiar1',LIMPIAR_ON=location.protocol!=='file:'||!!window.__FORCE_LIMPIAR;let pendRespaldo=[];
+const normIgn=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+function ignData(){if(!S.ignorados)S.ignorados=[];return S.ignorados}
+function ignSets(){const I=ignData();return{ids:new Set(I.map(x=>x.id).filter(Boolean)),curps:new Set(I.map(x=>x.curp).filter(Boolean)),noms:new Set(I.filter(x=>!x.curp&&x.nom).map(x=>x.nom))}}
+function addIgn(c){const I=ignData(),curp=String(c.curp||'').trim().toUpperCase(),nom=normIgn(c.nombre);if(I.some(x=>(c.id&&x.id===c.id)||(curp&&x.curp===curp&&x.nom===nom)))return false;I.push({id:c.id||'',curp,nom,seedKey:c.seedKey||'',ts:Date.now()});return true}
+function esViejo(c,ids){const t=S.limpiarTs;if(!t)return false;return (c.created||0)<t||(ids||ignSets().ids).has(c.id)}
+function respaldar(c){if(!pendRespaldo.some(x=>x.id===c.id))pendRespaldo.push(JSON.parse(JSON.stringify(c)))}
+function guardarRespaldoLocal(){if(!pendRespaldo.length)return;const k='retiroApp.respaldoClientes.'+new Date().toISOString().slice(0,10);try{let o=[];try{o=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}pendRespaldo.forEach(c=>{if(!o.some(x=>x.id===c.id))o.push(c)});localStorage.setItem(k,JSON.stringify(o))}catch(e){try{localStorage.setItem(k,JSON.stringify(pendRespaldo.map(c=>{const o={};for(const f in c)if(!/^data:/.test(String(c[f]))&&f!=='files'&&f!=='contratoFirm'&&f!=='docsArchivo')o[f]=c[f];return o})))}catch(e2){}}}
+// Quita del listado los clientes anteriores (respaldándolos primero). Devuelve cuántos quitó.
+function purgarViejos(){if(!S.limpiarTs)return 0;const ids=ignSets().ids,quit=new Set();
+for(const c of Object.values(S.clients))if(esViejo(c,ids)){respaldar(c);addIgn(c);quit.add(c.id)}
+if(!quit.size)return 0;guardarRespaldoLocal();quit.forEach(id=>delete S.clients[id]);S.reminders=(S.reminders||[]).filter(r=>!quit.has(r.clientId));if(cur&&quit.has(cur))cur=null;return quit.size}
+function migrarLimpiar(){if(!LIMPIAR_ON)return 0;try{if(localStorage.getItem(LIMPIAR_FLAG))return 0}catch(e){return 0}
+if(!S.limpiarTs)S.limpiarTs=Date.now();const n=purgarViejos();if(save())try{localStorage.setItem(LIMPIAR_FLAG,'1')}catch(e){}return n}
+function renderIgn(){const e=$('ignInfo');if(e){const n=ignData().length;e.textContent=n?'Clientes anteriores (no se reimportan): '+n:'';e.classList.toggle('hidden',!n)}}
+migrarLimpiar();
 $('btnImpCli').onclick=()=>$('impCliFile').click();
 $('impCliFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d))d=d.clientes;if(!Array.isArray(d))throw 0;const r=importClients(d);save();renderList();alert('Clientes importados: '+r.add+'. Omitidos (ya existían o ambiguos): '+r.skip+'.')}catch(x){alert('El archivo no tiene el formato de clientes esperado (lista JSON).')}};
 // ===== Contrato desde Google Sheets / CSV =====
@@ -957,12 +984,13 @@ function quitarDoc(kind){const c=C();c[kind]=null;docSync(c);save();render();ren
 $('f_ine2').onchange=e=>{subirDoc('ine',e.target.files[0]);e.target.value=''};$('f_dom').onchange=e=>{subirDoc('dom',e.target.files[0]);e.target.value=''};
 $('btnIneDel').onclick=()=>quitarDoc('ine');$('btnDomDel').onclick=()=>quitarDoc('dom');
 document.querySelectorAll('#contractCard [data-fe]').forEach(i=>i.oninput=()=>{C()[i.dataset.fe]=i.value;save()});
+const SEG_DEF='Dar seguimiento al trámite';
 function eventoDe(c,k){const n=c.nombre||'cliente',id=' (CURP: '+(c.curp||'-')+', NSS: '+(c.nss||'-')+')';
 if(k==='cita')return{tipo:'Cita de firma',titulo:'Firma de contrato: '+n,desc:'Cita para firmar el contrato de retiro por desempleo de '+n+id+'.',fecha:c.citaFecha,hora:c.citaHora,dur:60,uid:c.id+'-cita'};
-if(k==='seg')return{tipo:'Seguimiento',titulo:'Seguimiento: '+n+(c.segNota?' · '+c.segNota:''),desc:'Seguimiento del trámite de '+n+id+(c.segNota?'. Motivo: '+c.segNota:'')+'.',fecha:c.segFecha,hora:c.segHora,dur:30,uid:c.id+'-seg'};
+if(k==='seg'){const mo=(c.segNota||'').trim()||SEG_DEF;return{tipo:'Seguimiento',motivo:mo,titulo:'Seguimiento: '+n+' · '+mo,desc:'Seguimiento del trámite de '+n+id+'. Motivo: '+mo+'.',fecha:c.segFecha,hora:c.segHora,dur:30,uid:c.id+'-seg'};}
 if(k==='cond')return{tipo:'Condición En espera',titulo:'Revisar condición de '+n+(c.cond?': '+c.cond:''),desc:n+id+' está en espera'+(c.cond?' por: '+c.cond:'')+'. Revisar si ya puede continuar.',fecha:c.condFecha,uid:c.id+'-cond'};
 if(k==='pagare')return{tipo:'Vencimiento del pagaré',titulo:'Vence pagaré de '+n+' ($ '+money(c.pagareMonto)+')',desc:'Vencimiento del pagaré de '+n+id+' por $ '+money(c.pagareMonto)+'.',fecha:c.pagareVenc,uid:c.id+'-pagare'}}
-document.querySelector('#contractCard').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(b)programar(eventoDe(C(),b.dataset.ag))});
+document.querySelector('#contractCard').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(b){const ev=eventoDe(C(),b.dataset.ag);if(ev){ev.k=b.dataset.ag;programar(ev)}}});
 document.querySelectorAll('#datosContrato [data-f]').forEach(i=>i.oninput=()=>{C()[i.dataset.f]=i.value;save()});
 function altaFalta(c){docSync(c);const f=[];if(!firmadoOK(c))f.push('Contrato firmado (marca el grupo «Ya está firmado»)');if(!c.docIne)f.push('Copia de la INE');if(!c.docDom)f.push('Comprobante de domicilio');return f}
 function renderContract(c){$('f_estado').value=c.estado;$('condBox').classList.toggle('hidden',c.estado!=='espera');$('f_cond').value=c.cond;if(document.activeElement!==$('f_ubic'))$('f_ubic').value=c.ubic;
@@ -1017,8 +1045,8 @@ const imssFalta=c=>PAGOS.filter(([k,,req])=>req&&!c[pk(k)]).map(x=>x[1]);
 const pagosPend=c=>PAGOS.filter(([k])=>c[pk(k)]&&!c[pkp(k)]).map(x=>x[1]);
 function renderImss(c){if(!c||!$('imssRows'))return;$('imssRows').innerHTML=PAGOS.map(([k,n,req])=>{const has=!!c[pk(k)],paid=!!c[pkp(k)];
  return '<div class="docSt" data-pk="'+k+'"><b>'+n+':</b> '+(has?'✅ '+n+' cargado':(req?'❌ Falta '+n:'— Opcional, súbelo cuando llegue'))+
- ' <label class="btn sec" style="display:inline-block;cursor:pointer">Subir<input type="file" data-up="'+pk(k)+'" accept="image/*,application/pdf" hidden></label>'+(has?' <button class="sec" data-del="'+pk(k)+'">Quitar</button>':'')+
- (has?'<div style="margin-left:12px">'+(paid?'✅ Pagado <button class="sec" data-del="'+pkp(k)+'">Quitar comprobante</button>':'<span class="pill-or">Pago pendiente</span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de pago<input type="file" data-up="'+pkp(k)+'" accept="image/*,application/pdf" hidden></label>')+'</div>':'')+'</div>'}).join('');
+ ' <label class="btn sec" style="display:inline-block;cursor:pointer">Subir<input type="file" data-up="'+pk(k)+'" accept="image/*,application/pdf" hidden></label>'+(has?' <a href="#" class="verL" data-ver="'+pk(k)+'">ver</a> <button class="sec" data-del="'+pk(k)+'">Quitar</button>':'')+
+ (has?'<div style="margin-left:12px">'+(paid?'✅ Pagado <a href="#" class="verL" data-ver="'+pkp(k)+'">ver</a> <button class="sec" data-del="'+pkp(k)+'">Quitar comprobante</button>':'<span class="pill-or">Pago pendiente</span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de pago<input type="file" data-up="'+pkp(k)+'" accept="image/*,application/pdf" hidden></label>')+'</div>':'')+'</div>'}).join('');
  const f=imssFalta(c),w=$('imssWarn');w.classList.toggle('hidden',!f.length);w.textContent='⚠️ Falta subir: '+f.join(' y ')}
 $('imssRows').addEventListener('change',e=>{const k=e.target.dataset.up;if(k){subirDoc(k,e.target.files[0]);e.target.value=''}});
 $('imssRows').addEventListener('click',e=>{const k=e.target.dataset.del;if(k)quitarDoc(k)});
@@ -1039,7 +1067,13 @@ function findBaja(text){const L=String(text||'').split(/\r?\n/).map(nrm);const c
   else if(movHdr&&/(^|\s)0?2(\s|$)/.test(l.replace(/\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}/g,' '))){const ds=fechasEn(l);if(ds.length)cand.push(ds[0].iso)}}
  return cand.sort().pop()||null}
 function addDias(iso,n){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m-1,d+n);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
-function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?addDias(iso,46):'';c.seg2Txt=null}
+function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?solDesdeBaja(iso):'';c.seg2Txt=null}
+// Regla: si la fecha de solicitud cae en domingo, se recorre al lunes siguiente
+function esDomingo(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return false;const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).getDay()===0}
+function sinDomingo(iso){return esDomingo(iso)?addDias(iso,1):iso}
+function solDesdeBaja(iso){return sinDomingo(addDias(iso,46))}
+function solMovida(c){return !!(c&&c.fechaSolicitud&&(c.solDomingo||(c.fechaBaja&&esDomingo(addDias(c.fechaBaja,46))&&c.fechaSolicitud===solDesdeBaja(c.fechaBaja))))}
+function normSol(c){if(!c||!c.fechaSolicitud)return c;if(esDomingo(c.fechaSolicitud)){const old=c.fechaSolicitud;c.fechaSolicitud=addDias(old,1);c.solDomingo=true;if(c.seg2Txt&&typeof fechaTexto==='function')c.seg2Txt=c.seg2Txt.split(fechaTexto(old)).join(fechaTexto(c.fechaSolicitud))}return c}
 async function leerSua(f,id){const m=$('bajaMsg'),say=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};say('Leyendo la fecha de baja del SUA…');
  let t='';try{t=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)?await pdfText(await f.arrayBuffer()):await ocr(await prepImg(await readURL(f)))}catch(x){}
  const iso=findBaja(t),c=S.clients[id];if(!c)return;
@@ -1050,7 +1084,7 @@ function fechaTexto(iso){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m
 function seg2Default(c){return'Hola '+primerNombre(c)+', te informo que el '+fechaTexto(c.fechaSolicitud)+' podremos realizar el segundo paso de tu trámite: solicitar tu dinero del retiro por desempleo. Te contactamos ese día para hacerlo. ¡Saludos!'}
 function telCliente(v){let s=String(v??'').trim().replace(/\.0$/,''),d=s.replace(/\D/g,'');if(d.length===13&&d.startsWith('521'))d='52'+d.slice(3);else if(d.length===10)d='52'+d;return /^52\d{10}$/.test(d)?d:null}
 function renderSeg2(c){if(!c||!$('seg2Card'))return;$('f_baja').value=c.fechaBaja||'';
- $('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero (baja + 46 días): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>':'';
+ normSol(c);$('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero (baja + 46 días): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>'+(solMovida(c)?' <small class="domNote">(domingo → lunes)</small>':''):'';
  if(!c.fechaBaja&&c.pago_sua&&!/Leyendo/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='<small>No se detectó la fecha de baja, escríbela</small>';if(c.fechaBaja&&/No se detectó la fecha de baja, escríbela/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='';
  const has=!!c.fechaSolicitud;$('seg2Body').classList.toggle('hidden',!has);$('seg2Locked').classList.toggle('hidden',has);if(!has)return;
  const ta=$('seg2Text');if(document.activeElement!==ta)ta.value=c.seg2Txt||seg2Default(c);
@@ -1066,13 +1100,25 @@ $('btnSeg2Wa').onclick=()=>{const c=C(),tel=telCliente(c.tel)||telCliente(c.celu
 /*TRAM*/const TRAM=[['expElectronico','Expediente electrónico'],['tarjetaN4','Tarjeta nivel 4']];
 function activo(c){return c.estado!=='cancelado'&&c.estado!=='finalizado'}
 function tramPend(c){return TRAM.filter(([k])=>!c[k]).map(x=>x[1])}
-function renderPrecal(c){if(!c||!$('f_precal'))return;renderSem(c);$('f_precal').checked=!!c.precalificado;const d=precalData(c),m=v=>v?'✅':'❌';$('precalInfo').innerHTML='<small>Datos en la app: '+m(d.sem)+' semanas ≥104 · '+m(d.saldo)+' saldo Afore · '+m(d.r5)+' 5 años'+(d.vig?' · ⚠️ vigente con patrón: no precalifica':d.sem&&d.saldo&&d.r5?' — ya cuenta como precalificado':'')+'</small>'}
+function renderPrecal(c){if(!c||!$('f_precal'))return;renderSem(c);renderPreEdo(c);renderPreR5(c);$('f_precal').checked=!!c.precalificado;const d=precalData(c),m=v=>v?'✅':'❌';$('precalInfo').innerHTML='<small>Datos en la app: '+m(d.sem)+' semanas ≥104 · '+m(d.saldo)+' saldo para retiro · '+m(d.r5)+' 5 años'+(d.vig?' · ⚠️ vigente con patrón: no precalifica':d.sem&&d.saldo&&d.r5?' — ya cuenta como precalificado':'')+'</small>'}
 function renderSem(c){const set=(i,v)=>{const e=$(i);if(document.activeElement!==e)e.value=v??''};set('s_cot',c.semCot);set('s_desc',c.semDesc);set('s_reint',c.semReint);set('s_rest',c.semanas);set('s_vig',c.semVigente);set('s_baja',c.semUltBaja);
  $('semDoc').innerHTML=c.constSem?'<small>✔ Constancia guardada'+(c.semRevisa?' · <b style="color:#b3261e">revisa</b>':'')+'</small>':'';const v=String(c.semVigente||'').trim(),rv=$('s_rest');rv.classList.toggle('red',c.semanas!==''&&c.semanas!=null&&num(c.semanas)<104);rv.classList.toggle('green',c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104);
  $('semVigInfo').innerHTML=(v?'<div class="alert semVig" style="color:#b3261e;font-weight:bold">⚠️ Vigente con: '+esc(v)+' — no puede hacer el retiro por desempleo</div>':(c.semLeida||c.semUltBaja?'<div class="semVig" style="color:#0b5d3b;margin-top:6px">✓ Sin patrón vigente</div>':''))+(c.semUltBaja?'<small>Última baja: '+human(c.semUltBaja)+(c.semUltBajaPat?' ('+esc(c.semUltBajaPat)+')':'')+'</small>':'')}
 $('f_constSem').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;await subirDoc('constSem',f);if(S.clients[id]&&S.clients[id].constSem)readSemanas(f,id)};
 const semRecalc=c=>{if(c.semCot==='')return;c.semanas=String(num(c.semCot)-num(c.semDesc||0)+num(c.semReint||0))};
 [['s_cot','semCot',1],['s_desc','semDesc',1],['s_reint','semReint',1],['s_rest','semanas'],['s_vig','semVigente'],['s_baja','semUltBaja']].forEach(([i,k,rc])=>$(i).oninput=e=>{const c=C();c[k]=e.target.value;if(rc)semRecalc(c);c.semRevisa=false;if(k==='semUltBaja')c.semUltBajaPat='';save();render();renderPrecal(c)});
+function renderPreEdo(c){if(!$('preSubs'))return;const s=c.sub,L=c.subLeidas||[],rv=k=>c.edoRevisa&&L.includes(k)?' <b class="revisa" style="color:#b3261e">revisa</b>':'';
+ const rows=SUBS.map(([k,l])=>'<tr><td>'+l+rv(k)+'</td><td><input type="number" step="0.01" data-pk="'+k+'" value="'+esc(s[k])+'"></td></tr>').join('')+s.otras.map((o,i)=>VIV_RE.test(o.n||'')?'':'<tr><td>'+esc(o.n||'Otra')+rv('o:'+nrm(o.n||'').trim())+'</td><td><input type="number" step="0.01" data-po="'+i+'" value="'+esc(o.v)+'"></td></tr>').join('')
+  +'<tr><td>Vivienda (no se suma)'+rv('viv')+'</td><td><input type="number" step="0.01" data-pk="viv" value="'+esc(s.viv)+'"></td></tr>';
+ const tb=$('preSubs').tBodies[0];if(!tb.contains(document.activeElement))tb.innerHTML=rows;
+ const t=saldoRetiro(c);$('preSaldo').innerHTML='<b>Saldo para retiro (sin vivienda): <span id="preTotal">'+fmt(t)+'</span></b>'+(c.edoRevisa?' <b class="revisa" style="color:#b3261e">revisa</b>':'')}
+function renderPreR5(c){if(!$('r5PreInfo'))return;const r=r5Pre(c);$('comp5Doc').innerHTML=c.comp5?'<small>✔ Comprobante guardado'+(c.comp5Fecha?' (fecha detectada: '+human(c.comp5Fecha)+')':'')+'</small>':'';
+ $('r5PreInfo').innerHTML=r.na?'<div class="r5na" style="color:#0b5d3b">✓ No aplica: nunca ha retirado (0 semanas descontadas)</div>':r.ok?'<div style="color:#0b5d3b">✓ Regla de 5 años cumplida</div>':'<div class="r5falta" style="color:#b3261e;font-weight:bold">Falta comprobante de 5 años</div>'}
+$('preSubs').addEventListener('input',e=>{const t=e.target,c=C();if(t.dataset.pk){c.sub[t.dataset.pk]=t.value;if(t.dataset.pk==='viv')$('f_viv').value=t.value}else if(t.dataset.po!=null)c.sub.otras[+t.dataset.po].v=t.value;else return;c.edoRevisa=false;save();renderSubs();render();renderPrecal(c)});
+$('f_edoPre').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;let data;try{data=f.type.startsWith('image/')?await compress(f):await readURL(f)}catch(x){alert('No se pudo leer el archivo.');return}
+ const c=S.clients[id];c.files.push({name:f.name,type:f.type.startsWith('image/')?'image/jpeg':(f.type||'application/octet-stream'),data});if(!save()){c.files.pop();alert('No hay espacio para guardar el archivo.');return}if(cur===id){render();renderPrecal(c)}runOcr4(f,id,'ocrPre')};
+$('f_comp5').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;await subirDoc('comp5',f);const c=S.clients[id];if(!c||!c.comp5)return;c.comp5At=Date.now();save();if(cur===id)renderPrecal(c);
+ if(/^image\//.test(f.type))try{const dt=findDate(await ocr(c.comp5));if(dt){c.comp5Fecha=dt;if(!c.last)c.last=dt;save();if(cur===id)renderPrecal(c)}}catch(x){}};
 $('f_precal').onchange=e=>{const c=C();c.precalificado=e.target.checked;c.precalificadoAt=e.target.checked?Date.now():null;save();renderPrecal(c)};
 function renderTram(c){renderPrecal(c);if(!c||!$('tramRows'))return;$('tramRows').innerHTML=TRAM.map(([k,n])=>'<label class="chk"><input type="checkbox" data-tk="'+k+'"'+(c[k]?' checked':'')+'> '+n+' — '+(c[k]?'✅ Listo <small>('+new Date(c[k+'At']||Date.now()).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})+')</small>':'⏳ Pendiente')+'</label>').join('')}
 $('tramRows').addEventListener('change',e=>{const k=e.target.dataset.tk;if(!k)return;const c=C();c[k]=e.target.checked;c[k+'At']=e.target.checked?Date.now():null;save();renderTram(c)});
@@ -1157,7 +1203,9 @@ const m=Math.max(0,...Object.values(S.clients).map(c=>+String(c.seedKey||'').rep
 function showLastSync(){const t=lsG(SYNC_KEY);$('lastSync').textContent=t?'Última actualización desde el formulario: '+new Date(+t).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}):'Aún no se ha actualizado desde el formulario.'}
 function procesarFormulario(values){const F=syncMeta(),L=Object.values(S.clients);const filas=new Set(L.map(c=>c.seedKey).filter(Boolean)),curps=new Set(L.map(c=>c.curp).filter(Boolean)),
 mn=new Set(L.filter(c=>c.marca).map(c=>c.marca+'|'+normH(c.nombre)));const nuevos=[];let max=F.maxRow;
+const IG=ignSets();
 for(const r of rowsToRecs(values)){if(F.ignore.includes(r.fila)||filas.has('fila'+r.fila))continue;
+if(r.curp?IG.curps.has(r.curp):IG.noms.has(normIgn(r.nombre)))continue;
 const desconocido=(!r.curp||!curps.has(r.curp))&&!(r.marca&&mn.has(r.marca+'|'+normH(r.nombre)));if(!(r.fila>F.maxRow||desconocido))continue;
 const c=fix(newClient(r.nombre));c.id+='_f'+r.fila;['curp','nss','email','calle','colonia','municipio','cp','afore','tel','notas','marca'].forEach(k=>{if(r[k])c[k]=r[k]});
 c.estado='pendiente';c.seedKey='fila'+r.fila;c.nuevoForm=true;c.origen='formulario';S.clients[c.id]=c;filas.add(c.seedKey);if(r.curp)curps.add(r.curp);nuevos.push(c);if(r.fila>max)max=r.fila}
@@ -1173,7 +1221,7 @@ if(nuevos.length)gToast((nuevos.length===1?'1 cliente nuevo del formulario: ':nu
 else if(interactivo)gToast('Sin registros nuevos en el formulario.','ok')}
 catch(e){banner(false);if(interactivo)gToast('No se pudo leer el formulario ('+(e&&e.message||'error')+').')}finally{syncing=false}}
 $('btnSync').onclick=()=>syncFormulario(true);$('btnSyncConnect').onclick=async()=>{if(!gCid())return syncFormulario(true);try{await gToken([SH_SCOPE,DRIVE_SCOPE])}catch(e){gToast('No se pudo conectar con Google ('+(e&&e.message||'error')+').');return}await syncDrive(true);syncFormulario(true)};
-syncMeta();showLastSync();
+syncMeta();showLastSync();renderIgn();
 renderList();renderRem();notifyDue();
 // ===== Sincronización entre dispositivos (Google Drive appDataFolder) =====
 const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata',DFILE='retiro-app-estado.json',DK={dirty:'retiroApp.driveDirty',last:'retiroApp.driveLast',fid:'retiroApp.driveFileId'};
@@ -1181,11 +1229,15 @@ function needConnect(){const g=gGranted();return !gCid()||!((gValid()||lsG(GK.ok
 function driveListo(){return !!gCid()&&!!(gValid()||lsG(GK.ok))&&gGranted().includes(DRIVE_SCOPE)}
 // updatedAt: se marca en cada edición (se detecta comparando contra una instantánea)
 const snap={};const sj=c=>{const o=Object.assign({},c);delete o.updatedAt;delete o.nuevoForm;return JSON.stringify(o)};
-function snapAll(){Object.values(S.clients).forEach(c=>snap[c.id]=sj(c))}
+const snapF={},F_SKIP={id:1,updatedAt:1,nuevoForm:1,fieldTs:1};
+const fmap=c=>{const m={};for(const k in c)if(!F_SKIP[k])m[k]=JSON.stringify(c[k]);return m};
+function snapAll(){Object.values(S.clients).forEach(c=>{snap[c.id]=sj(c);snapF[c.id]=fmap(c)})}
+const DOC_F=new Set(['ine','dom','proof','comp5','constSem','evidenciaSol','files','contratoFirm','pago_sua','pago_sipare','pago_infonavit','pago_suaPagado','pago_siparePagado','pago_infonavitPagado']);
 snapAll();
 const _save=save;let dTimer=null;
-save=function(){const now=Date.now();let ch=false;Object.values(S.clients).forEach(c=>{const j=sj(c);if(snap[c.id]!==j){c.updatedAt=Math.max(now,(c.updatedAt||0)+1);snap[c.id]=j;ch=true}});
-const ok=_save();lsG(DK.dirty,'1');clearTimeout(dTimer);dTimer=setTimeout(()=>syncDrive(false),3000);return ok};
+save=function(){const now=Date.now();let ch=false,doc=false;Object.values(S.clients).forEach(c=>{const j=sj(c);if(snap[c.id]!==j){c.updatedAt=Math.max(now,(c.updatedAt||0)+1);snap[c.id]=j;ch=true;
+ const o=snapF[c.id]||{},n=fmap(c);c.fieldTs=c.fieldTs||{};for(const k of new Set([...Object.keys(o),...Object.keys(n)]))if(o[k]!==n[k]){c.fieldTs[k]=c.updatedAt;if(DOC_F.has(k))doc=true}snapF[c.id]=n;snap[c.id]=sj(c)}});
+const ok=_save();lsG(DK.dirty,'1');clearTimeout(dTimer);dTimer=setTimeout(()=>syncDrive(false),doc?50:3000);return ok};
 /*SOL*/// ===== Solicitud de dinero → solicitud de semanas cotizadas (evento automático en Calendar) =====
 function semMsgDefault(c){return'Solicitud de semanas cotizadas\nNombre: '+String(c.nombre||'').trim()+'\nCURP: '+(c.curp||'')+'\nNSS: '+(c.nss||'')}
 function fechaCorta(d){return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
@@ -1221,10 +1273,10 @@ const H_DOCS={ine:'INE',dom:'Comprobante de domicilio',proof:'Imagen del último
 const H_FECHA=k=>v=>{try{return human(v)}catch(e){return v}};
 const H_CAMPOS=[['fechaBaja','fecha',v=>'Fecha de baja: '+H_FECHA()(v)],['fechaSolicitud','fecha',v=>'Fecha de solicitud del dinero: '+H_FECHA()(v)],['last','fecha',v=>'Fecha del último retiro: '+H_FECHA()(v)],
  ['pagareVenc','contrato',v=>'Contrato y pagaré PDF generados (vence el '+H_FECHA()(v)+')'],['altaEnviada','alta',()=>'Mensaje de alta enviado por WhatsApp Business'],['altaConfirmada','alta',()=>'Proveedor confirmó el alta'],
- ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado']];
+ ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado'],['comp5At','documento',()=>'Comprobante de 5 años del último retiro subido']];
 const H_MAX_ARCH=400e3,H_MAX_ARCH_TOT=1.5e6;
 let hsnap={},hMute=false;
-function hSnap(c){const o={estado:c.estado,files:(c.files||[]).map(f=>f.name+'|'+(f.data||'').length),fdata:(c.files||[]).map(f=>f),tram:{expElectronico:!!c.expElectronico,tarjetaN4:!!c.tarjetaN4},ev:c.recordEventId||null,ev2:c.semanasEventId||null};
+function hSnap(c){const o={estado:c.estado,files:(c.files||[]).map(f=>f.name+'|'+(f.data||'').length),fdata:(c.files||[]).map(f=>f),cf:(c.contratoFirm||[]).map(f=>f.name+'|'+(f.data||'').length),cfdata:(c.contratoFirm||[]).slice(),tram:{expElectronico:!!c.expElectronico,tarjetaN4:!!c.tarjetaN4},ev:c.recordEventId||null,ev2:c.semanasEventId||null};
  for(const k in H_DOCS)o[k]=c[k]||'';for(const [k] of H_CAMPOS)o[k]=c[k]||null;return o}
 function hSnapAll(){hsnap={};Object.values(S.clients).forEach(c=>hsnap[c.id]=hSnap(c))}
 function hist(c,tipo,texto,ts){if(!c)return;(c.historial=c.historial||[]);const now=ts||Date.now(),L=c.historial[c.historial.length-1];
@@ -1237,6 +1289,7 @@ function hDiff(){if(hMute)return;for(const c of Object.values(S.clients)){const 
  for(const k in H_DOCS){if(o[k]===n[k])continue;const L=H_DOCS[k];if(n[k]){c.docTs[k]=Date.now();hist(c,'documento',(o[k]?'Documento reemplazado: ':'Documento subido: ')+L+(o[k]?hArchivar(c,k,L,o[k]):''))}else{hist(c,'documento','Documento quitado: '+L+hArchivar(c,k,L,o[k]));delete c.docTs[k]}}
  if(o.files.join()!==n.files.join()){const on=new Set(o.files),nn=new Set(n.files);(c.files||[]).forEach(f=>{const id=f.name+'|'+(f.data||'').length;if(!on.has(id)){f.ts=f.ts||Date.now();hist(c,'documento','Estado de cuenta Afore subido: '+f.name)}});
   o.fdata.forEach(f=>{const id=f.name+'|'+(f.data||'').length;if(!nn.has(id))hist(c,'documento','Estado de cuenta Afore quitado: '+f.name+hArchivar(c,'edo','Estado de cuenta Afore: '+f.name,f.data))})}
+ if((o.cf||[]).join()!==n.cf.join()){const on=new Set(o.cf||[]),nn=new Set(n.cf);(c.contratoFirm||[]).forEach(f=>{if(!on.has(f.name+'|'+(f.data||'').length))hist(c,'documento','Contrato firmado subido: '+f.name)});(o.cfdata||[]).forEach(f=>{if(!nn.has(f.name+'|'+(f.data||'').length))hist(c,'documento','Contrato firmado quitado: '+f.name+hArchivar(c,'cf','Contrato firmado: '+f.name,f.data))})}
  for(const [k,t,fx] of H_CAMPOS)if(o[k]!==n[k]&&n[k]){hist.k=k;hist(c,t,fx(n[k]))}
  for(const k in n.tram)if(o.tram[k]!==n.tram[k])hist(c,'pendiente',(n.tram[k]?'Marcado listo: ':'Desmarcado (pendiente): ')+(k==='expElectronico'?'Expediente electrónico':'Tarjeta nivel 4'));
  if(o.ev!==n.ev){if(o.ev)hist(c,'calendario','Evento de Google Calendar eliminado: recordatorio al proveedor');if(n.ev)hist(c,'calendario','Evento de Google Calendar creado: recordatorio al proveedor cada 2 días')}
@@ -1262,7 +1315,7 @@ const H_ICO={nota:'📝',estado:'🔀',documento:'📄',montos:'💲',fecha:'�
 let hTab='hist';
 function hFmt(t){return new Date(t).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}
 function hDocs(c){const D=[];const add=(label,data,ts,extra)=>{if(data)D.push(Object.assign({label,data,ts},extra||{}))};
- for(const k in H_DOCS)add(H_DOCS[k],c[k],c.docTs&&c.docTs[k]);(c.files||[]).forEach(f=>add('Estado de cuenta Afore: '+f.name,f.data,f.ts));(c.docsArchivo||[]).forEach(a=>add(a.label,a.data,a.ts,{arch:a.removed}));return D}
+ for(const k in H_DOCS)add(H_DOCS[k],c[k],c.docTs&&c.docTs[k]);(c.files||[]).forEach(f=>add('Estado de cuenta Afore: '+f.name,f.data,f.ts));(c.contratoFirm||[]).forEach(f=>add('Contrato firmado: '+f.name,f.data,f.ts));(c.docsArchivo||[]).forEach(a=>add(a.label,a.data,a.ts,{arch:a.removed}));return D}
 const isImg=d=>/^data:image\//.test(d),isPdf=d=>/^data:application\/pdf/.test(d);
 function renderHist(){const c=C();if(!c)return;$('histName').textContent=c.nombre||'';$('hTabH').className=hTab==='hist'?'':'sec';$('hTabD').className=hTab==='docs'?'':'sec';$('hHistBox').classList.toggle('hidden',hTab!=='hist');$('hDocsBox').classList.toggle('hidden',hTab!=='docs');
  const solo=$('hSoloNotas').checked,L=(c.historial||[]).filter(h=>!solo||h.tipo==='nota').slice().sort((a,b)=>b.ts-a.ts);
@@ -1278,41 +1331,81 @@ $('hAddNota').onclick=()=>{const t=$('hNota').value.trim();if(!t)return;hist(C()
 $('hNota').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('hAddNota').click()}};
 $('hDocList').onclick=e=>{const d=e.target.closest('.hDoc');if(d)abrirDoc(window.__hDocs[+d.dataset.i])};
 $('hViewer').onclick=()=>$('hViewer').classList.add('hidden');
+// Enlaces «ver» junto a cada documento del detalle
+function renderCf(){const c=C();if(!c||!$('stCf'))return;const L=c.contratoFirm||[];$('stCf').textContent=L.length?'✅ Contrato firmado cargado'+(L.length>1?' ('+L.length+' archivos)':''):'❌ Falta contrato firmado';
+ $('cfList').innerHTML=L.map((f,i)=>'<div><small>📎 '+esc(f.name||('Archivo '+(i+1)))+'</small> <a href="#" class="verL" data-vercf="'+i+'">ver</a> <button class="sec" data-cfdel="'+i+'">Quitar</button></div>').join('')}
+$('f_cf').onchange=async e=>{const fs=[...e.target.files];e.target.value='';const id=cur;for(const f of fs){let d;try{if(/^image\//.test(f.type))d=await compress(f);else if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>1.5e6){alert('El PDF pesa más de 1.5 MB; sube fotos.');continue}d=await readURL(f)}else{alert('Sube imágenes o un PDF.');continue}}catch(x){alert('No se pudo leer el archivo.');continue}
+ const c=S.clients[id];c.contratoFirm=c.contratoFirm||[];c.contratoFirm.push({name:f.name,type:/^image\//.test(f.type)?'image/jpeg':'application/pdf',data:d,ts:Date.now()});if(!save()){c.contratoFirm.pop();alert('No hay espacio para guardar el archivo.');break}}if(cur===id)render()};
+$('cfList').addEventListener('click',e=>{const b=e.target.closest('[data-cfdel]');if(!b)return;const c=C();c.contratoFirm.splice(+b.dataset.cfdel,1);save();render()});
+function agOkHtml(A,k){const a=A&&A[k];return a?' <span class="agOk">✓ Agendado: '+agFmt(a)+(a.link?' <a href="'+esc(a.link)+'" target="_blank" rel="noopener" style="color:#1565c0;text-decoration:underline">ver</a>':'')+'</span>':''}
+function renderAg(){const c=C();if(!c)return;document.querySelectorAll('[data-agok]').forEach(x=>x.innerHTML=agOkHtml(c.agendados,x.dataset.agok));
+ const sn=document.querySelector('[data-fe="segNota"]');if(sn&&!sn.value&&document.activeElement!==sn)sn.value=SEG_DEF;
+ const L=c.segHist||[],lk=a=>a.link?' <a href="'+esc(a.link)+'" target="_blank" rel="noopener" style="color:#1565c0;text-decoration:underline">ver</a>':'';
+ $('segBox').innerHTML=L.length?'<div class="agOk" id="segProx">Próximo seguimiento: '+esc(agFmt(L[0]))+' · '+esc(L[0].motivo||'')+lk(L[0])+'</div>'+(L.length>1?'<div id="segHist">'+L.slice(1).map(a=>'<div class="segH">✓ '+esc(agFmt(a))+' · '+esc(a.motivo||'')+lk(a)+'</div>').join('')+'</div>':''):''}
+function updVer(){renderAg();renderCf();const c=C();document.querySelectorAll('#caseView [data-ver]').forEach(a=>a.classList.toggle('hidden',!(c&&c[a.dataset.ver])))}
+for(const n of ['renderContract','render','renderPrecal','renderSol','renderImss']){const o=window[n];if(typeof o==='function')window[n]=function(){const r=o.apply(this,arguments);try{updVer()}catch(x){}return r}}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.verL');if(!a)return;e.preventDefault();e.stopPropagation();const c=C();if(!c)return;
+ const d=a.dataset.vercf!=null?((c.contratoFirm||[])[+a.dataset.vercf]||{}).data:a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
+try{updVer()}catch(x){}
 
-function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),clients:S.clients,reminders:S.reminders,form:S.form||null,
-flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,shared:{waTel:lsG('retiroApp.waTel')||''}}}
-const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared]);
+function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
+function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
+function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),writer:{dev:devName(),id:devId(),origin:location.origin==='null'?location.protocol:location.origin,ts:Date.now()},clients:S.clients,reminders:S.reminders,form:S.form||null,
+flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||''}}}
+const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared,st.limpiarTs||0,(st.ignorados||[]).length]);
+// Fusión por campo: gana el más reciente según fieldTs (o updatedAt si no hay); las listas se unen por id/nombre+fecha.
+const M_LIST={files:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,contratoFirm:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,historial:h=>h.ts+'|'+h.tipo+'|'+h.texto,docsArchivo:a=>a.k+'|'+a.removed+'|'+(a.data||'').length,segHist:a=>(a.id||'')+'|'+a.fecha+'|'+a.hora+'|'+a.ts};
+function mergeClient(lc,rc){const n={id:lc.id},ft={},tl=k=>(lc.fieldTs&&lc.fieldTs[k])||lc.updatedAt||0,tr=k=>(rc.fieldTs&&rc.fieldTs[k])||rc.updatedAt||0;
+ for(const k of new Set([...Object.keys(lc),...Object.keys(rc)])){if(F_SKIP[k])continue;const a=tl(k),b=tr(k);
+  if(M_LIST[k]&&(Array.isArray(lc[k])||Array.isArray(rc[k]))){const key=M_LIST[k],seen=new Set(),out=[];const[p,q]=b>a?[rc[k],lc[k]]:[lc[k],rc[k]];[...(p||[]),...(q||[])].forEach(x=>{if(!x)return;const id=key(x);if(seen.has(id))return;seen.add(id);out.push(x)});
+   if(k==='historial')out.sort((x,y)=>x.ts-y.ts);else if(k==='segHist'){out.sort((x,y)=>(y.ts||0)-(x.ts||0));out.forEach((x,i)=>{if(i)x.hecho=true})}n[k]=out}
+  else n[k]=b>a?rc[k]:lc[k];
+  if(k in lc&&!(k in rc)&&b>a&&rc.fieldTs&&rc.fieldTs[k])delete n[k];if(k in rc&&!(k in lc)&&a>=b&&lc.fieldTs&&lc.fieldTs[k])delete n[k];
+  const m=Math.max(a,b);if((lc.fieldTs&&lc.fieldTs[k])||(rc.fieldTs&&rc.fieldTs[k]))ft[k]=m}
+ if(lc.nuevoForm&&!(rc.nuevoForm===undefined&&(rc.updatedAt||0)>(lc.updatedAt||0)))n.nuevoForm=lc.nuevoForm;
+ n.fieldTs=ft;n.updatedAt=Math.max(lc.updatedAt||0,rc.updatedAt||0);return n}
 function mergeState(R){let changed=false;const L=S.clients,bySeed={},byCurp={};
+if(R.limpiarTs&&(!S.limpiarTs||R.limpiarTs<S.limpiarTs)){S.limpiarTs=R.limpiarTs;changed=true}(R.ignorados||[]).forEach(x=>{const I=ignData();if(!I.some(y=>(x.id&&y.id===x.id)||(x.curp&&y.curp===x.curp&&y.nom===x.nom)||(!x.curp&&!x.id&&y.nom===x.nom))){I.push(x);changed=true}});const IGI=ignSets().ids;
 const idx=c=>{if(c.seedKey)bySeed[c.seedKey]=c;if(c.curp)(byCurp[c.curp]=byCurp[c.curp]||[]).push(c)};Object.values(L).forEach(idx);const idMap={};
-for(const rc of Object.values(R.clients||{})){let lc=L[rc.id]||(rc.seedKey&&bySeed[rc.seedKey])||null;
+for(const rc of Object.values(R.clients||{})){if(esViejo(rc,IGI)){if(!L[rc.id]){respaldar(rc);addIgn(rc);changed=true}continue}let lc=L[rc.id]||(rc.seedKey&&bySeed[rc.seedKey])||null;
 if(!lc&&rc.curp)lc=(byCurp[rc.curp]||[]).find(x=>!x.seedKey||!rc.seedKey)||null;
 if(!lc){L[rc.id]=rc;idx(rc);idMap[rc.id]=rc.id;changed=true;continue}idMap[rc.id]=lc.id;
-if((rc.updatedAt||0)>(lc.updatedAt||0)){const n=Object.assign({},rc,{id:lc.id});if(lc.nuevoForm&&!rc.nuevoForm)delete n.nuevoForm;L[lc.id]=n;bySeed[n.seedKey]=n;changed=true;if(cur===lc.id)cur=lc.id}}
-for(const r of R.reminders||[]){const cid=idMap[r.clientId]||r.clientId;if(!S.reminders.some(x=>x.id===r.id||(x.clientId===cid&&x.date===r.date))){S.reminders.push(Object.assign({},r,{clientId:cid}));changed=true}}
+const n=mergeClient(lc,rc);if(JSON.stringify(n)!==JSON.stringify(lc)){L[lc.id]=n;if(n.seedKey)bySeed[n.seedKey]=n;changed=true}}
+for(const r of R.reminders||[]){const cid=idMap[r.clientId]||r.clientId;if(IGI.has(cid)||(!idMap[r.clientId]&&!L[cid]))continue;if(!S.reminders.some(x=>x.id===r.id||(x.clientId===cid&&x.date===r.date))){S.reminders.push(Object.assign({},r,{clientId:cid}));changed=true}}
 if(R.form){const F=syncMeta();if(R.form.maxRow>F.maxRow){F.maxRow=R.form.maxRow;changed=true}(R.form.ignore||[]).forEach(f=>{if(!F.ignore.includes(f)){F.ignore.push(f);changed=true}})}
 if(R.flags){if(R.flags.seeded&&!lsG('retiroApp.seeded'))lsG('retiroApp.seeded','1');if(R.flags.migFinal&&!lsG('retiroApp.migFinal'))lsG('retiroApp.migFinal','1')}
 if((R.lastFormSync||0)>(+lsG(SYNC_KEY)||0)){lsG(SYNC_KEY,String(R.lastFormSync));showLastSync()}
 if(R.shared&&R.shared.waTel&&!lsG('retiroApp.waTel')){lsG('retiroApp.waTel',R.shared.waTel);$('altaTel').value=R.shared.waTel}
+if(purgarViejos())changed=true;if(pendRespaldo.length)guardarRespaldoLocal();renderIgn();
 if(changed){Object.values(S.clients).forEach(fix);snapAll();_save()}return changed}
 const DAPI='https://www.googleapis.com/drive/v3/files',hdr=t=>({Authorization:'Bearer '+t});
 async function dFind(t){const r=await fetch(DAPI+'?spaces=appDataFolder&fields=files(id,modifiedTime)&q='+encodeURIComponent("name='"+DFILE+"'"),{headers:hdr(t)});if(!r.ok)throw new Error('Drive respondió '+r.status);const j=await r.json();return(j.files||[])[0]||null}
+async function dRespaldo(t,list){const b='rb'+Date.now(),meta={name:'respaldo-clientes-'+new Date().toISOString().slice(0,19).replace(/:/g,'')+'-'+devId()+'.json',parents:['appDataFolder'],mimeType:'application/json'};
+const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({app:'retiroApp',tipo:'respaldoClientes',fecha:new Date().toISOString(),clientes:list})+'\r\n--'+b+'--';
+const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'multipart/related; boundary='+b}),body});if(!r.ok)throw new Error('Respaldo en Drive respondió '+r.status);lsG('retiroApp.respaldoDrive',String(Date.now()))}
 async function dGet(t,id){const r=await fetch(DAPI+'/'+id+'?alt=media',{headers:hdr(t)});if(r.status===404)return null;if(!r.ok)throw new Error('Drive respondió '+r.status);return r.json()}
 async function dCreate(t){const r=await fetch(DAPI,{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:DFILE,parents:['appDataFolder'],mimeType:'application/json'})});if(!r.ok)throw new Error('Drive respondió '+r.status);return(await r.json()).id}
 async function dPut(t,id,body){const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media',{method:'PATCH',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body});if(!r.ok)throw new Error('Drive respondió '+r.status)}
 let dBusy=false,dAgain=false,dRetry=null,dState='off';
+$('btnSyncNow').onclick=()=>{clearTimeout(dTimer);syncDrive(true)};
+(()=>{const h=location.hostname;if(/^https?:$/.test(location.protocol)&&h&&h!=='snakeblaxk.github.io'&&!/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(h)){const d=document.createElement('div');d.id='oldOrigin';d.className='alert';d.style.cssText='margin:8px;padding:10px;background:#fdecea;color:#b3261e;font-weight:bold';d.innerHTML='⚠️ Esta es una dirección antigua: sus datos NO se comparten con los demás equipos. Usa <a href="https://snakeblaxk.github.io/retiro-afore/" style="color:#1565c0;text-decoration:underline">https://snakeblaxk.github.io/retiro-afore/</a>';document.body.prepend(d)}})();
 function hace(ms){const s=Math.round(ms/1000);if(s<45)return'unos segundos';const m=Math.round(s/60);if(m<60)return m+' min';const h=Math.round(m/60);return h<24?h+' h':Math.round(h/24)+' días'}
 function dStatus(st){if(st)dState=st;const e=$('driveStatus'),l=+lsG(DK.last)||0;
-e.textContent=dState==='busy'?'⟳ Sincronizando…':dState==='ok'?'☁ Sincronizado hace '+hace(Date.now()-l)+(lsG(DK.dirty)?' · cambios pendientes':''):'⚠ Sin conexión a Google'+(lsG(DK.dirty)?' · cambios guardados en este equipo':'')}
+let W=null;try{W=JSON.parse(lsG('retiroApp.lastWriter')||'null')}catch(x){}const er=lsG('retiroApp.syncErr');
+e.textContent=(dState==='busy'?'⟳ Sincronizando…':dState==='ok'?'☁ Sincronizado hace '+hace(Date.now()-l)+(lsG(DK.dirty)?' · cambios pendientes':''):'⚠ Sin conexión a Google'+(lsG(DK.dirty)?' · cambios guardados en este equipo':''))+(er?(dState==='err'?' · ⚠ Error al sincronizar: ':' · último error: ')+er:'');
+$('lastWriter').textContent=W?'Última subida desde: '+W.dev+(W.id===devId()?' (este equipo)':'')+' · '+W.origin+' hace '+hace(Date.now()-W.ts):''}
 async function syncDrive(interactivo){if(dBusy){dAgain=true;return}if(!interactivo&&!driveListo()){dStatus('off');$('syncBanner').classList.toggle('hidden',!needConnect());return}
 dBusy=true;dStatus('busy');clearTimeout(dRetry);
 try{const t=await gToken([DRIVE_SCOPE]);let f=await dFind(t);const R=f?await dGet(t,f.id):null;
 if(R&&R.app==='retiroApp'&&mergeState(R)){renderList();renderRem();if(cur&&S.clients[cur]&&!$('caseView').classList.contains('hidden'))openCase(cur)}
+if(pendRespaldo.length){await dRespaldo(t,pendRespaldo);pendRespaldo=[]}
 const mine=buildState();
 // Protección contra pérdida de datos: si el archivo remoto existe pero no se pudo leer/validar y este equipo no tiene clientes, nunca se sobrescribe
 if(f&&!(R&&R.app==='retiroApp')&&!Object.keys(S.clients).length)throw new Error('Copia remota ilegible; no se sobrescribe con una lista vacía');
-if(!f){const id=await dCreate(t);await dPut(t,id,JSON.stringify(mine))}else if(lsG(DK.dirty)||!R||coreJ(R)!==coreJ(mine))await dPut(t,f.id,JSON.stringify(mine));
-lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));dStatus('ok')}
-catch(e){dStatus('err');dRetry=setTimeout(()=>syncDrive(false),30000)}
+let W=R&&R.writer||null;
+if(!f){const id=await dCreate(t);await dPut(t,id,JSON.stringify(mine));W=mine.writer}else if(lsG(DK.dirty)||!R||coreJ(R)!==coreJ(mine)){await dPut(t,f.id,JSON.stringify(mine));W=mine.writer}
+lsG('retiroApp.lastWriter',W?JSON.stringify(W):null);lsG('retiroApp.syncErr',null);lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));dStatus('ok')}
+catch(e){lsG('retiroApp.syncErr',(e&&e.message)||String(e));dStatus('err');dRetry=setTimeout(()=>syncDrive(false),30000)}
 finally{dBusy=false;$('syncBanner').classList.toggle('hidden',!needConnect());if(dAgain){dAgain=false;syncDrive(false)}}}
 setInterval(()=>dStatus(),30000);
 (async()=>{await syncDrive(false);syncFormulario(false)})();setInterval(()=>syncFormulario(false),5*60*1000);setInterval(()=>syncDrive(false),60000);addEventListener('focus',()=>syncDrive(false));addEventListener('online',()=>syncDrive(false));
