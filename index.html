@@ -34,10 +34,10 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 .sb-atrasado b{color:#c62828}.sb-riesgo b{color:#ef6c00}.sb-proceso b{color:#546e7a}.sb-listo b{color:#2e7d32}.sb-sinfecha b{color:#78909c}.sb-solicitado b{color:#1565c0}
 @media(max-width:560px){.sumBar{grid-template-columns:repeat(3,1fr)}}
 .lsTools{display:flex;gap:8px;align-items:center;margin-bottom:8px}.lsTools input{flex:1 1 auto;min-width:0;width:auto!important;padding:9px;border:1px solid #c5ccd6;border-radius:8px;font-size:1rem}.lsTools select{flex:0 1 190px;width:auto;min-width:0}.gLbl{margin:0;font-size:.85rem}
-#clientList .client{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m s" "e e" "f f";gap:4px 8px;align-items:start;border:1px solid #e3e8ef;border-left:6px solid #b0bec5;border-radius:10px;padding:8px 10px;margin:8px 0;background:#fff}
-.client .cMain{grid-area:m;min-width:0;overflow-wrap:anywhere}.client .cSide{grid-area:s;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+#clientList .client{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"m" "s" "e" "f";gap:4px 8px;align-items:start;border:1px solid #e3e8ef;border-left:6px solid #b0bec5;border-radius:10px;padding:8px 10px;margin:8px 0;background:#fff}
+.client .cMain{grid-area:m;min-width:0;overflow-wrap:anywhere}.client .cSide{grid-area:s;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:4px}.cSide .cAct{align-self:flex-end}.cSide .pendBadge{align-self:stretch}
 .etRow{grid-area:e;display:flex;gap:4px}.etFalta{grid-area:f;font-size:.82rem;background:#fff8e1;border-radius:6px;padding:4px 8px}
-.et{flex:1 1 0;min-width:0;margin:0;padding:4px 2px;font-size:.72rem;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid transparent}
+.etRow{flex-wrap:wrap}.et{flex:1 1 auto;min-width:0;margin:0;padding:8px 10px;font-size:.95rem;border-radius:12px;white-space:normal;text-align:left;line-height:1.25;border:1px solid transparent;min-height:40px}.pasoTxt{flex:1 1 100%;font-weight:700;font-size:1rem;margin:6px 0 2px}.etLeg{flex:1 1 100%;font-size:.8rem;color:#555;margin-top:4px}.etLeg .lg{padding:1px 6px;border-radius:6px;white-space:nowrap;display:inline-block}.lg.ok{background:#c8e6c9}.lg.par{background:#ffecb3}.lg.no{background:#eceff1}.pendBadge{margin-top:6px;padding:6px 8px;border-radius:8px;background:#fff3e0;color:#8a4b00;font-weight:700;font-size:.95rem;border:1px solid #f5c542;text-align:left}.pendBadge.venc{background:#ffebee;color:#b3261e;border-color:#e57373}
 .et-ok{background:#c8e6c9;color:#1b5e20}.et-par{background:#ffecb3;color:#7a5200;border-color:#f5c542}.et-no{background:#eceff1;color:#78909c}.et.sel{outline:2px solid #1d2433}
 .dBadge{font-weight:700;font-size:.85rem;padding:3px 9px;border-radius:999px;background:#eceff1;color:#455a64;white-space:nowrap}.stLbl{font-size:.75rem;font-weight:700;color:#546e7a}
 .cAct{display:flex;gap:2px;align-items:center}.cAct button{padding:6px 12px}.cAct .mini{background:none;color:#9e9e9e;padding:4px 6px;font-size:.85rem}
@@ -728,7 +728,7 @@ function saldoRetiro(c){const s=c.sub||{};return r2(SUBS.reduce((a,[k])=>a+num(s
 const fDMY=iso=>iso?iso.split('-').reverse().join('/'):'';
 function r5Calc(f){const el=addY(f,5),t=todayStr();if(t>=el){let y=parseD(t).getFullYear()-parseD(f).getFullYear();if(addY(f,y)>t)y--;return{ok:true,f,el,anios:y}}return{ok:false,f,el,dias:Math.round((parseD(el)-parseD(t))/864e5)}}
 function r5Pre(c){const d=c.semDesc,has=d!==''&&d!=null&&String(d).trim()!=='';if(has&&num(d)===0)return{ok:true,na:true,how:'na',req:false};const req=has&&num(d)>0;
- if(c.r5Conf)return{ok:true,how:'conf',req};if(c.comp5Fecha)return Object.assign(r5Calc(c.comp5Fecha),{how:'fecha',req});if(r5OK(c))return{ok:true,how:'filtro',req};return{ok:false,req,falta:c.comp5?'fecha':'evid'}}
+ if(c.r5Conf)return{ok:true,how:'conf',req};if(c.comp5Fecha){const x=Object.assign(r5Calc(c.comp5Fecha),{how:'fecha',req});if(!x.ok){x.el=sinDomingo(x.el);x.ok=true;x.espera=true}return x}if(r5OK(c))return{ok:true,how:'filtro',req};return{ok:false,req,falta:c.comp5?'fecha':'evid'}}
 function precalData(c){return{edo:(c.files||[]).length>0,sem:c.semanas!==''&&c.semanas!=null&&num(c.semanas)>=104,saldo:saldoRetiro(c)>0,r5:r5Pre(c).ok,vig:String(c.semVigente||'').trim()}}
 const ETAPAS=[['precal','Precalif.'],['firma','Firma'],['exp','Exp./N4'],['alta','Alta'],['pagos','Pagos']];
 function etapa(c,k){let done=false,par=false,f=[];
@@ -747,14 +747,21 @@ function diasTxt(c){if(!c.fechaSolicitud)return'Sin fecha';const d=diasA(c.fecha
 let stF='',qF='';
 const enGrupo=c=>tab==='tramite'?activo(c)&&tramPend(c).length:tab==='pagos'?c.estado!=='cancelado'&&pagosPend(c).length:tab==='todos'?c.estado!=='cancelado'&&c.estado!=='finalizado':c.estado===tab;
 const normQ=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function pendientes(c){const t=todayStr(),L=[],lim=c.fechaSolicitud||'9999';const s0=(c.segHist||[])[0];if(s0&&!s0.hecho&&s0.fecha)L.push({f:s0.fecha,h:s0.hora,m:s0.motivo||'Seguimiento'});
+ const A=c.agendados||{},ok={cita:!firmadoOK(c),cond:c.estado==='espera',pagare:!c.dineroSolicitado};for(const k in A){const a=A[k];if(a&&a.fecha&&ok[k]&&a.fecha>=t)L.push({f:a.fecha,h:a.hora,m:a.motivo||k})}
+ return L.filter(x=>x.f<=lim).sort((a,b)=>(a.f+(a.h||'')).localeCompare(b.f+(b.h||'')))}
+function pendBadge(c){if(c.dineroSolicitado)return'';const L=pendientes(c);if(!L.length)return'';const x=L[0],[y,m,d]=x.f.split('-'),v=x.f<todayStr();
+ return'<div class="pendBadge'+(v?' venc':'')+'">⚠️ Pendiente: '+esc(x.m)+' · '+d+'/'+m+(x.h?' '+x.h:'')+(v?' (vencido)':'')+(L.length>1?' <strong>+'+(L.length-1)+' más</strong>':'')+'</div>'}
+const ET_UI={precal:['✅','Precalificación'],firma:['✍️','Firma'],exp:['📁','Expediente / Nivel 4'],alta:['🏢','Alta con proveedor'],pagos:['💳','Pagos IMSS']},ET_ST={ok:'Hecho',par:'En curso',no:'Pendiente'};
+function pasoTxt(c){try{const E=estadoPasos(c),i=PASOS.findIndex(p=>E[p[0]]!=='ok');return i<0?'✓ 7 de 7 pasos hechos':'Paso '+(i+1)+' de 7: '+PASOS[i][1]}catch(e){return''}}
 function renderList(){renderTabs();const q=normQ(qF.trim());const G=Object.values(S.clients).filter(enGrupo).filter(c=>!q||normQ(c.nombre).includes(q)||normQ(c.curp).includes(q));
  G.forEach(normSol);const cnt={};G.forEach(c=>{const e=estadoSol(c);cnt[e]=(cnt[e]||0)+1});
  $('sumBar').innerHTML=SUMS.map(([k,t])=>`<button class="sb sb-${k}${stF===k?' on':''}" data-st="${k}"><b>${cnt[k]||0}</b><span>${t}</span></button>`).join('');
  const L=G.filter(c=>!stF||estadoSol(c)===stF),rk={atrasado:0,riesgo:1};
  const LC=L.filter(c=>c.fechaSolicitud).sort((a,b)=>((rk[estadoSol(a)]??2)-(rk[estadoSol(b)]??2))||a.fechaSolicitud.localeCompare(b.fechaSolicitud)||b.created-a.created),LS=L.filter(c=>!c.fechaSolicitud).sort((a,b)=>b.created-a.created);
  const row=c=>{const e=estadoSol(c),E=etapas(c);return `<div class="client st-${e}" data-id="${c.id}" data-st="${e}"><div class="cMain"><b>${esc(c.nombre||'(sin nombre)')}</b>${c.nuevoForm?' <span class="badge b-nuevo">Nuevo (formulario)</span>':''}<br><small>${esc(c.curp||'Sin CURP')} · <span class="badge b-${c.estado}">${GNOM[c.estado]}</span>${c.estado==='espera'&&c.cond?' · Condición: '+esc(c.cond):''}${c.ubic?' · 📁 '+esc(c.ubic):''}</small>${tab==='tramite'?'<div class="pagosPills">'+tramPend(c).map(x=>'<span class="pill-or">'+x+'</span>').join(' ')+'</div>':''}${tab==='pagos'?'<div class="pagosPills">'+pagosPend(c).map(x=>'<span class="pill-or">Falta pago de '+x+'</span>').join(' ')+'</div>':''}</div>`+
- `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(solMovida(c)?' (domingo → lunes)':''):'')}</span><div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
- `<div class="etRow">${E.map((x,i)=>`<button class="et et-${x.st}" data-et="${x.k}" title="${esc(ETAPAS[i][1]+': '+(x.done?'listo'+(x.k==='precal'&&c.semanas!==''&&c.semanas!=null?' · '+c.semanas+' semanas restantes':''):'falta '+x.falta.join(', ')))}">${x.done?'✓ ':''}${ETAPAS[i][1]}</button>`).join('')}</div><div class="etFalta hidden"></div></div>`};
+ `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(c.solPor5?' (por regla de 5 años)':solMovida(c)?' (domingo → lunes)':''):'')}</span>${pendBadge(c)}<div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
+ `<div class="etRow"><div class="pasoTxt">${esc(pasoTxt(c))}</div>${E.map((x,i)=>`<button class="et et-${x.st}" data-et="${x.k}" title="${esc(ETAPAS[i][1]+': '+(x.done?'listo'+(x.k==='precal'&&c.semanas!==''&&c.semanas!=null?' · '+c.semanas+' semanas restantes':''):'falta '+x.falta.join(', ')))}"><span class="etE">${ET_UI[x.k][0]}</span> ${ET_UI[x.k][1]}: <strong>${ET_ST[x.st]}</strong></button>`).join('')}<div class="etLeg">Toca una etapa para ver qué falta · <span class="lg ok">Hecho</span> <span class="lg par">En curso</span> <span class="lg no">Pendiente</span></div></div><div class="etFalta hidden"></div></div>`};
  $('clientList').innerHTML=L.length?LC.map(row).join('')+(LS.length?'<div class="solSep" id="solSep">Sin fecha de solicitud ('+LS.length+')</div>'+LS.map(row).join(''):''):'<p><small>No hay clientes'+(Object.keys(S.clients).length?' en este grupo'+(stF?' con ese estado':'')+'.':'. Crea un nuevo caso.')+'</small></p>'}
 $('sumBar').onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;stF=stF===b.dataset.st?'':b.dataset.st;renderList()};
 $('listSearch').oninput=e=>{qF=e.target.value;renderList()};
@@ -771,7 +778,7 @@ $('btnRem').onclick=()=>$('remPanel').classList.toggle('hidden');
 const C=()=>S.clients[cur];
 function openCase(id){if($('caseView').classList.contains('hidden'))window.__listScroll=scrollY;if(!(history.state&&history.state.caso===id))history.pushState({caso:id},'');cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;altaSync(c);$('f_alta').checked=!!c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
 function setImg(el,src){el.src=src||'';el.classList.toggle('hidden',!src)}
-function render(){const c=C();if(!c)return;
+function render(){const c=C();if(!c)return;normSol(c);
 document.querySelectorAll('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==c.step));
 $('stepBar').innerHTML=[1,2,3,4].map(i=>`<span class="${i===c.step?'cur':(i<c.step&&!VAL[i](c).length?'done':'')}">Paso ${i}</span>`).join('');
 setImg($('proofPrev'),c.proof);
@@ -1090,13 +1097,17 @@ function findBaja(text){const L=String(text||'').split(/\r?\n/).map(nrm);const c
   else if(movHdr&&/(^|\s)0?2(\s|$)/.test(l.replace(/\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}/g,' '))){const ds=fechasEn(l);if(ds.length)cand.push(ds[0].iso)}}
  return cand.sort().pop()||null}
 function addDias(iso,n){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m-1,d+n);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
-function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?solDesdeBaja(iso):'';c.seg2Txt=null}
+function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?solDesdeBaja(iso):'';c.solBase=c.fechaSolicitud;c.solCalc=c.fechaSolicitud;c.seg2Txt=null;normSol(c)}
 // Regla: si la fecha de solicitud cae en domingo, se recorre al lunes siguiente
 function esDomingo(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return false;const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).getDay()===0}
 function sinDomingo(iso){return esDomingo(iso)?addDias(iso,1):iso}
 function solDesdeBaja(iso){return sinDomingo(addDias(iso,46))}
-function solMovida(c){return !!(c&&c.fechaSolicitud&&(c.solDomingo||(c.fechaBaja&&esDomingo(addDias(c.fechaBaja,46))&&c.fechaSolicitud===solDesdeBaja(c.fechaBaja))))}
-function normSol(c){if(!c||!c.fechaSolicitud)return c;if(esDomingo(c.fechaSolicitud)){const old=c.fechaSolicitud;c.fechaSolicitud=addDias(old,1);c.solDomingo=true;if(c.seg2Txt&&typeof fechaTexto==='function')c.seg2Txt=c.seg2Txt.split(fechaTexto(old)).join(fechaTexto(c.fechaSolicitud))}return c}
+function solMovida(c){return !!(c&&c.fechaSolicitud&&!c.solPor5&&(c.solDomingo||(c.fechaBaja&&esDomingo(addDias(c.fechaBaja,46))&&c.fechaSolicitud===solDesdeBaja(c.fechaBaja))))}
+function sol5(c){if(!c||!c.comp5Fecha||c.r5Conf)return null;const d=c.semDesc;if(d!==''&&d!=null&&String(d).trim()!==''&&num(d)===0)return null;return sinDomingo(addY(c.comp5Fecha,5))}
+// Fecha de solicitud = la más tardía entre (baja SUA + 46 días) y el día que cumple 5 años del último retiro; domingo → lunes
+function normSol(c){if(!c)return c;if(c.fechaSolicitud!==(c.solCalc??null))c.solBase=c.fechaSolicitud||'';let b=c.solBase||'';
+ if(b&&esDomingo(b)){b=addDias(b,1);c.solBase=b;c.solDomingo=true}const r=b?sol5(c):null,nf=r&&r>b?r:b,old=c.fechaSolicitud||'';c.solPor5=!!(r&&r>b);
+ if(nf!==old){c.fechaSolicitud=nf;if(c.seg2Txt&&old&&nf&&typeof fechaTexto==='function')c.seg2Txt=c.seg2Txt.split(fechaTexto(old)).join(fechaTexto(nf))}c.solCalc=c.fechaSolicitud||'';return c}
 async function leerSua(f,id){const m=$('bajaMsg'),say=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};say('Leyendo la fecha de baja del SUA…');
  let t='';try{t=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)?await pdfText(await f.arrayBuffer()):await ocr(await prepImg(await readURL(f)))}catch(x){}
  const iso=findBaja(t),c=S.clients[id];if(!c)return;
@@ -1107,7 +1118,7 @@ function fechaTexto(iso){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m
 function seg2Default(c){return'Hola '+primerNombre(c)+', te informo que el '+fechaTexto(c.fechaSolicitud)+' podremos realizar el segundo paso de tu trámite: solicitar tu dinero del retiro por desempleo. Te contactamos ese día para hacerlo. ¡Saludos!'}
 function telCliente(v){let s=String(v??'').trim().replace(/\.0$/,''),d=s.replace(/\D/g,'');if(d.length===13&&d.startsWith('521'))d='52'+d.slice(3);else if(d.length===10)d='52'+d;return /^52\d{10}$/.test(d)?d:null}
 function renderSeg2(c){if(!c||!$('seg2Card'))return;$('f_baja').value=c.fechaBaja||'';
- normSol(c);$('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero (baja + 46 días): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>'+(solMovida(c)?' <small class="domNote">(domingo → lunes)</small>':''):'';
+ normSol(c);$('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero ('+(c.solPor5?'regla de 5 años del último retiro; con el SUA sería el '+fDMY(c.solBase):'baja + 46 días')+'): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>'+(c.solPor5?' <small class="r5Note">(por regla de 5 años)</small>':'')+(solMovida(c)?' <small class="domNote">(domingo → lunes)</small>':''):'';
  if(!c.fechaBaja&&c.pago_sua&&!/Leyendo/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='<small>No se detectó la fecha de baja, escríbela</small>';if(c.fechaBaja&&/No se detectó la fecha de baja, escríbela/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='';
  const has=!!c.fechaSolicitud;$('seg2Body').classList.toggle('hidden',!has);$('seg2Locked').classList.toggle('hidden',has);if(!has)return;
  const ta=$('seg2Text');if(document.activeElement!==ta)ta.value=c.seg2Txt||seg2Default(c);
@@ -1143,8 +1154,8 @@ function renderPreR5(c){if(!$('r5PreInfo'))return;if($('r5PreCard').parentNode!=
  $('comp5FechaBox').classList.toggle('hidden',!(c.comp5||c.comp5Fecha));const fi=$('f_comp5Fecha');if(document.activeElement!==fi)fi.value=c.comp5Fecha||'';
  let h;if(r.na)h='<div class="r5na r5ok">✓ Cumple (nunca ha retirado): 0 semanas descontadas en la constancia</div>';
  else if(r.how==='conf')h='<div class="r5ok">✓ Cumple: el cliente lo confirma / verificado con Afore o IMSS</div>';
- else if(r.how==='fecha'){h=r.ok?'<div class="r5ok">✓ Cumple: último retiro '+fDMY(r.f)+', han pasado '+r.anios+' años</div>':'<div class="r5falta r5no">✗ No cumple: faltan '+r.dias+' días (cumple el '+fDMY(r.el)+')</div>';
-  if(!r.ok&&c.fechaSolicitud)h+='<small>'+(c.fechaSolicitud>=r.el?'Para la fecha de solicitud ('+fDMY(c.fechaSolicitud)+') ya cumple.':'Para la fecha de solicitud ('+fDMY(c.fechaSolicitud)+') todavía no cumple.')+'</small>'}
+ else if(r.how==='fecha')h=r.espera?'<div class="r5ok r5espera">⏳ Cumple el '+fDMY(r.el)+' (la solicitud se hace ese día) · último retiro '+fDMY(r.f)+'</div>':'<div class="r5ok">✓ Cumple: último retiro '+fDMY(r.f)+', han pasado '+r.anios+' años</div>';
+
  else if(r.how==='filtro')h='<div class="r5ok">✓ Regla de 5 años cumplida (filtro)</div>';
  else h='<div class="r5falta r5no">'+(r.falta==='fecha'?'Falta la fecha del último retiro: captúrala abajo':'Falta comprobante de 5 años')+'</div>';
  $('r5PreInfo').innerHTML=h}
