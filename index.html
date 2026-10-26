@@ -24,7 +24,7 @@ input[type=text],input[type=number],input[type=date],input[type=tel],select{widt
 img.prev{max-width:100%;max-height:220px;border-radius:8px;margin-top:6px;border:1px solid #ddd}
 table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;padding:7px;border:1px solid #c5ccd6;border-radius:6px}
 .tot td{font-weight:700}.rem{padding:8px;border-radius:8px;margin:4px 0;background:#f3f5f8}.rem.due{background:#fde8e7;border:1px solid #b3261e}
-#gToast{position:sticky;top:0;z-index:9}pre{white-space:pre-wrap;background:#f3f5f8;padding:10px;border-radius:8px;font-size:1rem}.chk{display:flex;gap:8px;align-items:flex-start;font-weight:600}
+#gToast{position:fixed;left:10px;right:10px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;padding:12px 14px;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.25);font-size:1rem}.agInline{margin:6px 0;padding:8px 10px;border-radius:8px;font-weight:600;background:#e8f5e9;color:#0b5d3b}.agInline.warn{background:#fff4e5;color:#8a4b00}pre{white-space:pre-wrap;background:#f3f5f8;padding:10px;border-radius:8px;font-size:1rem}.chk{display:flex;gap:8px;align-items:flex-start;font-weight:600}
 .chk input{width:22px;height:22px;flex:none}small{color:#555}
 .chip{padding:5px 10px;font-size:.85rem}.tab{font-size:.85rem;padding:6px 10px}.badge{display:inline-block;font-size:.75rem;padding:1px 7px;border-radius:10px;background:#e3e8ef}.b-nuevo{background:#ffd54f;font-weight:700}.b-firmado{background:#9fd6b8}.b-finalizado{background:#b9d3f5}.b-espera{background:#ffe2a8}.b-cancelado{background:#f4b6b2}.b-sinetapa{background:#d9d2f0}
 #printDoc{display:none}@media print{body>*{display:none!important}#printDoc{display:block!important}#printDoc .pp{page-break-after:always;font:11pt Arial,sans-serif;text-align:justify}}
@@ -904,14 +904,14 @@ catch(e){var m=(e&&e.message)||'error';if(!o.confirm('No se pudo consultar Googl
 try{var j=await conAuth(tok,function(t){return insertar(t,ev,s,dur)});ev.result={id:(j&&j.id)||'',link:(j&&j.htmlLink)||'',fecha:fstr(s),hora:ev.hora?hstr(s):''};return fin('google','✔ '+et+' agendado en tu Google Calendar: '+cuando()+'.')}
 catch(e){icsEv(ev,s,dur);return fin('ics','No se pudo agendar en Google Calendar ('+((e&&e.message)||'error')+'). Se descargó el archivo .ics en su lugar.')}}
 return{programar:programar,sugerir:sugerir}}
-const AG=crearAgenda({cid:gCid,token:()=>gToken([GSCOPE]),reauth:()=>{lsG(GK.tok,null);lsG(GK.exp,null);return gToken([GSCOPE],true)},toast:gToast,confirm:t=>confirm(t),onUnauthorized:()=>{lsG(GK.tok,null);lsG(GK.exp,null);gUI()}});
+const AG=crearAgenda({cid:gCid,token:()=>gToken([GSCOPE]),reauth:()=>{lsG(GK.tok,null);lsG(GK.exp,null);return gToken([GSCOPE],true)},toast:(t,c)=>gToast(t,c),confirm:t=>{const a=ancla;const r=confirm(t);if(a){fijaAncla(a,a.top);requestAnimationFrame(()=>fijaAncla(a,a.top))}return r},onUnauthorized:()=>{lsG(GK.tok,null);lsG(GK.exp,null);gUI()}});
 const agFmt=a=>{const[y,m,d]=(a.fecha||'').split('-');return d+'/'+m+'/'+y+(a.hora?' '+a.hora:'')};
 const programar=async ev=>{const c=(ev.cid&&S.clients[ev.cid])||C();
  if(c&&ev.k&&ev.k!=='seg'){const a=(c.agendados||{})[ev.k];if(a&&!confirm('Ya está agendado el '+agFmt(a)+' ('+(a.motivo||ev.tipo)+').\n\n¿Agendar otra vez?'))return'cancelado'}
- const r=await AG.programar(ev);
+ const a0=ancla;const r=await AG.programar(ev);
  if(r==='google'&&c&&ev.k&&ev.result){const x=Object.assign({motivo:ev.motivo||ev.tipo,ts:Date.now()},ev.result);
   if(ev.k==='seg'){c.segHist=c.segHist||[];c.segHist.forEach(h=>h.hecho=true);c.segHist.unshift(x);hist(c,'calendario','Seguimiento agendado: '+agFmt(x)+' — '+x.motivo)}
-  else{c.agendados=c.agendados||{};c.agendados[ev.k]=x}save();if(c.id===cur){try{render()}catch(e){}}if(typeof renderRem==='function')try{renderRem()}catch(e){}}if(r==='google'&&c&&typeof hist==='function'){hist(c,'calendario','Evento agendado en Google Calendar: '+ev.tipo+' — '+ev.titulo+(ev.fecha?' ('+ev.fecha+(ev.hora?' '+ev.hora:'')+')':''));save()}return r};
+  else{c.agendados=c.agendados||{};c.agendados[ev.k]=x}save();if(c.id===cur){try{render()}catch(e){}if(a0){fijaAncla(a0,a0.top);requestAnimationFrame(()=>fijaAncla(a0,a0.top))}}if(typeof renderRem==='function')try{renderRem()}catch(e){}}if(r==='google'&&c&&typeof hist==='function'){hist(c,'calendario','Evento agendado en Google Calendar: '+ev.tipo+' — '+ev.titulo+(ev.fecha?' ('+ev.fecha+(ev.hora?' '+ev.hora:'')+')':''));save()}return r};
 function agendar(r){if(!r)return;return programar({k:'r5:'+r.date,cid:r.clientId,tipo:'Regla de 5 años',titulo:'Retiro por desempleo: '+r.nombre,desc:remText(r),fecha:r.date,uid:r.id,archivo:'recordatorio-'+(r.nombre||'cliente').replace(/\W+/g,'_')+'-'+r.date})}
 $('btnGCid').onclick=()=>{const v=$('gCidInput').value.trim();if(v!==gCid()){lsG(GK.tok,null);lsG(GK.exp,null);lsG(GK.ok,null);lsG(GK.sc,null)}lsG(GK.cid,v||null);gUI();gToast(v?'Client ID guardado.':'Client ID eliminado.','ok');if(v)loadGIS().catch(()=>{})};
 $('gSignOut').onclick=e=>{e.preventDefault();const t=lsG(GK.tok);try{if(t&&window.google&&google.accounts&&google.accounts.oauth2)google.accounts.oauth2.revoke(t,()=>{})}catch(x){}
@@ -1454,6 +1454,21 @@ function updStepper(){const c=C();if(!c||!$('stepper'))return;if(pasoCaso!==c.id
   const abierto=k in pasoAbierto?pasoAbierto[k]:!(autoColapsar()&&s==='ok');d.classList.toggle('closed',!abierto);d.querySelector('.pHead').setAttribute('aria-expanded',abierto)});
  const lk=E.p2==='lock';$('btnPdf').classList.toggle('off',lk);$('btnPdf').setAttribute('aria-disabled',lk);$('pdfLock').classList.toggle('hidden',!lk);if(lk)$('pdfLock').innerHTML='🔒 El contrato se genera cuando el cliente <b>cumple los requisitos</b> (paso 1). Falta: '+esc(etapa(c,'precal').falta.join(', '))+'.'}
 buildStepper();
+
+// ===== Mantener el lugar: ancla en el control tocado; render y mensajes no mueven la pantalla =====
+let ancla=null,inlineMsg=null;
+function selDe(el){if(el.id)return'#'+CSS.escape(el.id);const at=[...el.attributes].filter(a=>/^data-/.test(a.name)).map(a=>'['+a.name+'="'+CSS.escape(a.value)+'"]').join('');return at?el.tagName.toLowerCase()+at:null}
+function buscaAncla(a){if(!a)return null;if(a.el&&a.el.isConnected&&a.el.offsetParent)return a.el;const e=a.sel&&document.querySelector('#caseView '+a.sel);return e&&e.offsetParent?e:null}
+function marcaAncla(e){const t=e.target.closest&&e.target.closest('button,a,input,select,textarea,label');if(!t||!t.closest('#caseView')||t.closest('#visor'))return;
+ ancla={el:t,sel:selDe(t),top:t.getBoundingClientRect().top,ts:Date.now()};const ps=t.closest('[id^=paso_]');if(ps&&!t.closest('.pHead')){const k=ps.id.slice(5);if(!(k in pasoAbierto))pasoAbierto[k]=true}}
+['pointerdown','click','focusin','change'].forEach(ev=>document.addEventListener(ev,marcaAncla,true));
+function fijaAncla(a,top){const el=buscaAncla(a);if(!el||$('caseView').classList.contains('hidden'))return;const d=el.getBoundingClientRect().top-top;if(Math.abs(d)>1)scrollBy(0,d)}
+function conLugar(fn){return function(){const a=ancla&&Date.now()-ancla.ts<120000?ancla:null,el=buscaAncla(a),top=el?el.getBoundingClientRect().top:null;const r=fn.apply(this,arguments);if(top!=null){fijaAncla(a,top);requestAnimationFrame(()=>fijaAncla(a,top))}ponInline();return r}}
+render=conLugar(render);if(typeof renderPrecal==='function')renderPrecal=conLugar(renderPrecal);
+function ponInline(){document.querySelectorAll('#caseView .agInline').forEach(x=>x.remove());const m=inlineMsg;if(!m||Date.now()-m.ts>15000)return;const el=buscaAncla(m.a);if(!el)return;
+ const ref=el.closest('label')||el,d=document.createElement('div');d.className='agInline '+(m.cls==='ok'?'':'warn');d.setAttribute('role','status');d.textContent=m.t;ref.insertAdjacentElement('afterend',d);if(!m.vis){m.vis=1;const r=d.getBoundingClientRect(),lim=innerHeight-110;if(r.bottom>lim)scrollBy(0,r.bottom-lim)}}
+const _gToast=gToast;gToast=function(t,cls){const a=ancla&&Date.now()-ancla.ts<120000?ancla:null,top=a?a.top:null;_gToast(t,cls);
+ if(a&&!$('caseView').classList.contains('hidden')){inlineMsg={a,t,cls,ts:Date.now()};ponInline();if(top!=null)fijaAncla(a,top);clearTimeout(ponInline.h);ponInline.h=setTimeout(()=>{inlineMsg=null;ponInline()},15000);requestAnimationFrame(()=>fijaAncla(a,top));setTimeout(()=>fijaAncla(a,top),350)}};
 {const o=updVer;updVer=function(){o.apply(this,arguments);try{updStepper()}catch(x){}}}
 try{updStepper()}catch(x){}
 
