@@ -84,7 +84,7 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <small><a href="#" id="recSalir">Salir del modo recomendadora</a></small></section>
 <div id="syncBanner" class="warn hidden">Conecta Google para traer nuevos registros del formulario y sincronizar entre tus dispositivos <button id="btnSyncConnect">Conectar Google</button></div>
 <section id="remPanel" class="card hidden"><h2>Recordatorios</h2><div id="remList"></div>
-<details id="recSettings"><summary>⚙️ Recomendadores</summary><div id="recCfgList"></div><div class="row"><input type="text" id="recNewNombre" placeholder="Nombre"><input type="email" id="recNewEmail" placeholder="correo@gmail.com"><button class="sec" id="btnRecAdd" style="flex:0 0 auto">Agregar</button></div>
+<details id="recSettings"><summary>⚙️ Recomendadores</summary><div id="recCfgList"></div><div class="row"><input type="text" id="recNewNombre" placeholder="Nombre"><input type="tel" id="recNewTel" placeholder="Teléfono / WhatsApp"><input type="email" id="recNewEmail" placeholder="correo@gmail.com (opcional, solo si usa la app)"><button class="sec" id="btnRecAdd" style="flex:0 0 auto">Agregar</button></div>
 <label>Link del formulario de registro (Google Forms)</label><input type="url" id="recFormUrl" placeholder="https://forms.gle/…"><small>Link para la recomendadora: <code id="recLink"></code></small><div class="row"><button class="sec" id="btnRecSync">Sincronizar recomendadores ahora</button></div><div id="recCfgMsg"></div></details>
 <details id="gSettings"><summary>Google Calendar (opcional)</summary><label>Client ID de Google OAuth</label>
 <div class="row"><input type="text" id="gCidInput" placeholder="xxxx.apps.googleusercontent.com"><button class="sec" id="btnGCid" style="flex:0 0 auto">Guardar Client ID</button></div>
@@ -95,7 +95,7 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <div><small>Sin Google: en la hoja abre Archivo › Descargar › Valores separados por comas (.csv), pestaña «Contrato», y usa «Importar CSV».</small></div>
 <input type="text" id="shSearch" placeholder="Buscar cliente por nombre" class="hidden"><div id="shList"></div></section>
 <section id="listView" class="card"><h2>Clientes</h2>
-<div class="row"><input type="text" id="newName" placeholder="Nombre del nuevo cliente"><button id="btnNew" style="flex:0 0 auto">+ Nuevo caso</button></div>
+<div class="row"><input type="text" id="newName" placeholder="Nombre del nuevo cliente"><button id="btnNew" style="flex:0 0 auto">+ Nuevo caso</button></div><div id="newDatos"><div class="row"><input type="tel" id="newTel" placeholder="Teléfono"><input type="email" id="newEmail" placeholder="Correo"><select id="newAfore" class="aforeSel"></select></div><div class="row"><input type="text" id="newCalle" placeholder="Calle y número"><input type="text" id="newColonia" placeholder="Colonia"></div><div class="row"><input type="text" id="newMunicipio" placeholder="Municipio"><input type="text" id="newCp" placeholder="C.P."></div></div>
 <small id="driveStatus"></small> <button class="sec" id="btnSyncNow" style="padding:2px 8px;font-size:.8rem">Sincronizar ahora</button><br><small id="lastWriter"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
 <div id="histPanel" class="hidden"><div class="hHead"><b>Historial y documentos · <span id="histName"></span></b><button class="sec" id="hClose">✕ Cerrar</button></div>
 <div class="row" style="gap:6px"><button id="hTabH">Historial</button><button class="sec" id="hTabD">Documentos</button></div>
@@ -115,14 +115,14 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
 <label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div><div class="docSt" id="cfBox"><span id="stCf"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir contrato firmado (fotos o PDF)<input type="file" id="f_cf" accept="image/*,application/pdf,.pdf" multiple hidden></label><div id="cfList"></div></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
-<div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
+<div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">📷 INE frente<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div><div class="docSt"><span id="stIneR"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">📷 INE reverso<input type="file" id="f_ineR" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ineR">ver</a> <button class="sec hidden" id="btnIneRDel">Quitar</button></div>
 <div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <a href="#" class="verL hidden" data-ver="dom">ver</a> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
 <div id="docOcr"></div>
 <div id="docWarn" class="alert hidden"></div>
 <label>Cita de firma</label><div class="row"><input type="date" data-fe="citaFecha"><input type="time" data-fe="citaHora"><button class="sec" data-ag="cita" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cita"></span></div>
 <label>Seguimiento</label><div class="row"><input type="date" data-fe="segFecha"><input type="time" data-fe="segHora"><input type="text" data-fe="segNota" placeholder="Motivo del seguimiento"><button class="sec" data-ag="seg" style="flex:0 0 auto">📅 Agendar</button></div><div id="segBox"></div>
-<details id="datosContrato"><summary>Datos para el contrato</summary><div class="row">
-<div><label>Teléfono</label><input type="text" data-f="tel"></div><div><label>Correo</label><input type="text" data-f="email"></div><div><label>Afore</label><input type="text" data-f="afore"></div></div>
+<details id="datosContrato" open><summary>Datos para el contrato</summary><div class="row">
+<div><label>Teléfono</label><input type="text" data-f="tel"></div><div><label>Correo</label><input type="text" data-f="email"></div><div><label>Afore</label><select data-f="afore" class="aforeSel"></select></div></div>
 <div class="row"><div><label>Calle y número</label><input type="text" data-f="calle"></div><div><label>Colonia</label><input type="text" data-f="colonia"></div></div>
 <div class="row"><div><label>Municipio</label><input type="text" data-f="municipio"></div><div><label>Código postal</label><input type="text" data-f="cp"></div></div>
 <label>Comentarios</label><input type="text" data-f="notas"></details>
@@ -782,7 +782,12 @@ function etToggle(b){const card=b.closest('.client'),c=S.clients[card.dataset.id
 $('clientList').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.et)return etToggle(b);const id=b.closest('.client').dataset.id,c=S.clients[id];if(b.dataset.a==='open')openCase(id);
 else if(b.dataset.a==='resume'){c.estadoManual=true;c.estado=c.prevEstado&&c.prevEstado!=='cancelado'?c.prevEstado:'pendiente';save();renderList()}
 else if(confirm('¿Mover el caso de «'+(c.nombre||'sin nombre')+'» a Cancelados? No se borra: podrás reanudarlo después.')){c.estadoManual=true;c.prevEstado=c.estado;c.estado='cancelado';save();renderList()}};
-$('btnNew').onclick=()=>{const c=fix(newClient($('newName').value.trim()));S.clients[c.id]=c;$('newName').value='';save();openCase(c.id)};
+const AFORES=['Azteca','Citibanamex/Banamex','Coppel','Inbursa','Invercap','PensionISSSTE','Principal','Profuturo','SURA','XXI Banorte'];
+function aforeOpts(sel,v){v=v||'';const L=AFORES.slice();if(v&&!L.includes(v))L.push(v);sel.innerHTML='<option value="">— Afore —</option>'+L.map(a=>'<option>'+esc(a)+'</option>').join('')+'<option value="__otra">Otra…</option>';sel.value=v}
+function aforeVal(sel){if(sel.value!=='__otra')return sel.value;const n=(prompt('Nombre de la Afore:')||'').trim();aforeOpts(sel,n);return n}
+aforeOpts($('newAfore'),'');$('newAfore').onchange=e=>aforeVal(e.target);
+const NEW_F={tel:'newTel',email:'newEmail',afore:'newAfore',calle:'newCalle',colonia:'newColonia',municipio:'newMunicipio',cp:'newCp'};
+$('btnNew').onclick=()=>{const c=fix(newClient($('newName').value.trim()));for(const k in NEW_F){const v=$(NEW_F[k]).value.trim();if(v&&v!=='__otra')c[k]=k==='email'?v.toLowerCase():v}S.clients[c.id]=c;$('newName').value='';for(const k in NEW_F)$(NEW_F[k]).value='';save();openCase(c.id)};
 $('btnBack').onclick=()=>{const hb=history.state&&history.state.caso&&!history.state.visor;cur=null;$('caseView').classList.add('hidden');$('listView').classList.remove('hidden');renderList();if(hb)history.back();scrollTo(0,window.__listScroll||0)};
 $('btnRem').onclick=()=>$('remPanel').classList.toggle('hidden');
 // caso
@@ -940,7 +945,7 @@ const GRUPOS=[['todos','Todos'],['firmado','Firmados'],['pendiente','Pendientes 
 const GNOM={firmado:'Firmado',pendiente:'Pendiente de firma',espera:'En espera',finalizado:'Finalizado',cancelado:'Cancelado',sinetapa:'Sin etapa'};
 let tab='todos';
 function fix(c){normSol(c);if(!c.estado)c.estado='pendiente';['cond','ubic','tel','email','afore','calle','colonia','municipio','cp','notas'].forEach(k=>{if(c[k]==null)c[k]=''});docSync(c);return c}
-function docSync(c){c.docIne=!!c.ine;c.docDom=!!c.dom;return c}
+function docSync(c){c.docIne=!!(c.ine&&c.ineR);c.docDom=!!c.dom;return c}
 Object.values(S.clients).forEach(fix);
 const firmadoOK=c=>c.estado==='firmado'||c.estado==='finalizado';
 function docFalta(c){docSync(c);const f=[];if(!c.docIne)f.push('INE');if(!c.docDom)f.push('comprobante de domicilio');return f}
@@ -1016,14 +1021,14 @@ $('ubicChips').onclick=e=>{const b=e.target.closest('[data-u]');if(!b)return;$('
 const DOC_KW={ine:/instituto\s*nacional\s*electoral|credencial\s*para\s*votar|\bine\b|\bife\b/,dom:/\bcfe\b|comision\s*federal|electricidad|agua|telmex|izzi|totalplay|megacable|predial|domicilio|gas\s*natural|naturgy/};
 async function docCheck(kind,f,url,id){const m=$('docOcr');const say=h=>{if(cur===id)m.innerHTML=h?'<small>'+h+'</small>':''};say('Revisando el archivo…');
  try{let t;if(/pdf/i.test(f.type)){t=await pdfText(await f.arrayBuffer())}else t=await ocr(url);
- if(DOC_KW[kind].test(nrm(t)))say('');else say('⚠️ El archivo no parece '+(kind==='ine'?'una INE (no se encontró «Instituto Nacional Electoral» / «Credencial para votar»)':'un comprobante de domicilio (CFE, agua, Telmex…)')+'. Revísalo; se guardó de todos modos.')}catch(x){say('')}}
+ if(DOC_KW[kind].test(nrm(t)))say('');else say('⚠️ El archivo no parece '+(/^ine/.test(kind)?'una INE (no se encontró «Instituto Nacional Electoral» / «Credencial para votar»)':'un comprobante de domicilio (CFE, agua, Telmex…)')+'. Revísalo; se guardó de todos modos.')}catch(x){say('')}}
 async function subirDoc(kind,f){if(!f)return;const id=cur;let d;
  try{if(/^image\//.test(f.type))d=await compress(f);else if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>1.5e6){alert('El PDF pesa más de 1.5 MB; sube una foto o captura de pantalla.');return}d=await readURL(f)}else{alert('Sube una imagen o un PDF.');return}}catch(x){alert('No se pudo leer el archivo.');return}
  const c=S.clients[id];c[kind]=d;docSync(c);if(!save()){c[kind]=null;docSync(c)}if(cur===id){render();renderContract(c)}
  if(c[kind]&&DOC_KW[kind])docCheck(kind,f,d,id);if(c[kind]&&kind==='pago_sua')leerSua(f,id)}
 function quitarDoc(kind){const c=C();c[kind]=null;docSync(c);save();render();renderContract(c);$('docOcr').innerHTML=''}
 $('f_ine2').onchange=e=>{subirDoc('ine',e.target.files[0]);e.target.value=''};$('f_dom').onchange=e=>{subirDoc('dom',e.target.files[0]);e.target.value=''};
-$('btnIneDel').onclick=()=>quitarDoc('ine');$('btnDomDel').onclick=()=>quitarDoc('dom');
+$('btnIneDel').onclick=()=>quitarDoc('ine');$('f_ineR').onchange=e=>{subirDoc('ineR',e.target.files[0]);e.target.value=''};$('btnIneRDel').onclick=()=>quitarDoc('ineR');DOC_KW.ineR=DOC_KW.ine;$('btnDomDel').onclick=()=>quitarDoc('dom');
 document.querySelectorAll('#contractCard [data-fe]').forEach(i=>i.oninput=()=>{C()[i.dataset.fe]=i.value;save()});
 const SEG_DEF='Dar seguimiento al trámite';
 function eventoDe(c,k){const n=c.nombre||'cliente',id=' (CURP: '+(c.curp||'-')+', NSS: '+(c.nss||'-')+')';
@@ -1032,11 +1037,11 @@ if(k==='seg'){const mo=(c.segNota||'').trim()||SEG_DEF;return{tipo:'Seguimiento'
 if(k==='cond')return{tipo:'Condición En espera',titulo:'Revisar condición de '+n+(c.cond?': '+c.cond:''),desc:n+id+' está en espera'+(c.cond?' por: '+c.cond:'')+'. Revisar si ya puede continuar.',fecha:c.condFecha,uid:c.id+'-cond'};
 if(k==='pagare')return{tipo:'Vencimiento del pagaré',titulo:'Vence pagaré de '+n+' ($ '+money(c.pagareMonto)+')',desc:'Vencimiento del pagaré de '+n+id+' por $ '+money(c.pagareMonto)+'.',fecha:c.pagareVenc,uid:c.id+'-pagare'}}
 document.querySelector('#caseView').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(b){const ev=eventoDe(C(),b.dataset.ag);if(ev){ev.k=b.dataset.ag;programar(ev)}}});
-document.querySelectorAll('#datosContrato [data-f]').forEach(i=>i.oninput=()=>{C()[i.dataset.f]=i.value;save()});
-function altaFalta(c){docSync(c);const f=[];if(!firmadoOK(c))f.push('Contrato firmado (marca el grupo «Ya está firmado»)');if(!c.docIne)f.push('Copia de la INE');if(!c.docDom)f.push('Comprobante de domicilio');return f}
+document.querySelectorAll('#datosContrato [data-f]').forEach(i=>{if(i.tagName==='SELECT')i.onchange=()=>{C()[i.dataset.f]=aforeVal(i);save()};else i.oninput=()=>{C()[i.dataset.f]=i.value;save()}});
+function altaFalta(c){docSync(c);const f=[];if(!firmadoOK(c))f.push('Contrato firmado (marca el grupo «Ya está firmado»)');if(!c.ine)f.push('INE frente');if(!c.ineR)f.push('INE reverso');if(!c.docDom)f.push('Comprobante de domicilio');return f}
 function renderContract(c){$('f_estado').value=c.estado;$('condBox').classList.toggle('hidden',c.estado!=='espera');$('f_cond').value=c.cond;if(document.activeElement!==$('f_ubic'))$('f_ubic').value=c.ubic;
 document.querySelectorAll('#ubicChips [data-u]').forEach(b=>b.classList.toggle('sec',b.dataset.u!==c.ubic));
-docSync(c);$('stIne').textContent=c.docIne?'✅ INE cargada':'❌ Falta INE';$('stDom').textContent=c.docDom?'✅ Comprobante de domicilio cargado':'❌ Falta comprobante de domicilio';$('btnIneDel').classList.toggle('hidden',!c.ine);$('btnDomDel').classList.toggle('hidden',!c.dom);document.querySelectorAll('#datosContrato [data-f]').forEach(i=>{if(document.activeElement!==i)i.value=c[i.dataset.f]||''});document.querySelectorAll('#contractCard [data-fe]').forEach(i=>{if(document.activeElement!==i)i.value=c[i.dataset.fe]||''});$('btnAgPag').classList.toggle('hidden',!c.pagareVenc);
+docSync(c);$('stIne').textContent=c.ine?'✅ INE frente cargada':'❌ Falta INE frente';$('stIneR').textContent=c.ineR?'✅ INE reverso cargada':'❌ Falta INE reverso';$('btnIneRDel').classList.toggle('hidden',!c.ineR);$('stDom').textContent=c.docDom?'✅ Comprobante de domicilio cargado':'❌ Falta comprobante de domicilio';$('btnIneDel').classList.toggle('hidden',!c.ine);$('btnDomDel').classList.toggle('hidden',!c.dom);document.querySelectorAll('#datosContrato [data-f]').forEach(i=>{if(document.activeElement!==i){if(i.tagName==='SELECT')aforeOpts(i,c[i.dataset.f]);else i.value=c[i.dataset.f]||''}});document.querySelectorAll('#contractCard [data-fe]').forEach(i=>{if(document.activeElement!==i)i.value=c[i.dataset.fe]||''});$('btnAgPag').classList.toggle('hidden',!c.pagareVenc);
 const f=docFalta(c),w=$('docWarn');w.classList.toggle('hidden',!f.length);w.textContent='⚠️ Falta subir: '+f.join(' y ');
 const a=altaFalta(c);$('altaArea').classList.toggle('hidden',a.length>0);$('altaLocked').classList.toggle('hidden',!a.length);$('altaLocked').innerHTML='<b>Para mostrar el mensaje falta confirmar:</b><ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';$('altaText').textContent=msg(c);renderProv();$('altaSol').innerHTML=altaHecha(c)?'<div class="agOk">✅ Alta hecha'+(c.altaConfirmada?' (proveedor confirmó)':' (ya hay SUA/SIPARE o pagos)')+'</div>':c.altaEnviada?'<div class="agOk">📤 Alta solicitada'+(c.altaProv?' a '+esc(c.altaProv):'')+' el '+new Date(c.altaEnviada).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})+' · en curso hasta recibir SUA/SIPARE</div>':'';renderImss(c);renderConf(c);renderSeg2(c);renderTram(c);renderSol(c)}
 $('altaTel').value=lsG('retiroApp.waTel')||'';$('altaTel').oninput=e=>lsG('retiroApp.waTel',e.target.value);
@@ -1277,8 +1282,9 @@ sign(560);return doc}
 function contratoHTML(c){const D=contratoData(c),seg=s=>s.map(([t,b])=>b?'<b>'+esc(t)+'</b>':esc(t)).join(''),P=PAG_TXT(D);
 const pg=contratoBlocks(D).map(p=>'<div class="pp">'+p.map(b=>b.t==='logo'?'<img src="'+LOGO+'" style="width:70px">':b.t==='right'?'<p style="text-align:right"><b>'+esc(b.s)+'</b></p>':b.t==='p'?'<p>'+seg(b.segs)+'</p>':b.t==='h'?'<p><b>'+esc(b.s)+'</b></p>':b.t==='sep'?'<p style="text-align:center"><b>---------- '+b.s+' ----------</b></p>':b.t==='ol'?'<ol>'+b.items.map(i=>'<li>'+seg(i)+'</li>').join('')+'</ol>':b.t==='ul'?'<ul>'+b.items.map(i=>'<li>'+seg(i)+'</li>').join('')+'</ul>':b.t==='sign'?'<p style="margin-top:60px">ACEPTO “EL CONTRATANTE” ________________ &nbsp; ________________ MORENO NAVARRETE AARON CANEK, ACEPTO “LA PRESTADORA”</p>':'<br>').join('')+'</div>');
 pg.push('<div class="pp"><img src="'+LOGO+'" style="width:70px"><h2>PAGARÉ</h2><p>No. 1/1 &nbsp; <b>BUENO POR $ '+money(D.monto)+'</b></p><p style="text-align:right"><b>'+esc(D.fecha)+'</b></p><p>'+esc(P.deb)+'<br>el <b>'+esc(D.venc)+'</b><br><b>La Cantidad de:</b> <b>'+esc(D.letras)+'</b></p><p>'+seg(P.valor)+'</p><p>Nombre: '+esc(D.nombre)+'<br>Teléfono: '+esc(D.tel)+'<br>Domicilio: '+esc(D.domP)+'</p><p style="margin-top:60px">ACEPTO “EL CONTRATANTE” ________________ &nbsp; ________________ MORENO NAVARRETE AARON CANEK, ACEPTO “LA PRESTADORA”</p></div>');return pg.join('')}
-function contratoFalta(c){const f=[];if(!c.nombre.trim())f.push('nombre');if(!c.curp)f.push('CURP');if(!c.nss)f.push('NSS');if(!(calc(c).com>0))f.push('saldos de la Afore (Paso 4) para calcular la comisión del pagaré');return f}
-$('btnPdf').onclick=()=>{const c=C(),f=contratoFalta(c),m=$('pdfMsg');if(f.length){m.innerHTML='<div class="alert">Para generar el contrato falta: '+esc(f.join(', '))+'.</div>';return}
+function contratoFalta(c){const f=[];if(!c.nombre.trim())f.push('nombre');if(!c.curp)f.push('CURP');if(!c.nss)f.push('NSS');if(!String(c.calle||'').trim()||!String(c.colonia||'').trim()||!String(c.municipio||'').trim())f.push(['dirección','calle']);if(!String(c.tel||'').trim())f.push(['teléfono','tel']);if(!String(c.afore||'').trim())f.push(['Afore','afore']);if(!String(c.email||'').trim())f.push(['correo','email']);if(!(calc(c).com>0))f.push('saldos de la Afore (Paso 4) para calcular la comisión del pagaré');return f}
+$('pdfMsg').onclick=e=>{const b=e.target.closest('[data-irf]');if(!b)return;const d=$('datosContrato');d.open=true;const i=d.querySelector('[data-f="'+b.dataset.irf+'"]');if(i){i.scrollIntoView({block:'center'});i.focus()}};
+$('btnPdf').onclick=()=>{const c=C(),f=contratoFalta(c),m=$('pdfMsg');if(f.length){const t=f.map(x=>Array.isArray(x)?x[0]:x),bt=f.filter(Array.isArray).map(x=>'<button class="sec mini" data-irf="'+x[1]+'">Ir a '+esc(x[0])+'</button>').join(' ');m.innerHTML='<div class="alert">Falta: '+esc(t.join(', '))+'.<br>'+bt+'</div>';return}
 if(window.jspdf&&window.jspdf.jsPDF){try{const doc=contratoPDF(c);{const d=new Date(),v=new Date(d.getFullYear(),d.getMonth(),d.getDate()+50);c.pagareVenc=dStr(v);c.pagareMonto=calc(c).com;save();renderContract(c)}doc.save('contrato-'+c.nombre.trim().replace(/\W+/g,'_')+'.pdf');m.innerHTML='<div class="ok">✔ Contrato generado (3 páginas).</div>';return}catch(e){}}
 $('printDoc').innerHTML=contratoHTML(c);m.innerHTML='<div class="warn">No se pudo generar el PDF; se abrió la impresión (elige «Guardar como PDF»).</div>';window.print()};
 // ===== Sincronización automática con el formulario (hoja «Contrato») =====
@@ -1319,7 +1325,7 @@ const snap={};const sj=c=>{const o=Object.assign({},c);delete o.updatedAt;delete
 const snapF={},F_SKIP={id:1,updatedAt:1,nuevoForm:1,fieldTs:1};
 const fmap=c=>{const m={};for(const k in c)if(!F_SKIP[k])m[k]=JSON.stringify(c[k]);return m};
 function snapAll(){Object.values(S.clients).forEach(c=>{snap[c.id]=sj(c);snapF[c.id]=fmap(c)})}
-const DOC_F=new Set(['ine','dom','proof','comp5','constSem','evidenciaSol','files','contratoFirm','pago_sua','pago_sipare','pago_infonavit','pago_suaPagado','pago_siparePagado','pago_infonavitPagado']);
+const DOC_F=new Set(['ine','ineR','dom','proof','comp5','constSem','evidenciaSol','files','contratoFirm','pago_sua','pago_sipare','pago_infonavit','pago_suaPagado','pago_siparePagado','pago_infonavitPagado']);
 snapAll();
 const _save=save;let dTimer=null;
 save=function(){const now=Date.now();let ch=false,doc=false;Object.values(S.clients).forEach(c=>{const j=sj(c);if(snap[c.id]!==j){c.updatedAt=Math.max(now,(c.updatedAt||0)+1);snap[c.id]=j;ch=true;
@@ -1356,7 +1362,7 @@ $('btnSemSent').onclick=async()=>{const c=C();c.semanasEnviadas=Date.now();save(
  if(c.semanasEventId&&confirm('¿Borrar el recordatorio «Enviar solicitud de semanas cotizadas» de tu Google Calendar?')){try{const r=await calReq('DELETE',CAL+'/'+encodeURIComponent(c.semanasEventId));if(!(r.ok||r.status===404||r.status===410))throw new Error('Calendar respondió '+r.status);c.semanasEventId=null;save();gToast('✔ Recordatorio eliminado de Google Calendar.','ok')}catch(e){gToast('No se pudo borrar el evento ('+e.message+'). Bórralo manualmente.')}}renderSol(c)};
 
 /*HIST*/// ===== Historial por cliente (automático por diferencias al guardar + notas) y visor de documentos =====
-const H_DOCS={ine:'INE',dom:'Comprobante de domicilio',proof:'Imagen del último retiro',pago_sua:'SUA',pago_sipare:'SIPARE',pago_infonavit:'Infonavit',pago_suaPagado:'Comprobante de pago SUA',pago_siparePagado:'Comprobante de pago SIPARE',pago_infonavitPagado:'Comprobante de pago Infonavit',evidenciaSol:'Evidencia de solicitud',constSem:'Constancia de semanas cotizadas'};
+const H_DOCS={ine:'INE frente',ineR:'INE reverso',dom:'Comprobante de domicilio',proof:'Imagen del último retiro',pago_sua:'SUA',pago_sipare:'SIPARE',pago_infonavit:'Infonavit',pago_suaPagado:'Comprobante de pago SUA',pago_siparePagado:'Comprobante de pago SIPARE',pago_infonavitPagado:'Comprobante de pago Infonavit',evidenciaSol:'Evidencia de solicitud',constSem:'Constancia de semanas cotizadas'};
 const H_FECHA=k=>v=>{try{return human(v)}catch(e){return v}};
 const H_CAMPOS=[['fechaBaja','fecha',v=>'Fecha de baja: '+H_FECHA()(v)],['fechaSolicitud','fecha',v=>'Fecha de solicitud del dinero: '+H_FECHA()(v)],['last','fecha',v=>'Fecha del último retiro: '+H_FECHA()(v)],
  ['pagareVenc','contrato',v=>'Contrato y pagaré PDF generados (vence el '+H_FECHA()(v)+')'],['altaEnviada','alta',()=>'Mensaje de alta enviado por WhatsApp Business'],['altaConfirmada','alta',()=>'Proveedor confirmó el alta'],
@@ -1513,7 +1519,7 @@ try{updStepper()}catch(x){}
 function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
 function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
 function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),writer:{dev:devName(),id:devId(),origin:location.origin==='null'?location.protocol:location.origin,ts:Date.now()},clients:S.clients,reminders:S.reminders,form:S.form||null,
-flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0,recs:S.recs||null,recsTs:S.recsTs||0,formUrl:S.formUrl||'',notifs:S.notifs||[]}}}
+flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0,recs:S.recs||null,recsTs:S.recsTs||0,recsSeedV:S.recsSeedV||0,formUrl:S.formUrl||'',notifs:S.notifs||[]}}}
 const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared,st.limpiarTs||0,(st.ignorados||[]).length]);
 // Fusión por campo: gana el más reciente según fieldTs (o updatedAt si no hay); las listas se unen por id/nombre+fecha.
 const M_LIST={files:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,contratoFirm:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,historial:h=>h.ts+'|'+h.tipo+'|'+h.texto,docsArchivo:a=>a.k+'|'+a.removed+'|'+(a.data||'').length,segHist:a=>(a.id||'')+'|'+a.fecha+'|'+a.hora+'|'+a.ts};
@@ -1538,7 +1544,7 @@ if(R.form){const F=syncMeta();if(R.form.maxRow>F.maxRow){F.maxRow=R.form.maxRow;
 if(R.flags){if(R.flags.seeded&&!lsG('retiroApp.seeded'))lsG('retiroApp.seeded','1');if(R.flags.migFinal&&!lsG('retiroApp.migFinal'))lsG('retiroApp.migFinal','1')}
 if((R.lastFormSync||0)>(+lsG(SYNC_KEY)||0)){lsG(SYNC_KEY,String(R.lastFormSync));showLastSync()}
 if(R.shared&&Array.isArray(R.shared.provs)&&(R.shared.provsTs||0)>(S.provsTs||0)){S.provs=R.shared.provs;S.provsTs=R.shared.provsTs;changed=true;try{renderProv()}catch(e){}}
-if(R.shared&&Array.isArray(R.shared.recs)&&(R.shared.recsTs||0)>(S.recsTs||0)){S.recs=R.shared.recs.map(r=>Object.assign({},(S.recs||[]).find(x=>x.email===r.email)||{},r));S.recsTs=R.shared.recsTs;if(R.shared.formUrl!=null)S.formUrl=R.shared.formUrl;changed=true}
+if(R.shared&&Array.isArray(R.shared.recs)&&(R.shared.recsTs||0)>(S.recsTs||0)){S.recs=R.shared.recs.map(r=>Object.assign({},(S.recs||[]).find(x=>(r.id&&x.id===r.id)||(r.email&&x.email===r.email))||{},r));S.recsTs=R.shared.recsTs;S.recsSeedV=Math.max(S.recsSeedV||0,R.shared.recsSeedV||0);if(R.shared.formUrl!=null)S.formUrl=R.shared.formUrl;changed=true}
 if(R.shared&&Array.isArray(R.shared.notifs)&&notifUnion(R.shared.notifs))changed=true;
 if(R.shared&&R.shared.waTel&&!lsG('retiroApp.waTel')){lsG('retiroApp.waTel',R.shared.waTel);$('altaTel').value=R.shared.waTel}
 if(purgarViejos())changed=true;if(pendRespaldo.length)guardarRespaldoLocal();renderIgn();
@@ -1576,13 +1582,20 @@ finally{dBusy=false;$('syncBanner').classList.toggle('hidden',!needConnect());if
 // ===== Recomendadores: acceso limitado (archivo compartido en Drive con SOLO sus clientes y SOLO campos permitidos) =====
 const REC_DEF=[{id:'r1',nombre:'Stephanie',email:'neymodatendencia1@gmail.com'}];
 // Campos que SÍ viajan al archivo de la recomendadora (lista blanca). Nada de proveedor, alta, SUA, SIPARE, Infonavit, pagos ni historial interno.
-const REC_F=['id','nombre','curp','nss','tel','email','afore','calle','colonia','municipio','cp','notas','estado','estadoManual','cond','condFecha','step','sub','semanas','semVigente','semDesc','semCot','semReint','semUltBaja','semUltBajaPat','semRevisa','semTxt','semLeida','semTotalDoc','subLeidas','r5','r5Conf','r5ConfAt','comp5','comp5Fecha','comp5FechaManual','comp5At','last','files','constSem','ine','dom','docIne','docDom','contratoFirm','docTs','pagareVenc','pagareMonto','citaFecha','citaHora','segFecha','segHora','segNota','segHist','ubic','created','confirmed','edoRevisa','aviso','fechaSolicitud','solBase','solCalc','solPor5','solDomingo','recListo'];
+const REC_F=['id','nombre','curp','nss','ineR','tel','email','afore','calle','colonia','municipio','cp','notas','estado','estadoManual','cond','condFecha','step','sub','semanas','semVigente','semDesc','semCot','semReint','semUltBaja','semUltBajaPat','semRevisa','semTxt','semLeida','semTotalDoc','subLeidas','r5','r5Conf','r5ConfAt','comp5','comp5Fecha','comp5FechaManual','comp5At','last','files','constSem','ine','dom','docIne','docDom','contratoFirm','docTs','pagareVenc','pagareMonto','citaFecha','citaHora','segFecha','segHora','segNota','segHist','ubic','created','confirmed','edoRevisa','aviso','fechaSolicitud','solBase','solCalc','solPor5','solDomingo','recListo'];
 const REC_RO=new Set(['id','created','fechaSolicitud','solBase','solCalc','solPor5','solDomingo']);
 const REC_W=REC_F.filter(k=>!REC_RO.has(k));
 const RFILE=e=>'retiro-recomendador-'+e+'.json';
 if(!REC_MODE&&!Array.isArray(S.recs)){S.recs=REC_DEF.map(x=>Object.assign({},x));S.recsTs=0}
+// Recomendadores solo-etiqueta (sin correo: nunca se comparten ni sincronizan con ellos)
+const REC_ETQ=['Adelaida','Adriana','Directo','Enrique (desempleo)','GIL','Ruth','Santiago','Teresa','Samuel','Viviana'];
+const recKey=r=>r?(r.email||('id:'+r.id)):'';
+function recMigEtq(){if(REC_MODE||(S.recsSeedV||0)>=1)return false;const nn=x=>String(x||'').trim().toLowerCase();
+ REC_ETQ.forEach(n=>{const id='etq-'+nn(n).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');if(!S.recs.some(r=>r.id===id||nn(r.nombre)===nn(n)))S.recs.push({id,nombre:n,email:'',tel:''})});
+ S.recsSeedV=1;S.recsTs=Date.now();return true}
+recMigEtq();
 S.notifs=S.notifs||[];
-function recDe(e){return(S.recs||[]).find(r=>r.email===e)}
+function recDe(e){return e?(S.recs||[]).find(r=>recKey(r)===e):undefined}
 function recNom(e){const r=recDe(e);return r?r.nombre:e||''}
 function yoNom(){return(S.yo&&S.yo.nombre)||'La recomendadora'}
 function recBadge(c){return !REC_MODE&&c.rec?' <span class="badge b-rec">👤 '+esc(recNom(c.rec))+(c.recListo&&!altaHecha(c)&&!c.altaEnviada?' · listo para alta':'')+'</span>':''}
@@ -1635,7 +1648,7 @@ function recImport(r,R){let ch=false;
    S.notifs.push(m);nuevoAviso(m);ch=true}
   else if(l&&l.para==='rec'&&n.leido&&!l.leido){l.leido=n.leido;ch=true}}
  return ch}
-function recAutoAvisos(){let ch=false;for(const c of Object.values(S.clients)){if(!c.rec||!recDe(c.rec))continue;
+function recAutoAvisos(){let ch=false;for(const c of Object.values(S.clients)){if(!c.rec||!(recDe(c.rec)||{}).email)continue;
  if(c.pago_sipare&&PAGOS.some(([x])=>c[pkp(x)])&&c.fechaSolicitud){const id='seg-'+c.id+'-'+c.fechaSolicitud;if(!S.notifs.some(n=>n.id===id)){addNotif({id,tipo:'seg',para:'rec',rec:c.rec,cid:c.id,fecha:c.fechaSolicitud,texto:'Ya hay fecha para la segunda visita de '+c.nombre+': '+fDMY(c.fechaSolicitud),msg:c.seg2Txt||seg2Default(c)});ch=true}}}return ch}
 async function recSyncUno(t,r){let ch=false;
  if(!r.fid){const q="name='"+RFILE(r.email)+"' and trashed=false";const j=await rJson(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)})))||{};r.fid=((j.files||[])[0]||{}).id||null;
@@ -1655,15 +1668,15 @@ async function recSyncOwner(interactivo){if(REC_MODE)return;if(recBusy){recAgain
 // Detección por correo: si quien inicia sesión es un recomendador configurado y este equipo no tiene clientes, se cambia a su vista
 async function recDetectar(t){if(REC_MODE||lsG('retiroApp.miEmail'))return;try{const a=await rJson(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:hdr(t)})))||{};const e=String(a.user&&a.user.emailAddress||'').toLowerCase();if(!e)return;lsG('retiroApp.miEmail',e);
  if([...REC_DEF,...(S.recs||[])].some(r=>r.email===e)&&!Object.keys(S.clients).length){localStorage.setItem('retiroApp.modo','rec');location.reload()}}catch(x){}}
-function recCfgUI(){if(REC_MODE)return;$('recCfgList').innerHTML=(S.recs||[]).map((r,i)=>'<div class="row recRow" data-i="'+i+'"><input type="text" data-rf="nombre" value="'+esc(r.nombre)+'"><input type="email" data-rf="email" value="'+esc(r.email)+'"><small>'+(r.compartido===r.email?'✓ compartido':'pendiente')+' · '+Object.values(S.clients).filter(c=>c.rec===r.email).length+' cliente(s)</small><button class="sec mini" data-rdel="'+i+'">🗑</button></div>').join('')||'<small>Sin recomendadores.</small>';
+function recCfgUI(){if(REC_MODE)return;$('recCfgList').innerHTML=(S.recs||[]).map((r,i)=>'<div class="row recRow" data-i="'+i+'"><input type="text" data-rf="nombre" value="'+esc(r.nombre)+'"><input type="tel" data-rf="tel" placeholder="Teléfono / WhatsApp" value="'+esc(r.tel||'')+'"><input type="email" data-rf="email" placeholder="correo (opcional)" value="'+esc(r.email||'')+'"><small>'+(!r.email?'solo etiqueta':r.compartido===r.email?'✓ compartido':'pendiente')+' · '+Object.values(S.clients).filter(c=>c.rec===recKey(r)).length+' cliente(s)</small><button class="sec mini" data-rdel="'+i+'">🗑</button></div>').join('')||'<small>Sin recomendadores.</small>';
  if(document.activeElement!==$('recFormUrl'))$('recFormUrl').value=S.formUrl||'';$('recLink').textContent=location.origin+location.pathname+'?rec=1'}
 const recTouch=()=>{S.recsTs=Date.now();save();recCfgUI();renderList()};
-$('recCfgList').onchange=e=>{const i=+e.target.closest('[data-i]').dataset.i,r=S.recs[i],f=e.target.dataset.rf;if(!r||!f)return;let v=e.target.value.trim();if(f==='email'){v=v.toLowerCase();const old=r.email;Object.values(S.clients).forEach(c=>{if(c.rec===old)c.rec=v});r.fid=null;r.compartido=null}r[f]=v;recTouch()};
-$('recCfgList').onclick=e=>{const b=e.target.closest('[data-rdel]');if(!b)return;const r=S.recs[+b.dataset.rdel];if(!confirm('¿Quitar a '+r.nombre+'? Sus clientes quedan sin recomendador.'))return;Object.values(S.clients).forEach(c=>{if(c.rec===r.email)c.rec=''});S.recs.splice(+b.dataset.rdel,1);recTouch()};
-$('btnRecAdd').onclick=()=>{const n=$('recNewNombre').value.trim(),e=$('recNewEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return gToast('Escribe nombre y un correo válido.');S.recs.push({id:'r'+Date.now(),nombre:n,email:e});$('recNewNombre').value=$('recNewEmail').value='';recTouch()};
+$('recCfgList').onchange=e=>{const i=+e.target.closest('[data-i]').dataset.i,r=S.recs[i],f=e.target.dataset.rf;if(!r||!f)return;let v=e.target.value.trim();if(f==='email'){v=v.toLowerCase();if(v&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){gToast('Correo no válido.');recCfgUI();return}if(v&&S.recs.some(x=>x!==r&&x.email===v)){gToast('Ese correo ya está en otro recomendador.');recCfgUI();return}const old=recKey(r);r.email=v;const nk=recKey(r);Object.values(S.clients).forEach(c=>{if(c.rec===old)c.rec=nk});S.notifs.forEach(n=>{if(n.rec===old)n.rec=nk});r.fid=null;r.compartido=null}else r[f]=v;recTouch()};
+$('recCfgList').onclick=e=>{const b=e.target.closest('[data-rdel]');if(!b)return;const r=S.recs[+b.dataset.rdel];if(!confirm('¿Quitar a '+r.nombre+'? Sus clientes quedan sin recomendador.'))return;const k=recKey(r);Object.values(S.clients).forEach(c=>{if(c.rec===k)c.rec=''});S.recs.splice(+b.dataset.rdel,1);recTouch()};
+$('btnRecAdd').onclick=()=>{const n=$('recNewNombre').value.trim(),t=$('recNewTel').value.trim(),e=$('recNewEmail').value.trim().toLowerCase();if(!n)return gToast('Escribe el nombre.');if(e&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return gToast('El correo no es válido (puedes dejarlo vacío).');if(e&&S.recs.some(x=>x.email===e))return gToast('Ese correo ya está registrado.');S.recs.push({id:'r'+Date.now(),nombre:n,email:e,tel:t});$('recNewNombre').value=$('recNewTel').value=$('recNewEmail').value='';recTouch()};
 $('recFormUrl').onchange=e=>{S.formUrl=e.target.value.trim();recTouch()};
 $('btnRecSync').onclick=()=>recSyncOwner(true).catch(recErr);
-$('f_rec').onchange=e=>{const c=C();if(!c)return;const v=e.target.value;c.rec=v;if(!v)c.recListo=c.recListo||null;hist(c,'nota',v?'Asignado a recomendador: '+recNom(v):'Sin recomendador');save();renderList();recSyncOwner(true).catch(recErr)};
+$('f_rec').onchange=e=>{const c=C();if(!c)return;const v=e.target.value,old=c.rec;c.rec=v;if(!v)c.recListo=c.recListo||null;hist(c,'nota',v?'Asignado a recomendador: '+recNom(v):'Sin recomendador');save();renderList();if((recDe(v)||{}).email||(recDe(old)||{}).email)recSyncOwner(true).catch(recErr)};
 // ---- Lado recomendadora ----
 function recMergeRec(R){let ch=false;const ids=new Set(Object.keys(R.clients||{}));
  for(const id of Object.keys(S.clients))if(!ids.has(id)){delete S.clients[id];ch=true}
@@ -1701,7 +1714,7 @@ $('btnSolEnviar').onclick=()=>{const n=$('solNombre').value.trim(),t=$('solTel')
 $('recSalir').onclick=e=>{e.preventDefault();if(!confirm('¿Salir del modo recomendadora en este equipo?'))return;localStorage.setItem('retiroApp.modo','');location.href=location.pathname+'?rec=0'};
 // ---- En el caso ----
 function recRender(){const c=C();if(!c)return;
- if(!REC_MODE){const s=$('f_rec');s.innerHTML='<option value="">— Sin recomendador —</option>'+(S.recs||[]).map(r=>'<option value="'+esc(r.email)+'">'+esc(r.nombre)+'</option>').join('')+(c.rec&&!recDe(c.rec)?'<option value="'+esc(c.rec)+'">'+esc(c.rec)+'</option>':'');s.value=c.rec||'';
+ if(!REC_MODE){const s=$('f_rec');s.innerHTML='<option value="">— Sin recomendador —</option>'+(S.recs||[]).map(r=>'<option value="'+esc(recKey(r))+'">'+esc(r.nombre)+'</option>').join('')+(c.rec&&!recDe(c.rec)?'<option value="'+esc(c.rec)+'">'+esc(c.rec)+'</option>':'');s.value=c.rec||'';
   const a=$('altaCard'),on=!!(c.recListo&&!c.altaEnviada&&!altaHecha(c));a.classList.toggle('recDest',on);let m=$('recListoMsg');if(!m){m=document.createElement('div');m.id='recListoMsg';m.className='ok';a.querySelector('h3').after(m)}m.classList.toggle('hidden',!on);m.textContent=on?'⭐ '+recNom(c.rec)+' terminó el paso 3: envía la solicitud de alta.':'';return}
  const b=$('paso_p4')&&$('paso_p4').querySelector('.pBody');if(!b)return;let x=$('recCase');if(!x){x=document.createElement('div');x.id='recCase';x.className='card inStep';b.prepend(x)}
  const listo3=etapa(c,'firma').done;
