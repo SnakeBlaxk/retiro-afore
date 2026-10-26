@@ -45,6 +45,9 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 #clientList .client.st-riesgo{border-left-color:#ef6c00}.st-riesgo .dBadge{background:#ef6c00;color:#fff}.st-riesgo .stLbl{color:#ef6c00}
 #clientList .client.st-listo{border-left-color:#2e7d32}.st-listo .dBadge{background:#2e7d32;color:#fff}.st-listo .stLbl{color:#2e7d32}
 #clientList .client.st-solicitado{border-left-color:#1565c0}.st-solicitado .dBadge{background:#1565c0;color:#fff}.st-solicitado .stLbl{color:#1565c0}
+html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,html.rec #recSettings,html.rec #gSettings,html.rec #paso_p5,html.rec #paso_p6,html.rec #paso_p7,html.rec #tramCard,html.rec #altaCard,html.rec #recAsig,html.rec .et[data-et=alta],html.rec .et[data-et=pagos],html.rec .et[data-et=exp],html.rec #btnImport{display:none!important}
+#btnBell{position:relative}#btnBell.bellOn{background:#fff3e0;border-color:#ef6c00}#bellN{background:#d32f2f;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px;font-weight:bold}.aviso{border-bottom:1px solid #e0e0e0;padding:10px 4px}.aviso.nuevo{background:#fff8e1}.aviso textarea{width:100%}
+.b-rec{background:#ede7f6;color:#4527a0}#altaCard.recDest{outline:4px solid #ffb300;box-shadow:0 0 0 8px #ffe08255}#recBar .row button{min-height:48px}.recSol{padding:6px 0;border-bottom:1px dashed #ddd}.recRow input{flex:1 1 40%}
 </style><style id="stepperCss">
 #caseView{font-size:17px}#caseView button,#caseView .btn,#caseView label.btn{min-height:48px;font-size:16px;padding:10px 16px;border-radius:10px;margin:4px 2px}
 #caseView input[type=text],#caseView input[type=number],#caseView input[type=date],#caseView input[type=time],#caseView input[type=tel],#caseView select,#caseView textarea{font-size:16px;min-height:46px}
@@ -64,7 +67,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 #clientList .client{padding:12px 14px;margin:10px 0;font-size:16px}#clientList .client button:not(.mini){min-height:44px;padding:8px 14px}
 </style>
 </head><body>
-<header><h1>Retiro por desempleo · Afore</h1><div>
+<header><h1>Retiro por desempleo · Afore</h1><div><button class="sec" id="btnBell" aria-label="Avisos">🔔<span id="bellN" class="hidden"></span></button>
 <button class="sec" id="btnSync">Actualizar desde formulario</button><small id="ignInfo" class="hidden" style="display:block;color:#666;margin-top:4px"></small>
 <button class="sec" id="btnContrato">Generar nuevo contrato</button>
 <button class="sec" id="btnRem">Recordatorios <span id="remCount"></span></button>
@@ -74,8 +77,15 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <main>
 <div id="storageWarn" class="alert hidden"></div>
 <div id="gToast" class="hidden"></div>
+<section id="bellPanel" class="card hidden"><h2>🔔 Avisos</h2><div id="bellList"></div><div class="row"><button class="sec" id="btnBellNoti">Activar avisos del navegador</button><button class="sec" id="btnBellClose">Cerrar</button></div></section>
+<section id="recBar" class="card hidden"><h2>👋 Hola <span id="recNombre"></span></h2><small id="recEmail"></small><div id="recSt" class="warn hidden"></div>
+<div class="row"><button id="btnFormCopy">📋 Copiar formulario</button><button id="btnFormWa">📤 Compartir formulario por WhatsApp</button></div>
+<details id="recSolBox"><summary>➕ Pedir autorización para un cliente</summary><label>Nombre del cliente</label><input type="text" id="solNombre"><label>Teléfono</label><input type="tel" id="solTel"><button id="btnSolEnviar">Enviar solicitud a la consultoría</button></details><div id="recSols"></div>
+<small><a href="#" id="recSalir">Salir del modo recomendadora</a></small></section>
 <div id="syncBanner" class="warn hidden">Conecta Google para traer nuevos registros del formulario y sincronizar entre tus dispositivos <button id="btnSyncConnect">Conectar Google</button></div>
 <section id="remPanel" class="card hidden"><h2>Recordatorios</h2><div id="remList"></div>
+<details id="recSettings"><summary>⚙️ Recomendadores</summary><div id="recCfgList"></div><div class="row"><input type="text" id="recNewNombre" placeholder="Nombre"><input type="email" id="recNewEmail" placeholder="correo@gmail.com"><button class="sec" id="btnRecAdd" style="flex:0 0 auto">Agregar</button></div>
+<label>Link del formulario de registro (Google Forms)</label><input type="url" id="recFormUrl" placeholder="https://forms.gle/…"><small>Link para la recomendadora: <code id="recLink"></code></small><div class="row"><button class="sec" id="btnRecSync">Sincronizar recomendadores ahora</button></div><div id="recCfgMsg"></div></details>
 <details id="gSettings"><summary>Google Calendar (opcional)</summary><label>Client ID de Google OAuth</label>
 <div class="row"><input type="text" id="gCidInput" placeholder="xxxx.apps.googleusercontent.com"><button class="sec" id="btnGCid" style="flex:0 0 auto">Guardar Client ID</button></div>
 <small id="gStatus"></small></details><a href="#" id="gSignOut" class="hidden"><small>Cerrar sesión de Google</small></a></section>
@@ -102,7 +112,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 </div>
 <div class="card" id="contractCard"><h3>Contrato y firma</h3>
 <div class="row"><div><label>Grupo</label><select id="f_estado"><option value="pendiente">Pendiente de firma</option><option value="firmado">Ya está firmado</option><option value="espera">En espera</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option><option value="sinetapa">Sin etapa (por asignar)</option></select></div>
-<div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
+<div id="recAsig" class="ownerOnly"><label>Recomendador</label><select id="f_rec"></select></div><div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
 <label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div><div class="docSt" id="cfBox"><span id="stCf"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir contrato firmado (fotos o PDF)<input type="file" id="f_cf" accept="image/*,application/pdf,.pdf" multiple hidden></label><div id="cfList"></div></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
 <div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
@@ -562,7 +572,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 // Pega aquí tu Client ID de OAuth (tipo "Aplicación web"). También puede guardarse desde Recordatorios › Google Calendar.
 const GOOGLE_CLIENT_ID='1025331630022-1cukgrk4rv1en4o41ipo41oo9v6asoeq.apps.googleusercontent.com';
 // =========================================
-const KEY='retiroApp.v1',TOPE=35193,SUBS=[['r97','Retiro 97'],['rcv','Cesantía en edad avanzada y vejez (RCV)'],['cs','Cuota social'],['av','Ahorro voluntario'],['as','Ahorro solidario']];
+const REC_MODE=(()=>{try{const u=new URLSearchParams(location.search);if(u.has('rec'))localStorage.setItem('retiroApp.modo',u.get('rec')==='0'?'':'rec');return localStorage.getItem('retiroApp.modo')==='rec'}catch(e){return false}})();if(REC_MODE)document.documentElement.classList.add('rec');
+const KEY=REC_MODE?'retiroApp.rec.v1':'retiroApp.v1',TOPE=35193,SUBS=[['r97','Retiro 97'],['rcv','Cesantía en edad avanzada y vejez (RCV)'],['cs','Cuota social'],['av','Ahorro voluntario'],['as','Ahorro solidario']];
 const $=id=>document.getElementById(id);
 let S={clients:{},reminders:[]},cur=null;
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
@@ -759,7 +770,7 @@ function renderList(){renderTabs();const q=normQ(qF.trim());const G=Object.value
  $('sumBar').innerHTML=SUMS.map(([k,t])=>`<button class="sb sb-${k}${stF===k?' on':''}" data-st="${k}"><b>${cnt[k]||0}</b><span>${t}</span></button>`).join('');
  const L=G.filter(c=>!stF||estadoSol(c)===stF),rk={atrasado:0,riesgo:1};
  const LC=L.filter(c=>c.fechaSolicitud).sort((a,b)=>((rk[estadoSol(a)]??2)-(rk[estadoSol(b)]??2))||a.fechaSolicitud.localeCompare(b.fechaSolicitud)||b.created-a.created),LS=L.filter(c=>!c.fechaSolicitud).sort((a,b)=>b.created-a.created);
- const row=c=>{const e=estadoSol(c),E=etapas(c);return `<div class="client st-${e}" data-id="${c.id}" data-st="${e}"><div class="cMain"><b>${esc(c.nombre||'(sin nombre)')}</b>${c.nuevoForm?' <span class="badge b-nuevo">Nuevo (formulario)</span>':''}<br><small>${esc(c.curp||'Sin CURP')} · <span class="badge b-${c.estado}">${GNOM[c.estado]}</span>${c.estado==='espera'&&c.cond?' · Condición: '+esc(c.cond):''}${c.ubic?' · 📁 '+esc(c.ubic):''}</small>${tab==='tramite'?'<div class="pagosPills">'+tramPend(c).map(x=>'<span class="pill-or">'+x+'</span>').join(' ')+'</div>':''}${tab==='pagos'?'<div class="pagosPills">'+pagosPend(c).map(x=>'<span class="pill-or">Falta pago de '+x+'</span>').join(' ')+'</div>':''}</div>`+
+ const row=c=>{const e=estadoSol(c),E=etapas(c);return `<div class="client st-${e}" data-id="${c.id}" data-st="${e}"><div class="cMain"><b>${esc(c.nombre||'(sin nombre)')}</b>${c.nuevoForm?' <span class="badge b-nuevo">Nuevo (formulario)</span>':''}${recBadge(c)}<br><small>${esc(c.curp||'Sin CURP')} · <span class="badge b-${c.estado}">${GNOM[c.estado]}</span>${c.estado==='espera'&&c.cond?' · Condición: '+esc(c.cond):''}${c.ubic?' · 📁 '+esc(c.ubic):''}</small>${tab==='tramite'?'<div class="pagosPills">'+tramPend(c).map(x=>'<span class="pill-or">'+x+'</span>').join(' ')+'</div>':''}${tab==='pagos'?'<div class="pagosPills">'+pagosPend(c).map(x=>'<span class="pill-or">Falta pago de '+x+'</span>').join(' ')+'</div>':''}</div>`+
  `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(c.solPor5?' (por regla de 5 años)':solMovida(c)?' (domingo → lunes)':''):'')}</span>${pendBadge(c)}<div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
  `<div class="etRow"><div class="pasoTxt">${esc(pasoTxt(c))}</div>${E.map((x,i)=>`<button class="et et-${x.st}" data-et="${x.k}" title="${esc(ETAPAS[i][1]+': '+(x.done?'listo'+(x.k==='precal'&&c.semanas!==''&&c.semanas!=null?' · '+c.semanas+' semanas restantes':''):'falta '+x.falta.join(', ')))}"><span class="etE">${ET_UI[x.k][0]}</span> ${ET_UI[x.k][1]}: <strong>${ET_ST[x.st]}</strong></button>`).join('')}<div class="etLeg">Toca una etapa para ver qué falta · <span class="lg ok">Hecho</span> <span class="lg par">En curso</span> <span class="lg no">Pendiente</span></div></div><div class="etFalta hidden"></div></div>`};
  $('clientList').innerHTML=L.length?LC.map(row).join('')+(LS.length?'<div class="solSep" id="solSep">Sin fecha de solicitud ('+LS.length+')</div>'+LS.map(row).join(''):''):'<p><small>No hay clientes'+(Object.keys(S.clients).length?' en este grupo'+(stF?' con ese estado':'')+'.':'. Crea un nuevo caso.')+'</small></p>'}
@@ -946,7 +957,7 @@ function importClients(list){let add=0,skip=0;const keys=new Set(Object.values(S
 for(const x of list){const r=recFromJson(x);if(!r){skip++;continue}if(r.key&&keys.has(r.key)){skip++;continue}
 const c=fix(newClient(r.nombre));c.id+='_'+(i++);Object.assign(c,r);c.seedKey=r.key;c.seedEstado=c.estado;delete c.key;c.created=Date.now()-i;S.clients[c.id]=c;if(r.key)keys.add(r.key);add++}
 return{add,skip}}
-function seedOnce(){try{if(localStorage.getItem('retiroApp.seeded')||localStorage.getItem(KEY))return}catch(e){return}importClients(SEED);if(save())try{localStorage.setItem('retiroApp.seeded','1')}catch(e){}}
+function seedOnce(){if(REC_MODE)return;try{if(localStorage.getItem('retiroApp.seeded')||localStorage.getItem(KEY))return}catch(e){return}importClients(SEED);if(save())try{localStorage.setItem('retiroApp.seeded','1')}catch(e){}}
 seedOnce();
 // Migración única: clientes verdes de la semilla pasan de Firmados a Finalizado (por fila), sin tocar cambios manuales
 function migrarFinalizado(){try{if(localStorage.getItem('retiroApp.migFinal'))return 0}catch(e){return 0}const verdes=new Set(SEED.filter(x=>String(x.color).toLowerCase()==='verde').map(x=>'fila'+x.fila));let n=0;
@@ -1286,7 +1297,7 @@ const c=fix(newClient(r.nombre));c.id+='_f'+r.fila;['curp','nss','email','calle'
 c.estado='pendiente';c.seedKey='fila'+r.fila;c.nuevoForm=true;c.origen='formulario';S.clients[c.id]=c;filas.add(c.seedKey);if(r.curp)curps.add(r.curp);nuevos.push(c);if(r.fila>max)max=r.fila}
 F.maxRow=Math.max(max,...rowsToRecs(values).map(r=>r.fila),F.maxRow);save();return nuevos}
 let syncing=false;
-async function syncFormulario(interactivo){if(syncing)return;const banner=v=>$('syncBanner').classList.toggle('hidden',!needConnect());
+async function syncFormulario(interactivo){if(syncing||REC_MODE)return;const banner=v=>$('syncBanner').classList.toggle('hidden',!needConnect());
 if(!gCid()){banner(true);if(interactivo)gToast('No hay Client ID de Google configurado. Pégalo en Recordatorios › Google Calendar.');return}
 const g=gGranted(),tieneHoja=g.includes(SH_SCOPE);if(!interactivo&&!((gValid()||lsG(GK.ok))&&tieneHoja)){banner(true);return}
 syncing=true;try{const tok=await gToken([SH_SCOPE]);const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(SHEET_TAB),{headers:{Authorization:'Bearer '+tok}});
@@ -1295,12 +1306,13 @@ const nuevos=procesarFormulario((await res.json()).values);lsG(SYNC_KEY,String(D
 if(nuevos.length)gToast((nuevos.length===1?'1 cliente nuevo del formulario: ':nuevos.length+' clientes nuevos del formulario: ')+nuevos.map(c=>c.nombre).join(', ')+'. Están en «Pendientes de firma».','ok');
 else if(interactivo)gToast('Sin registros nuevos en el formulario.','ok')}
 catch(e){banner(false);if(interactivo)gToast('No se pudo leer el formulario ('+(e&&e.message||'error')+').')}finally{syncing=false}}
-$('btnSync').onclick=()=>syncFormulario(true);$('btnSyncConnect').onclick=async()=>{if(!gCid())return syncFormulario(true);try{await gToken([SH_SCOPE,DRIVE_SCOPE])}catch(e){gToast('No se pudo conectar con Google ('+(e&&e.message||'error')+').');return}await syncDrive(true);syncFormulario(true)};
+$('btnSync').onclick=()=>syncFormulario(true);$('btnSyncConnect').onclick=async()=>{if(REC_MODE){try{await gToken([DRIVE_FULL])}catch(e){gToast('No se pudo conectar con Google ('+(e&&e.message||'error')+').');return}return syncDrive(true)}if(!gCid())return syncFormulario(true);try{await gToken([SH_SCOPE,DRIVE_SCOPE])}catch(e){gToast('No se pudo conectar con Google ('+(e&&e.message||'error')+').');return}await syncDrive(true);syncFormulario(true)};
 syncMeta();showLastSync();renderIgn();
 renderList();renderRem();notifyDue();
 // ===== Sincronización entre dispositivos (Google Drive appDataFolder) =====
+const DRIVE_FILE='https://www.googleapis.com/auth/drive.file',DRIVE_FULL='https://www.googleapis.com/auth/drive',ROLE=REC_MODE?'rec':'owner';
 const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata',DFILE='retiro-app-estado.json',DK={dirty:'retiroApp.driveDirty',last:'retiroApp.driveLast',fid:'retiroApp.driveFileId'};
-function needConnect(){const g=gGranted();return !gCid()||!((gValid()||lsG(GK.ok))&&g.includes(SH_SCOPE)&&g.includes(DRIVE_SCOPE))}
+function needConnect(){const g=gGranted();if(REC_MODE)return !gCid()||!(gValid()||lsG(GK.ok))||!g.includes(DRIVE_FULL);return !gCid()||!((gValid()||lsG(GK.ok))&&g.includes(SH_SCOPE)&&g.includes(DRIVE_SCOPE))}
 function driveListo(){return !!gCid()&&!!(gValid()||lsG(GK.ok))&&gGranted().includes(DRIVE_SCOPE)}
 // updatedAt: se marca en cada edición (se detecta comparando contra una instantánea)
 const snap={};const sj=c=>{const o=Object.assign({},c);delete o.updatedAt;delete o.nuevoForm;return JSON.stringify(o)};
@@ -1453,7 +1465,7 @@ function buildStepper(){const cv=$('caseView'),head=cv.querySelector('.card'),cc
  const kids=[...cc.children];let modo=null;
  for(const el of kids){const tx=el.tagName==='LABEL'?el.textContent:'';
   if(el.tagName==='H3'){el.remove();continue}
-  if(el.querySelector&&el.querySelector('#f_estado')||el.id==='condBox'){gen.appendChild(el);continue}
+  if(el.querySelector&&el.querySelector('#f_estado')||el.id==='condBox'||el.id==='recAsig'){gen.appendChild(el);continue}
   if(/Dónde está guardado/.test(tx)){modo='p3'}else if(/Cita de firma/.test(tx)){modo='p2'}else if(/^Seguimiento/.test(tx)){modo='p4'}
   else if(el.id==='datosContrato'||el.id==='btnPdf'||el.id==='btnAgPag'||el.id==='pdfMsg'||(el.dataset&&el.dataset.agok==='pagare'))modo='p2';
   else if(el.classList.contains('docSt')||el.id==='docOcr'||el.id==='docWarn'||el.id==='ubicChips'||el.id==='f_ubic')modo=modo==='p2'||modo==='p4'?'p3':modo||'p3';
@@ -1501,7 +1513,7 @@ try{updStepper()}catch(x){}
 function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
 function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
 function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),writer:{dev:devName(),id:devId(),origin:location.origin==='null'?location.protocol:location.origin,ts:Date.now()},clients:S.clients,reminders:S.reminders,form:S.form||null,
-flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0}}}
+flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0,recs:S.recs||null,recsTs:S.recsTs||0,formUrl:S.formUrl||'',notifs:S.notifs||[]}}}
 const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared,st.limpiarTs||0,(st.ignorados||[]).length]);
 // Fusión por campo: gana el más reciente según fieldTs (o updatedAt si no hay); las listas se unen por id/nombre+fecha.
 const M_LIST={files:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,contratoFirm:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,historial:h=>h.ts+'|'+h.tipo+'|'+h.texto,docsArchivo:a=>a.k+'|'+a.removed+'|'+(a.data||'').length,segHist:a=>(a.id||'')+'|'+a.fecha+'|'+a.hora+'|'+a.ts};
@@ -1526,6 +1538,8 @@ if(R.form){const F=syncMeta();if(R.form.maxRow>F.maxRow){F.maxRow=R.form.maxRow;
 if(R.flags){if(R.flags.seeded&&!lsG('retiroApp.seeded'))lsG('retiroApp.seeded','1');if(R.flags.migFinal&&!lsG('retiroApp.migFinal'))lsG('retiroApp.migFinal','1')}
 if((R.lastFormSync||0)>(+lsG(SYNC_KEY)||0)){lsG(SYNC_KEY,String(R.lastFormSync));showLastSync()}
 if(R.shared&&Array.isArray(R.shared.provs)&&(R.shared.provsTs||0)>(S.provsTs||0)){S.provs=R.shared.provs;S.provsTs=R.shared.provsTs;changed=true;try{renderProv()}catch(e){}}
+if(R.shared&&Array.isArray(R.shared.recs)&&(R.shared.recsTs||0)>(S.recsTs||0)){S.recs=R.shared.recs.map(r=>Object.assign({},(S.recs||[]).find(x=>x.email===r.email)||{},r));S.recsTs=R.shared.recsTs;if(R.shared.formUrl!=null)S.formUrl=R.shared.formUrl;changed=true}
+if(R.shared&&Array.isArray(R.shared.notifs)&&notifUnion(R.shared.notifs))changed=true;
 if(R.shared&&R.shared.waTel&&!lsG('retiroApp.waTel')){lsG('retiroApp.waTel',R.shared.waTel);$('altaTel').value=R.shared.waTel}
 if(purgarViejos())changed=true;if(pendRespaldo.length)guardarRespaldoLocal();renderIgn();
 if(changed){Object.values(S.clients).forEach(fix);snapAll();_save()}return changed}
@@ -1545,7 +1559,7 @@ function dStatus(st){if(st)dState=st;const e=$('driveStatus'),l=+lsG(DK.last)||0
 let W=null;try{W=JSON.parse(lsG('retiroApp.lastWriter')||'null')}catch(x){}const er=lsG('retiroApp.syncErr');
 e.textContent=(dState==='busy'?'⟳ Sincronizando…':dState==='ok'?'☁ Sincronizado hace '+hace(Date.now()-l)+(lsG(DK.dirty)?' · cambios pendientes':''):'⚠ Sin conexión a Google'+(lsG(DK.dirty)?' · cambios guardados en este equipo':''))+(er?(dState==='err'?' · ⚠ Error al sincronizar: ':' · último error: ')+er:'');
 $('lastWriter').textContent=W?'Última subida desde: '+W.dev+(W.id===devId()?' (este equipo)':'')+' · '+W.origin+' hace '+hace(Date.now()-W.ts):''}
-async function syncDrive(interactivo){if(dBusy){dAgain=true;return}if(!interactivo&&!driveListo()){dStatus('off');$('syncBanner').classList.toggle('hidden',!needConnect());return}
+async function syncDrive(interactivo){if(REC_MODE)return recSyncRec(interactivo);if(dBusy){dAgain=true;return}if(!interactivo&&!driveListo()){dStatus('off');$('syncBanner').classList.toggle('hidden',!needConnect());return}
 dBusy=true;dStatus('busy');clearTimeout(dRetry);
 try{const t=await gToken([DRIVE_SCOPE]);let f=await dFind(t);const R=f?await dGet(t,f.id):null;
 if(R&&R.app==='retiroApp'&&mergeState(R)){renderList();renderRem();if(cur&&S.clients[cur]&&!$('caseView').classList.contains('hidden'))openCase(cur)}
@@ -1555,9 +1569,146 @@ const mine=buildState();
 if(f&&!(R&&R.app==='retiroApp')&&!Object.keys(S.clients).length)throw new Error('Copia remota ilegible; no se sobrescribe con una lista vacía');
 let W=R&&R.writer||null;
 if(!f){const id=await dCreate(t);await dPut(t,id,JSON.stringify(mine));W=mine.writer}else if(lsG(DK.dirty)||!R||coreJ(R)!==coreJ(mine)){await dPut(t,f.id,JSON.stringify(mine));W=mine.writer}
-lsG('retiroApp.lastWriter',W?JSON.stringify(W):null);lsG('retiroApp.syncErr',null);lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));dStatus('ok')}
+lsG('retiroApp.lastWriter',W?JSON.stringify(W):null);lsG('retiroApp.syncErr',null);lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));dStatus('ok');recDetectar(t);recSyncOwner(interactivo).catch(e=>recErr(e))}
 catch(e){lsG('retiroApp.syncErr',(e&&e.message)||String(e));dStatus('err');dRetry=setTimeout(()=>syncDrive(false),30000)}
 finally{dBusy=false;$('syncBanner').classList.toggle('hidden',!needConnect());if(dAgain){dAgain=false;syncDrive(false)}}}
+// ===== Recomendadores: acceso limitado (archivo compartido en Drive con SOLO sus clientes y SOLO campos permitidos) =====
+const REC_DEF=[{id:'r1',nombre:'Stephanie',email:'neymodatendencia1@gmail.com'}];
+// Campos que SÍ viajan al archivo de la recomendadora (lista blanca). Nada de proveedor, alta, SUA, SIPARE, Infonavit, pagos ni historial interno.
+const REC_F=['id','nombre','curp','nss','tel','email','afore','calle','colonia','municipio','cp','notas','estado','estadoManual','cond','condFecha','step','sub','semanas','semVigente','semDesc','semCot','semReint','semUltBaja','semUltBajaPat','semRevisa','semTxt','semLeida','semTotalDoc','subLeidas','r5','r5Conf','r5ConfAt','comp5','comp5Fecha','comp5FechaManual','comp5At','last','files','constSem','ine','dom','docIne','docDom','contratoFirm','docTs','pagareVenc','pagareMonto','citaFecha','citaHora','segFecha','segHora','segNota','segHist','ubic','created','confirmed','edoRevisa','aviso','fechaSolicitud','solBase','solCalc','solPor5','solDomingo','recListo'];
+const REC_RO=new Set(['id','created','fechaSolicitud','solBase','solCalc','solPor5','solDomingo']);
+const REC_W=REC_F.filter(k=>!REC_RO.has(k));
+const RFILE=e=>'retiro-recomendador-'+e+'.json';
+if(!REC_MODE&&!Array.isArray(S.recs)){S.recs=REC_DEF.map(x=>Object.assign({},x));S.recsTs=0}
+S.notifs=S.notifs||[];
+function recDe(e){return(S.recs||[]).find(r=>r.email===e)}
+function recNom(e){const r=recDe(e);return r?r.nombre:e||''}
+function yoNom(){return(S.yo&&S.yo.nombre)||'La recomendadora'}
+function recBadge(c){return !REC_MODE&&c.rec?' <span class="badge b-rec">👤 '+esc(recNom(c.rec))+(c.recListo&&!altaHecha(c)&&!c.altaEnviada?' · listo para alta':'')+'</span>':''}
+function recMsg(t){const m=$('recCfgMsg');if(m)m.textContent=t}
+function recErr(e){const t=(e&&e.message)||String(e);lsG('retiroApp.recErr',t);recMsg('⚠️ Recomendadores: '+t)}
+const dOk=async p=>{const r=await p;if(!r.ok)throw new Error('Drive respondió '+r.status);return r};
+const nid=()=>'n'+Date.now()+Math.random().toString(36).slice(2,6);
+function nuevoAviso(n){if(n.para!==ROLE||n.leido)return;try{if(window.Notification&&Notification.permission==='granted')new Notification('Retiro Afore',{body:n.texto,tag:n.id})}catch(e){}}
+function addNotif(n){n=Object.assign({id:nid(),ts:Date.now()},n);S.notifs.push(n);nuevoAviso(n);bellUI();return n}
+function notifUnion(arr){let ch=false;for(const n of arr||[]){if(!n||!n.id)continue;const l=S.notifs.find(x=>x.id===n.id);if(!l){S.notifs.push(Object.assign({},n));nuevoAviso(n);ch=true;continue}
+ if(n.leido&&!l.leido){l.leido=n.leido;ch=true}if((n.ets||0)>(l.ets||0)){['estado','cid','ets'].forEach(k=>l[k]=n[k]);ch=true}}if(ch)bellUI();return ch}
+// ---- Campana de avisos (ambos roles) ----
+const misAvisos=()=>S.notifs.filter(n=>n.para===ROLE).sort((a,b)=>b.ts-a.ts);
+function bellUI(){const b=$('bellN');if(!b)return;const u=misAvisos().filter(n=>!n.leido).length;b.textContent=u?' '+u:'';b.classList.toggle('hidden',!u);$('btnBell').classList.toggle('bellOn',!!u);if(!$('bellPanel').classList.contains('hidden'))renderBell();if(REC_MODE)recBarUI()}
+function avisoAcc(n){const c=n.cid&&S.clients[n.cid];
+ if(n.tipo==='sol'&&ROLE==='owner')return n.estado==='ok'?'<div>✓ Autorizado'+(c?' · '+esc(c.nombre):' · se asignará cuando llegue su formulario')+'</div>':n.estado==='no'?'<div>✗ Rechazado</div>':'<div class="row"><button data-na="ok">Autorizar</button><button class="sec" data-na="no">Rechazar</button></div>';
+ if(n.tipo==='seg'&&n.msg)return '<textarea readonly rows="4">'+esc(n.msg)+'</textarea><div class="row"><button data-na="copiar">📋 Copiar</button><button data-na="wa">📤 Enviar por WhatsApp</button></div>';
+ if(c)return '<button class="sec" data-na="abrir">'+(n.tipo==='listo'?'Abrir y enviar solicitud de alta':'Abrir cliente')+'</button>';return''}
+function renderBell(){const L=misAvisos();$('bellList').innerHTML=L.length?L.slice(0,60).map(n=>'<div class="aviso'+(n.leido?'':' nuevo')+'" data-n="'+esc(n.id)+'"><div>'+esc(n.texto)+'</div><small>'+new Date(n.ts).toLocaleString('es-MX')+'</small>'+avisoAcc(n)+'</div>').join(''):'<p>Sin avisos.</p>'}
+$('btnBell').onclick=()=>{const p=$('bellPanel'),abrir=p.classList.contains('hidden');p.classList.toggle('hidden',!abrir);if(!abrir)return;renderBell();let ch=false;misAvisos().forEach(n=>{if(!n.leido){n.leido=Date.now();ch=true}});if(ch){save();bellUI();renderBell()}scrollTo(0,0)};
+$('btnBellClose').onclick=()=>$('bellPanel').classList.add('hidden');
+$('btnBellNoti').onclick=async()=>{try{const r=await Notification.requestPermission();gToast(r==='granted'?'Avisos del navegador activados.':'El navegador no permitió los avisos.')}catch(e){gToast('Este navegador no soporta avisos.')}};
+$('bellList').onclick=e=>{const b=e.target.closest('[data-na]');if(!b)return;const n=S.notifs.find(x=>x.id===b.closest('[data-n]').dataset.n);if(!n)return;const a=b.dataset.na,c=n.cid&&S.clients[n.cid];
+ if(a==='ok'||a==='no')return solDecidir(n,a);
+ if(a==='abrir'&&c){$('bellPanel').classList.add('hidden');openCase(c.id);if(n.tipo==='listo'){const x=$('altaCard');if(x)x.scrollIntoView({block:'center'})}return}
+ if(a==='copiar'){(navigator.clipboard?navigator.clipboard.writeText(n.msg):Promise.reject()).then(()=>gToast('Mensaje copiado.'),()=>gToast('No se pudo copiar; selecciónalo y cópialo.'));return}
+ if(a==='wa'){openWaText(telMX(c&&c.tel||''),n.msg);return}};
+// ---- Solicitudes de autorización ----
+function solDecidir(n,a){n.estado=a;n.ets=Date.now();addNotif({tipo:'resp',para:'rec',rec:n.rec,texto:'La consultoría '+(a==='ok'?'autorizó':'rechazó')+' a '+n.nombre+(a==='ok'?'. Cuando llene el formulario aparecerá en tu lista.':'.')});linkSolicitudes();save();renderBell();renderList();recSyncOwner(true).catch(recErr)}
+const dig=t=>String(t||'').replace(/\D/g,'').slice(-10);
+function linkSolicitudes(){let ch=false;for(const n of S.notifs){if(n.tipo!=='sol'||n.estado!=='ok'||n.cid||!n.rec)continue;
+ const c=Object.values(S.clients).find(c=>(!c.rec||c.rec===n.rec)&&((normQ(c.nombre)&&normQ(c.nombre)===normQ(n.nombre))||(dig(n.tel).length===10&&dig(c.tel)===dig(n.tel))));
+ if(c){c.rec=n.rec;n.cid=c.id;n.ets=Date.now();hist(c,'nota','Asignado a recomendador: '+recNom(n.rec));ch=true}}return ch}
+// ---- Lado consultoría (dueño) ----
+const docTsF=d=>{const o={};for(const k in d||{})if(REC_F.includes(k))o[k]=d[k];return o};
+function recCli(c){const o={},ft=c.fieldTs||{};for(const k of REC_F)if(c[k]!==undefined)o[k]=k==='docTs'?docTsF(c[k]):c[k];o.fieldTs={};for(const k of REC_F)if(ft[k])o.fieldTs[k]=ft[k];return o}
+const N_KEYS=['id','tipo','para','rec','ts','texto','cid','msg','fecha','nombre','tel','estado','ets','leido'];
+const nOut=n=>{const o={};N_KEYS.forEach(k=>{if(n[k]!==undefined)o[k]=n[k]});return o};
+const recCore=R=>JSON.stringify([R.clients||{},R.notifs||[],R.formUrl||'',R.rec||null]);
+function recArchivo(r){const cl={};Object.values(S.clients).filter(c=>c.rec===r.email).forEach(c=>cl[c.id]=recCli(c));
+ return{app:'retiroRec',v:1,ts:Date.now(),rec:{nombre:r.nombre,email:r.email},formUrl:S.formUrl||'',clients:cl,notifs:S.notifs.filter(n=>n.rec===r.email).map(nOut)}}
+function recImport(r,R){let ch=false;
+ for(const id in R.clients||{}){const x=R.clients[id],c=S.clients[id];if(!c||c.rec!==r.email||!x)continue;const ft=x.fieldTs||{};c.fieldTs=c.fieldTs||{};const yaListo=c.recListo;
+  for(const k of REC_W){if(!ft[k]||ft[k]<=(c.fieldTs[k]||0))continue;if(k==='docTs'){const m=Object.assign({},c.docTs||{},docTsF(x.docTs));if(JSON.stringify(m)!==JSON.stringify(c.docTs)){c.docTs=m;ch=true}c.fieldTs[k]=ft[k];continue}if(JSON.stringify(x[k])!==JSON.stringify(c[k])){c[k]=x[k]===undefined?'':x[k];ch=true}c.fieldTs[k]=ft[k];c.updatedAt=Math.max(c.updatedAt||0,ft[k])}
+  if(c.recListo&&!yaListo)hist(c,'nota',r.nombre+' informó que terminó el paso 3')}
+ for(const n of R.notifs||[]){if(!n||!n.id)continue;const l=S.notifs.find(x=>x.id===n.id);
+  if(!l&&n.para==='owner'&&(n.tipo==='sol'||n.tipo==='listo')){const c=n.cid&&S.clients[n.cid];if(n.tipo==='listo'&&!(c&&c.rec===r.email))continue;
+   const m={id:String(n.id),tipo:n.tipo,para:'owner',rec:r.email,ts:+n.ts||Date.now(),nombre:String(n.nombre||'').slice(0,120),tel:String(n.tel||'').slice(0,20)};
+   if(n.tipo==='sol'){m.estado='pend';m.texto=r.nombre+' está pidiendo autorización para '+m.nombre}else{m.cid=c.id;m.texto=r.nombre+' terminó '+c.nombre+', listo para alta'}
+   S.notifs.push(m);nuevoAviso(m);ch=true}
+  else if(l&&l.para==='rec'&&n.leido&&!l.leido){l.leido=n.leido;ch=true}}
+ return ch}
+function recAutoAvisos(){let ch=false;for(const c of Object.values(S.clients)){if(!c.rec||!recDe(c.rec))continue;
+ if(c.pago_sipare&&PAGOS.some(([x])=>c[pkp(x)])&&c.fechaSolicitud){const id='seg-'+c.id+'-'+c.fechaSolicitud;if(!S.notifs.some(n=>n.id===id)){addNotif({id,tipo:'seg',para:'rec',rec:c.rec,cid:c.id,fecha:c.fechaSolicitud,texto:'Ya hay fecha para la segunda visita de '+c.nombre+': '+fDMY(c.fechaSolicitud),msg:c.seg2Txt||seg2Default(c)});ch=true}}}return ch}
+async function recSyncUno(t,r){let ch=false;
+ if(!r.fid){const q="name='"+RFILE(r.email)+"' and trashed=false";const j=await(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)}))).json();r.fid=((j.files||[])[0]||{}).id||null;
+  if(!r.fid){const x=await dOk(fetch(DAPI+'?fields=id',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:RFILE(r.email),mimeType:'application/json',description:'Datos limitados de clientes para '+r.nombre+' (app Retiro Afore)'})}));r.fid=(await x.json()).id}ch=true}
+ if(r.compartido!==r.email){await dOk(fetch(DAPI+'/'+r.fid+'/permissions?sendNotificationEmail=false',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({type:'user',role:'writer',emailAddress:r.email})}));r.compartido=r.email;ch=true}
+ const R=await dGet(t,r.fid);if(R&&R.app==='retiroRec'&&recImport(r,R))ch=true;
+ if(linkSolicitudes())ch=true;if(recAutoAvisos())ch=true;
+ const out=recArchivo(r);if(!R||recCore(R)!==recCore(out))await dPut(t,r.fid,JSON.stringify(out));return ch}
+let recBusy=false,recAgain=false;
+async function recSyncOwner(interactivo){if(REC_MODE)return;if(recBusy){recAgain=true;return}const usa=(S.recs||[]).filter(r=>r.email&&(r.fid||Object.values(S.clients).some(c=>c.rec===r.email)));if(!usa.length)return;
+ if(!interactivo&&!gGranted().includes(DRIVE_FILE)){recMsg('Pulsa «Sincronizar recomendadores ahora» para dar permiso de compartir.');return}
+ recBusy=true;try{const t=await gToken([DRIVE_FILE]);let ch=false;for(const r of usa)ch=(await recSyncUno(t,r))||ch;
+  if(ch){Object.values(S.clients).forEach(fix);snapAll();_save();lsG(DK.dirty,'1');renderList();bellUI();if(cur&&S.clients[cur]&&!$('caseView').classList.contains('hidden'))render();clearTimeout(dTimer);dTimer=setTimeout(()=>syncDrive(false),3000)}
+  lsG('retiroApp.recErr',null);recMsg('✓ Recomendadores sincronizados '+new Date().toLocaleTimeString('es-MX'));recCfgUI()}
+ finally{recBusy=false;if(recAgain){recAgain=false;setTimeout(()=>recSyncOwner(false).catch(recErr),500)}}}
+// Detección por correo: si quien inicia sesión es un recomendador configurado y este equipo no tiene clientes, se cambia a su vista
+async function recDetectar(t){if(REC_MODE||lsG('retiroApp.miEmail'))return;try{const a=await(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:hdr(t)}))).json();const e=String(a.user&&a.user.emailAddress||'').toLowerCase();if(!e)return;lsG('retiroApp.miEmail',e);
+ if([...REC_DEF,...(S.recs||[])].some(r=>r.email===e)&&!Object.keys(S.clients).length){localStorage.setItem('retiroApp.modo','rec');location.reload()}}catch(x){}}
+function recCfgUI(){if(REC_MODE)return;$('recCfgList').innerHTML=(S.recs||[]).map((r,i)=>'<div class="row recRow" data-i="'+i+'"><input type="text" data-rf="nombre" value="'+esc(r.nombre)+'"><input type="email" data-rf="email" value="'+esc(r.email)+'"><small>'+(r.compartido===r.email?'✓ compartido':'pendiente')+' · '+Object.values(S.clients).filter(c=>c.rec===r.email).length+' cliente(s)</small><button class="sec mini" data-rdel="'+i+'">🗑</button></div>').join('')||'<small>Sin recomendadores.</small>';
+ if(document.activeElement!==$('recFormUrl'))$('recFormUrl').value=S.formUrl||'';$('recLink').textContent=location.origin+location.pathname+'?rec=1'}
+const recTouch=()=>{S.recsTs=Date.now();save();recCfgUI();renderList()};
+$('recCfgList').onchange=e=>{const i=+e.target.closest('[data-i]').dataset.i,r=S.recs[i],f=e.target.dataset.rf;if(!r||!f)return;let v=e.target.value.trim();if(f==='email'){v=v.toLowerCase();const old=r.email;Object.values(S.clients).forEach(c=>{if(c.rec===old)c.rec=v});r.fid=null;r.compartido=null}r[f]=v;recTouch()};
+$('recCfgList').onclick=e=>{const b=e.target.closest('[data-rdel]');if(!b)return;const r=S.recs[+b.dataset.rdel];if(!confirm('¿Quitar a '+r.nombre+'? Sus clientes quedan sin recomendador.'))return;Object.values(S.clients).forEach(c=>{if(c.rec===r.email)c.rec=''});S.recs.splice(+b.dataset.rdel,1);recTouch()};
+$('btnRecAdd').onclick=()=>{const n=$('recNewNombre').value.trim(),e=$('recNewEmail').value.trim().toLowerCase();if(!n||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return gToast('Escribe nombre y un correo válido.');S.recs.push({id:'r'+Date.now(),nombre:n,email:e});$('recNewNombre').value=$('recNewEmail').value='';recTouch()};
+$('recFormUrl').onchange=e=>{S.formUrl=e.target.value.trim();recTouch()};
+$('btnRecSync').onclick=()=>recSyncOwner(true).catch(recErr);
+$('f_rec').onchange=e=>{const c=C();if(!c)return;const v=e.target.value;c.rec=v;if(!v)c.recListo=c.recListo||null;hist(c,'nota',v?'Asignado a recomendador: '+recNom(v):'Sin recomendador');save();renderList();recSyncOwner(true).catch(recErr)};
+// ---- Lado recomendadora ----
+function recMergeRec(R){let ch=false;const ids=new Set(Object.keys(R.clients||{}));
+ for(const id of Object.keys(S.clients))if(!ids.has(id)){delete S.clients[id];ch=true}
+ for(const id of ids){const x=R.clients[id],c=S.clients[id];if(!x)continue;if(!c){const n={};REC_F.forEach(k=>{if(x[k]!==undefined)n[k]=JSON.parse(JSON.stringify(x[k]))});n.fieldTs=Object.assign({},x.fieldTs||{});S.clients[id]=n;ch=true;continue}
+  const ft=x.fieldTs||{},lt=c.fieldTs=c.fieldTs||{};
+  for(const k of REC_F){if(k==='id')continue;if(REC_W.includes(k)&&(lt[k]||0)>(ft[k]||0))continue;if(JSON.stringify(c[k])!==JSON.stringify(x[k])){if(x[k]===undefined)delete c[k];else c[k]=JSON.parse(JSON.stringify(x[k]));ch=true}if(ft[k])lt[k]=ft[k]}
+  for(const k of Object.keys(c))if(!REC_F.includes(k)&&!['fieldTs','updatedAt','historial','nuevoForm'].includes(k)){delete c[k]}}
+ if(R.rec&&R.rec.nombre&&(!S.yo||S.yo.nombre!==R.rec.nombre)){S.yo=Object.assign(S.yo||{},{nombre:R.rec.nombre});ch=true}if((R.formUrl||'')!==(S.formUrl||'')){S.formUrl=R.formUrl||'';ch=true}
+ for(const n of R.notifs||[]){if(!n||!n.id)continue;const l=S.notifs.find(x=>x.id===n.id);if(!l){S.notifs.push(Object.assign({},n));nuevoAviso(n);ch=true;continue}
+  if(l.para==='owner'){for(const k of ['estado','cid','ets','leido'])if(n[k]!==undefined&&JSON.stringify(n[k])!==JSON.stringify(l[k])){l[k]=n[k];ch=true}}}
+ return ch}
+function recSalida(R){const cl={};Object.values(S.clients).forEach(c=>cl[c.id]=recCli(c));return{app:'retiroRec',v:1,ts:Date.now(),rec:R.rec||{nombre:yoNom(),email:S.yo&&S.yo.email},formUrl:R.formUrl||'',clients:cl,notifs:S.notifs.map(nOut)}}
+async function recSyncRec(interactivo){if(recBusy){recAgain=true;return}recBarUI();if(!interactivo&&!(gCid()&&(gValid()||lsG(GK.ok))&&gGranted().includes(DRIVE_FULL))){dStatus('off');$('syncBanner').classList.toggle('hidden',!needConnect());return}
+ recBusy=true;dStatus('busy');try{const t=await gToken([DRIVE_FULL]);
+  if(!S.yo||!S.yo.email){const a=await(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress,displayName)',{headers:hdr(t)}))).json();S.yo=Object.assign(S.yo||{},{email:String(a.user.emailAddress||'').toLowerCase(),nombre:(S.yo&&S.yo.nombre)||a.user.displayName||''});_save()}
+  const q="name='"+RFILE(S.yo.email)+"' and trashed=false";const j=await(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)}))).json();const f=(j.files||[])[0];
+  if(!f){S.recSt='sin';_save();recBarUI();lsG(DK.last,String(Date.now()));dStatus('ok');return}
+  S.recSt='ok';const R=await dGet(t,f.id)||{};const ch=R.app==='retiroRec'?recMergeRec(R):false;
+  if(ch){Object.values(S.clients).forEach(fix);snapAll()}_save();
+  const out=recSalida(R);if(recCore(R)!==recCore(out))await dPut(t,f.id,JSON.stringify(out));
+  lsG(DK.dirty,null);lsG(DK.last,String(Date.now()));lsG('retiroApp.syncErr',null);renderList();bellUI();
+  if(cur&&!S.clients[cur]){cur=null;$('caseView').classList.add('hidden');$('listView').classList.remove('hidden')}else if(ch&&cur&&!$('caseView').classList.contains('hidden'))openCase(cur);dStatus('ok')}
+ catch(e){lsG('retiroApp.syncErr',(e&&e.message)||String(e));dStatus('err')}
+ finally{recBusy=false;$('syncBanner').classList.toggle('hidden',!needConnect());recBarUI();if(recAgain){recAgain=false;setTimeout(()=>syncDrive(false),300)}}}
+const SOL_TX={pend:'⏳ Esperando autorización',ok:'✓ Autorizado',no:'✗ Rechazado'};
+function recBarUI(){if(!REC_MODE)return;$('recBar').classList.remove('hidden');$('recNombre').textContent=(S.yo&&S.yo.nombre)||'';$('recEmail').textContent=S.yo&&S.yo.email?'Sesión: '+S.yo.email:'';
+ const st=$('recSt');st.classList.toggle('hidden',S.recSt!=='sin');st.textContent='Aún no tienes clientes compartidos. Pide a la consultoría que te dé de alta con tu correo '+((S.yo&&S.yo.email)||'')+'.';
+ const L=S.notifs.filter(n=>n.tipo==='sol').sort((a,b)=>b.ts-a.ts);$('recSols').innerHTML=L.length?'<h3>Mis solicitudes</h3>'+L.map(n=>'<div class="recSol"><b>'+esc(n.nombre)+'</b> '+(n.tel?esc(n.tel)+' ':'')+'— '+SOL_TX[n.estado||'pend']+(n.estado==='ok'?(n.cid&&S.clients[n.cid]?' · ya está en tu lista':' · falta que llene el formulario'):'')+'</div>').join(''):''}
+const FORM_MSG=u=>'Hola, para iniciar tu trámite de retiro por desempleo llena este formulario: '+u;
+const formUrlOk=()=>{if(!S.formUrl){gToast('La consultoría aún no ha configurado el link del formulario.');return false}return true};
+$('btnFormCopy').onclick=()=>{if(!formUrlOk())return;(navigator.clipboard?navigator.clipboard.writeText(FORM_MSG(S.formUrl)):Promise.reject()).then(()=>gToast('Link del formulario copiado.'),()=>gToast(S.formUrl))};
+$('btnFormWa').onclick=()=>{if(formUrlOk())openWaText('',FORM_MSG(S.formUrl))};
+$('btnSolEnviar').onclick=()=>{const n=$('solNombre').value.trim(),t=$('solTel').value.trim();if(!n)return gToast('Escribe el nombre del cliente.');
+ addNotif({tipo:'sol',para:'owner',rec:S.yo&&S.yo.email,nombre:n,tel:t,estado:'pend',texto:yoNom()+' está pidiendo autorización para '+n});$('solNombre').value=$('solTel').value='';save();recBarUI();gToast('Solicitud enviada a la consultoría.')};
+$('recSalir').onclick=e=>{e.preventDefault();if(!confirm('¿Salir del modo recomendadora en este equipo?'))return;localStorage.setItem('retiroApp.modo','');location.href=location.pathname+'?rec=0'};
+// ---- En el caso ----
+function recRender(){const c=C();if(!c)return;
+ if(!REC_MODE){const s=$('f_rec');s.innerHTML='<option value="">— Sin recomendador —</option>'+(S.recs||[]).map(r=>'<option value="'+esc(r.email)+'">'+esc(r.nombre)+'</option>').join('')+(c.rec&&!recDe(c.rec)?'<option value="'+esc(c.rec)+'">'+esc(c.rec)+'</option>':'');s.value=c.rec||'';
+  const a=$('altaCard'),on=!!(c.recListo&&!c.altaEnviada&&!altaHecha(c));a.classList.toggle('recDest',on);let m=$('recListoMsg');if(!m){m=document.createElement('div');m.id='recListoMsg';m.className='ok';a.querySelector('h3').after(m)}m.classList.toggle('hidden',!on);m.textContent=on?'⭐ '+recNom(c.rec)+' terminó el paso 3: envía la solicitud de alta.':'';return}
+ const b=$('paso_p4')&&$('paso_p4').querySelector('.pBody');if(!b)return;let x=$('recCase');if(!x){x=document.createElement('div');x.id='recCase';x.className='card inStep';b.prepend(x)}
+ const listo3=etapa(c,'firma').done;
+ x.innerHTML='<h3>📅 Fecha de solicitud / segunda visita</h3><p><b>'+(c.fechaSolicitud?fDMY(c.fechaSolicitud):'Aún sin fecha')+'</b>'+(c.fechaSolicitud?'':' <small>(la consultoría la confirma después del alta)</small>')+'</p>'+
+  (c.recListo?'<div class="ok">✓ Informaste a la consultoría el '+new Date(c.recListo).toLocaleString('es-MX')+'</div>':'<button id="btnInformar"'+(listo3?'':' disabled')+'>📣 Informar a consultoría</button>'+(listo3?'':'<small> Se activa al completar el paso 3 (INE, comprobante y contrato firmado).</small>'));
+ const bi=$('btnInformar');if(bi)bi.onclick=()=>{c.recListo=Date.now();addNotif({tipo:'listo',para:'owner',rec:S.yo&&S.yo.email,cid:c.id,nombre:c.nombre,texto:yoNom()+' terminó '+c.nombre+', listo para alta'});save();render();gToast('Listo: se avisó a la consultoría.')}}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{recRender()}catch(e){console.error(e)}return r}}
+if(REC_MODE){const p=$('paso_p4');if(p){p.querySelector('.pTit b').textContent='Notas y seguimiento';p.querySelector('.pTit small').textContent='Pendientes, notas y fecha de la segunda visita'}recBarUI()}else recCfgUI();
+bellUI();
 setInterval(()=>dStatus(),30000);
 (async()=>{await syncDrive(false);syncFormulario(false)})();setInterval(()=>syncFormulario(false),5*60*1000);setInterval(()=>syncDrive(false),60000);addEventListener('focus',()=>syncDrive(false));addEventListener('online',()=>syncDrive(false));
 
