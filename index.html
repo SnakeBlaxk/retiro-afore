@@ -45,7 +45,25 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 #clientList .client.st-riesgo{border-left-color:#ef6c00}.st-riesgo .dBadge{background:#ef6c00;color:#fff}.st-riesgo .stLbl{color:#ef6c00}
 #clientList .client.st-listo{border-left-color:#2e7d32}.st-listo .dBadge{background:#2e7d32;color:#fff}.st-listo .stLbl{color:#2e7d32}
 #clientList .client.st-solicitado{border-left-color:#1565c0}.st-solicitado .dBadge{background:#1565c0;color:#fff}.st-solicitado .stLbl{color:#1565c0}
-</style></head><body>
+</style><style id="stepperCss">
+#caseView{font-size:17px}#caseView button,#caseView .btn,#caseView label.btn{min-height:48px;font-size:16px;padding:10px 16px;border-radius:10px;margin:4px 2px}
+#caseView input[type=text],#caseView input[type=number],#caseView input[type=date],#caseView input[type=time],#caseView input[type=tel],#caseView select,#caseView textarea{font-size:16px;min-height:46px}
+#caseView label{font-size:16px}#caseView .chk{font-size:16px;line-height:1.4;padding:6px 0}#caseView .chk input{width:22px;height:22px;vertical-align:middle}
+#caseView .card{padding:16px;margin-bottom:14px}#caseView .card.inStep{box-shadow:none;border:1px solid #e3e8ef;padding:12px;margin:10px 0}
+#stepper{margin:8px 0 14px}.pStep{background:#fff;border-radius:14px;box-shadow:0 1px 4px #0002;margin:0 0 14px;border-left:8px solid #b0bec5;overflow:hidden}
+.pStep[data-st=ok]{border-left-color:#2e7d32}.pStep.actual{border-left-color:#1565c0;box-shadow:0 2px 10px #1565c044}.pStep[data-st=lock]{border-left-color:#9e9e9e;opacity:.85}
+#caseView .pHead{display:flex;align-items:center;gap:12px;width:100%;margin:0;background:#fff;color:#1d2433;text-align:left;padding:14px;min-height:64px;border-radius:0}
+.pNum{flex:0 0 40px;height:40px;border-radius:50%;background:#e3e8ef;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
+.pStep[data-st=ok] .pNum{background:#2e7d32;color:#fff}.pStep.actual .pNum{background:#1565c0;color:#fff}
+.pTit{flex:1;min-width:0}.pTit b{display:block;font-size:18px}.pTit small{color:#555;font-size:14px}
+.pSt{font-size:13px;font-weight:bold;white-space:nowrap;padding:4px 8px;border-radius:999px;background:#eceff1}.pStep[data-st=ok] .pSt{background:#e8f5e9;color:#1b5e20}.pStep.actual .pSt{background:#e3f2fd;color:#0d47a1}
+.pChev{font-size:20px;transition:transform .2s}.pStep.closed .pChev{transform:rotate(-90deg)}.pStep.closed .pBody{display:none}.pBody{padding:4px 14px 14px}
+#btnPdf,#btnSolYa,#btnSeg2Wa,#btnSemWa,#btnAltaWa,#btnAgPag{display:block;width:100%;font-size:17px;min-height:54px}#btnPdf.off{background:#9e9e9e}
+#caseView a.verL{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:72px;padding:6px 14px;border-radius:10px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;text-decoration:none;font-weight:bold;text-transform:capitalize;vertical-align:middle}#caseView a.verL.hidden{display:none}
+#caseView label.btn{display:inline-flex!important;align-items:center;background:#e3e8ef;color:#1d2433;font-weight:600;cursor:pointer}#caseView .docSt label.btn{display:flex!important;justify-content:center;width:100%;margin:6px 0}#caseView .docSt{padding:8px 0;border-bottom:1px solid #eee}#caseView .chip{min-height:44px}#caseView details>summary{font-size:17px;font-weight:bold;min-height:48px;line-height:48px;padding:0 12px;background:#f1f4f8;border-radius:10px;margin:8px 0;cursor:pointer}#filtroDet>summary{font-weight:bold;min-height:44px;line-height:44px;cursor:pointer}
+#clientList .client{padding:12px 14px;margin:10px 0;font-size:16px}#clientList .client button:not(.mini){min-height:44px;padding:8px 14px}
+</style>
+</head><body>
 <header><h1>Retiro por desempleo · Afore</h1><div>
 <button class="sec" id="btnSync">Actualizar desde formulario</button><small id="ignInfo" class="hidden" style="display:block;color:#666;margin-top:4px"></small>
 <button class="sec" id="btnContrato">Generar nuevo contrato</button>
@@ -991,7 +1009,7 @@ if(k==='cita')return{tipo:'Cita de firma',titulo:'Firma de contrato: '+n,desc:'C
 if(k==='seg'){const mo=(c.segNota||'').trim()||SEG_DEF;return{tipo:'Seguimiento',motivo:mo,titulo:'Seguimiento: '+n+' · '+mo,desc:'Seguimiento del trámite de '+n+id+'. Motivo: '+mo+'.',fecha:c.segFecha,hora:c.segHora,dur:30,uid:c.id+'-seg'};}
 if(k==='cond')return{tipo:'Condición En espera',titulo:'Revisar condición de '+n+(c.cond?': '+c.cond:''),desc:n+id+' está en espera'+(c.cond?' por: '+c.cond:'')+'. Revisar si ya puede continuar.',fecha:c.condFecha,uid:c.id+'-cond'};
 if(k==='pagare')return{tipo:'Vencimiento del pagaré',titulo:'Vence pagaré de '+n+' ($ '+money(c.pagareMonto)+')',desc:'Vencimiento del pagaré de '+n+id+' por $ '+money(c.pagareMonto)+'.',fecha:c.pagareVenc,uid:c.id+'-pagare'}}
-document.querySelector('#contractCard').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(b){const ev=eventoDe(C(),b.dataset.ag);if(ev){ev.k=b.dataset.ag;programar(ev)}}});
+document.querySelector('#caseView').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(b){const ev=eventoDe(C(),b.dataset.ag);if(ev){ev.k=b.dataset.ag;programar(ev)}}});
 document.querySelectorAll('#datosContrato [data-f]').forEach(i=>i.oninput=()=>{C()[i.dataset.f]=i.value;save()});
 function altaFalta(c){docSync(c);const f=[];if(!firmadoOK(c))f.push('Contrato firmado (marca el grupo «Ya está firmado»)');if(!c.docIne)f.push('Copia de la INE');if(!c.docDom)f.push('Comprobante de domicilio');return f}
 function renderContract(c){$('f_estado').value=c.estado;$('condBox').classList.toggle('hidden',c.estado!=='espera');$('f_cond').value=c.cond;if(document.activeElement!==$('f_ubic'))$('f_ubic').value=c.ubic;
@@ -1364,6 +1382,50 @@ for(const n of ['renderContract','render','renderPrecal','renderSol','renderImss
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.verL');if(!a)return;e.preventDefault();e.stopPropagation();const c=C();if(!c)return;
  const d=a.dataset.vercf!=null?((c.contratoFirm||[])[+a.dataset.vercf]||{}).data:a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
 try{updVer()}catch(x){}
+// ===== Expediente como pasos cronológicos (stepper) =====
+const PASOS=[['p1','Validar requisitos','Precalificación: semanas, saldo Afore, 5 años'],['p2','Generar contrato','Datos, PDF e impresión'],['p3','Firma','INE, comprobante de domicilio y contrato firmado'],
+ ['p4','Agendar seguimiento de pendientes','Expediente electrónico, nivel 4, alta y baja con el proveedor'],['p5','SUA, Infonavit y SIPARE','Recibir y realizar los pagos IMSS'],['p6','Mensaje: segunda parte','Avisar al cliente cuándo nos vemos'],['p7','Solicitud del dinero','El día de la fecha de solicitud']];
+const pasoAbierto={};let pasoCaso=null;
+const autoColapsar=()=>window.__AUTO_COLLAPSE!=null?!!window.__AUTO_COLLAPSE:!navigator.webdriver;
+function precalOK(c){return etapa(c,'precal').done}
+function buildStepper(){const cv=$('caseView'),head=cv.querySelector('.card'),cc=$('contractCard');if(!cc||$('stepper'))return;
+ const st=document.createElement('div');st.id='stepper';head.after(st);const body={};
+ PASOS.forEach(([k,t,sub],i)=>{const d=document.createElement('div');d.className='pStep';d.id='paso_'+k;d.innerHTML='<button type="button" class="pHead" aria-expanded="true"><span class="pNum">'+(i+1)+'</span><span class="pTit"><b>'+t+'</b><small>'+sub+'</small></span><span class="pSt"></span><span class="pChev">▾</span></button><div class="pBody"></div>';st.appendChild(d);body[k]=d.querySelector('.pBody');
+  d.querySelector('.pHead').onclick=()=>{pasoAbierto[k]=d.classList.contains('closed');updStepper()}});
+ // Datos generales (grupo/condición) quedan arriba con el nombre
+ const gen=document.createElement('div');gen.id='datosGen';head.appendChild(gen);
+ const kids=[...cc.children];let modo=null;
+ for(const el of kids){const tx=el.tagName==='LABEL'?el.textContent:'';
+  if(el.tagName==='H3'){el.remove();continue}
+  if(el.querySelector&&el.querySelector('#f_estado')||el.id==='condBox'){gen.appendChild(el);continue}
+  if(/Dónde está guardado/.test(tx)){modo='p3'}else if(/Cita de firma/.test(tx)){modo='p2'}else if(/^Seguimiento/.test(tx)){modo='p4'}
+  else if(el.id==='datosContrato'||el.id==='btnPdf'||el.id==='btnAgPag'||el.id==='pdfMsg'||(el.dataset&&el.dataset.agok==='pagare'))modo='p2';
+  else if(el.classList.contains('docSt')||el.id==='docOcr'||el.id==='docWarn'||el.id==='ubicChips'||el.id==='f_ubic')modo=modo==='p2'||modo==='p4'?'p3':modo||'p3';
+  else if(el.id==='segBox')modo='p4';
+  body[modo||'p2'].appendChild(el)}
+ // Orden dentro del paso 2: datos, generar, pagaré, cita de firma
+ const b2=body.p2;['datosContrato','btnPdf','pdfMsg','btnAgPag'].forEach(id=>$(id)&&b2.appendChild($(id)));const ok2=b2.querySelector('[data-agok="pagare"]');if(ok2)$('btnAgPag').after(ok2);
+ const lock=document.createElement('div');lock.id='pdfLock';lock.className='warn hidden';$('btnPdf').before(lock);
+ // Orden paso 3: INE, domicilio, contrato firmado, ubicación
+ {const cl=[...b2.children].find(x=>x.tagName==='LABEL'&&/Cita de firma/.test(x.textContent));if(cl){const r=cl.nextElementSibling;b2.append(cl,r)}}
+ {const b3=body.p3,ul=[...b3.children].find(x=>x.tagName==='LABEL'&&/Dónde está guardado/.test(x.textContent));const dd=[...b3.querySelectorAll(':scope > .docSt')].filter(x=>x.id!=='cfBox');b3.prepend(...dd,$('docOcr'),$('docWarn'));b3.append($('cfBox'),ul,$('ubicChips'),$('f_ubic'))}
+ cc.remove();
+ // Paso 1: precalificación + filtro detallado
+ body.p1.append($('precalCard'));const fl=document.createElement('details');fl.id='filtroDet';fl.open=true;fl.innerHTML='<summary>Filtro detallado (4 preguntas)</summary>';body.p1.appendChild(fl);
+ fl.append($('stepBar'),...cv.querySelectorAll(':scope > .card.step'));const nav=$('btnPrev').closest('.card');fl.appendChild(nav);
+ body.p4.append($('tramCard'),$('altaCard'));body.p5.append($('imssCard'));body.p6.append($('seg2Card'));body.p7.append($('solCard'));
+ for(const id of ['precalCard','tramCard','altaCard','imssCard','seg2Card','solCard'])$(id).classList.add('inStep');nav.classList.add('inStep');
+ const gate=$('btnPdf').onclick;$('btnPdf').onclick=e=>{const c=C();if(c&&!precalOK(c)){$('pdfMsg').innerHTML='<div class="alert">Primero completa el paso 1 «Validar requisitos» (o marca «Precalificado»). Falta: '+esc(etapa(c,'precal').falta.join(', '))+'.</div>';return}return gate.call($('btnPdf'),e)}}
+function estadoPasos(c){const E={};ETAPAS.forEach(([k])=>E[k]=etapa(c,k));const p1=E.precal.done,seg2On=!$('seg2Locked')||$('seg2Locked').classList.contains('hidden');
+ return{p1:p1?'ok':'cur',p2:!p1?'lock':(c.pagareVenc||firmadoOK(c))?'ok':'cur',p3:E.firma.done?'ok':'cur',p4:E.exp.done&&E.alta.done?'ok':'cur',p5:E.pagos.done?'ok':'cur',p6:c.msgSegundoPasoEnviado?'ok':seg2On?'cur':'lock',p7:c.dineroSolicitado?'ok':'cur'}}
+function updStepper(){const c=C();if(!c||!$('stepper'))return;if(pasoCaso!==c.id){pasoCaso=c.id;for(const k in pasoAbierto)delete pasoAbierto[k]}
+ const E=estadoPasos(c),actual=PASOS.map(p=>p[0]).find(k=>E[k]!=='ok');const TX={ok:'✓ Hecho',cur:'En curso',lock:'🔒 Bloqueado',pend:'Pendiente'};
+ PASOS.forEach(([k])=>{const d=$('paso_'+k);let s=E[k];if(s==='cur'&&k!==actual)s='pend';d.dataset.st=s;d.classList.toggle('actual',k===actual);d.querySelector('.pSt').textContent=TX[s];
+  const abierto=k in pasoAbierto?pasoAbierto[k]:!(autoColapsar()&&s==='ok');d.classList.toggle('closed',!abierto);d.querySelector('.pHead').setAttribute('aria-expanded',abierto)});
+ const lk=E.p2==='lock';$('btnPdf').classList.toggle('off',lk);$('btnPdf').setAttribute('aria-disabled',lk);$('pdfLock').classList.toggle('hidden',!lk);if(lk)$('pdfLock').innerHTML='🔒 El contrato se genera cuando el cliente <b>cumple los requisitos</b> (paso 1). Falta: '+esc(etapa(c,'precal').falta.join(', '))+'.'}
+buildStepper();
+{const o=updVer;updVer=function(){o.apply(this,arguments);try{updStepper()}catch(x){}}}
+try{updStepper()}catch(x){}
 
 function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
 function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
