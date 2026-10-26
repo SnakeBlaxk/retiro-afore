@@ -1544,12 +1544,13 @@ if(R.shared&&R.shared.waTel&&!lsG('retiroApp.waTel')){lsG('retiroApp.waTel',R.sh
 if(purgarViejos())changed=true;if(pendRespaldo.length)guardarRespaldoLocal();renderIgn();
 if(changed){Object.values(S.clients).forEach(fix);snapAll();_save()}return changed}
 const DAPI='https://www.googleapis.com/drive/v3/files',hdr=t=>({Authorization:'Bearer '+t});
-async function dFind(t){const r=await fetch(DAPI+'?spaces=appDataFolder&fields=files(id,modifiedTime)&q='+encodeURIComponent("name='"+DFILE+"'"),{headers:hdr(t)});if(!r.ok)throw new Error('Drive respondió '+r.status);const j=await r.json();return(j.files||[])[0]||null}
+async function rJson(r){const t=await r.text();if(!t||!t.trim())return null;try{return JSON.parse(t)}catch(e){return null}}
+async function dFind(t){const r=await fetch(DAPI+'?spaces=appDataFolder&fields=files(id,modifiedTime)&q='+encodeURIComponent("name='"+DFILE+"'"),{headers:hdr(t)});if(!r.ok)throw new Error('Drive respondió '+r.status);const j=await rJson(r)||{};return(j.files||[])[0]||null}
 async function dRespaldo(t,list){const b='rb'+Date.now(),meta={name:'respaldo-clientes-'+new Date().toISOString().slice(0,19).replace(/:/g,'')+'-'+devId()+'.json',parents:['appDataFolder'],mimeType:'application/json'};
 const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({app:'retiroApp',tipo:'respaldoClientes',fecha:new Date().toISOString(),clientes:list})+'\r\n--'+b+'--';
 const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'multipart/related; boundary='+b}),body});if(!r.ok)throw new Error('Respaldo en Drive respondió '+r.status);lsG('retiroApp.respaldoDrive',String(Date.now()))}
-async function dGet(t,id){const r=await fetch(DAPI+'/'+id+'?alt=media',{headers:hdr(t)});if(r.status===404)return null;if(!r.ok)throw new Error('Drive respondió '+r.status);return r.json()}
-async function dCreate(t){const r=await fetch(DAPI,{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:DFILE,parents:['appDataFolder'],mimeType:'application/json'})});if(!r.ok)throw new Error('Drive respondió '+r.status);return(await r.json()).id}
+async function dGet(t,id){const r=await fetch(DAPI+'/'+id+'?alt=media',{headers:hdr(t)});if(r.status===404)return null;if(!r.ok)throw new Error('Drive respondió '+r.status);return rJson(r)}
+async function dCreate(t){const r=await fetch(DAPI,{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:DFILE,parents:['appDataFolder'],mimeType:'application/json'})});if(!r.ok)throw new Error('Drive respondió '+r.status);const j=await rJson(r);if(!j||!j.id)throw new Error('Drive no devolvió el id del archivo');return j.id}
 async function dPut(t,id,body){const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media',{method:'PATCH',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body});if(!r.ok)throw new Error('Drive respondió '+r.status)}
 let dBusy=false,dAgain=false,dRetry=null,dState='off';
 $('btnSyncNow').onclick=()=>{clearTimeout(dTimer);syncDrive(true)};
@@ -1637,12 +1638,12 @@ function recImport(r,R){let ch=false;
 function recAutoAvisos(){let ch=false;for(const c of Object.values(S.clients)){if(!c.rec||!recDe(c.rec))continue;
  if(c.pago_sipare&&PAGOS.some(([x])=>c[pkp(x)])&&c.fechaSolicitud){const id='seg-'+c.id+'-'+c.fechaSolicitud;if(!S.notifs.some(n=>n.id===id)){addNotif({id,tipo:'seg',para:'rec',rec:c.rec,cid:c.id,fecha:c.fechaSolicitud,texto:'Ya hay fecha para la segunda visita de '+c.nombre+': '+fDMY(c.fechaSolicitud),msg:c.seg2Txt||seg2Default(c)});ch=true}}}return ch}
 async function recSyncUno(t,r){let ch=false;
- if(!r.fid){const q="name='"+RFILE(r.email)+"' and trashed=false";const j=await(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)}))).json();r.fid=((j.files||[])[0]||{}).id||null;
-  if(!r.fid){const x=await dOk(fetch(DAPI+'?fields=id',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:RFILE(r.email),mimeType:'application/json',description:'Datos limitados de clientes para '+r.nombre+' (app Retiro Afore)'})}));r.fid=(await x.json()).id}ch=true}
+ if(!r.fid){const q="name='"+RFILE(r.email)+"' and trashed=false";const j=await rJson(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)})))||{};r.fid=((j.files||[])[0]||{}).id||null;
+  if(!r.fid){const x=await dOk(fetch(DAPI+'?fields=id',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({name:RFILE(r.email),mimeType:'application/json',description:'Datos limitados de clientes para '+r.nombre+' (app Retiro Afore)'})}));r.fid=((await rJson(x))||{}).id;if(!r.fid)throw new Error('Drive no devolvió el id del archivo nuevo')}ch=true}
  if(r.compartido!==r.email){await dOk(fetch(DAPI+'/'+r.fid+'/permissions?sendNotificationEmail=false',{method:'POST',headers:Object.assign(hdr(t),{'Content-Type':'application/json'}),body:JSON.stringify({type:'user',role:'writer',emailAddress:r.email})}));r.compartido=r.email;ch=true}
- const R=await dGet(t,r.fid);if(R&&R.app==='retiroRec'&&recImport(r,R))ch=true;
+ const R=await dGet(t,r.fid);if(R&&R.app==='retiroRec'&&recImport(r,R))ch=true;const vacio=!R||R.app!=='retiroRec';
  if(linkSolicitudes())ch=true;if(recAutoAvisos())ch=true;
- const out=recArchivo(r);if(!R||recCore(R)!==recCore(out))await dPut(t,r.fid,JSON.stringify(out));return ch}
+ const out=recArchivo(r);if(vacio||recCore(R)!==recCore(out))await dPut(t,r.fid,JSON.stringify(out));return ch}
 let recBusy=false,recAgain=false;
 async function recSyncOwner(interactivo){if(REC_MODE)return;if(recBusy){recAgain=true;if(interactivo)recMsg('⟳ Sincronizando…');return}const usa=(S.recs||[]).filter(r=>r.email&&(interactivo||r.fid||Object.values(S.clients).some(c=>c.rec===r.email)));if(!usa.length){if(interactivo)recMsg('No hay recomendadores con correo. Agrega uno arriba.');return}if(interactivo)recMsg('⟳ Sincronizando…');
  if(!interactivo&&!gGranted().includes(DRIVE_FILE)){recMsg('Pulsa «Sincronizar recomendadores ahora» para dar permiso de compartir.');return}
@@ -1652,7 +1653,7 @@ async function recSyncOwner(interactivo){if(REC_MODE)return;if(recBusy){recAgain
  catch(e){recErr(e);if(interactivo)gToast('⚠️ No se pudo sincronizar recomendadores: '+((e&&e.message)||e));throw e}
  finally{recBusy=false;if(recAgain){recAgain=false;setTimeout(()=>recSyncOwner(false).catch(recErr),500)}}}
 // Detección por correo: si quien inicia sesión es un recomendador configurado y este equipo no tiene clientes, se cambia a su vista
-async function recDetectar(t){if(REC_MODE||lsG('retiroApp.miEmail'))return;try{const a=await(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:hdr(t)}))).json();const e=String(a.user&&a.user.emailAddress||'').toLowerCase();if(!e)return;lsG('retiroApp.miEmail',e);
+async function recDetectar(t){if(REC_MODE||lsG('retiroApp.miEmail'))return;try{const a=await rJson(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:hdr(t)})))||{};const e=String(a.user&&a.user.emailAddress||'').toLowerCase();if(!e)return;lsG('retiroApp.miEmail',e);
  if([...REC_DEF,...(S.recs||[])].some(r=>r.email===e)&&!Object.keys(S.clients).length){localStorage.setItem('retiroApp.modo','rec');location.reload()}}catch(x){}}
 function recCfgUI(){if(REC_MODE)return;$('recCfgList').innerHTML=(S.recs||[]).map((r,i)=>'<div class="row recRow" data-i="'+i+'"><input type="text" data-rf="nombre" value="'+esc(r.nombre)+'"><input type="email" data-rf="email" value="'+esc(r.email)+'"><small>'+(r.compartido===r.email?'✓ compartido':'pendiente')+' · '+Object.values(S.clients).filter(c=>c.rec===r.email).length+' cliente(s)</small><button class="sec mini" data-rdel="'+i+'">🗑</button></div>').join('')||'<small>Sin recomendadores.</small>';
  if(document.activeElement!==$('recFormUrl'))$('recFormUrl').value=S.formUrl||'';$('recLink').textContent=location.origin+location.pathname+'?rec=1'}
@@ -1677,8 +1678,8 @@ function recMergeRec(R){let ch=false;const ids=new Set(Object.keys(R.clients||{}
 function recSalida(R){const cl={};Object.values(S.clients).forEach(c=>cl[c.id]=recCli(c));return{app:'retiroRec',v:1,ts:Date.now(),rec:R.rec||{nombre:yoNom(),email:S.yo&&S.yo.email},formUrl:R.formUrl||'',clients:cl,notifs:S.notifs.map(nOut)}}
 async function recSyncRec(interactivo){if(recBusy){recAgain=true;return}recBarUI();if(!interactivo&&!(gCid()&&(gValid()||lsG(GK.ok))&&gGranted().includes(DRIVE_FULL))){dStatus('off');$('syncBanner').classList.toggle('hidden',!needConnect());return}
  recBusy=true;dStatus('busy');try{const t=await gToken([DRIVE_FULL]);
-  if(!S.yo||!S.yo.email){const a=await(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress,displayName)',{headers:hdr(t)}))).json();S.yo=Object.assign(S.yo||{},{email:String(a.user.emailAddress||'').toLowerCase(),nombre:(S.yo&&S.yo.nombre)||a.user.displayName||''});_save()}
-  const q="name='"+RFILE(S.yo.email)+"' and trashed=false";const j=await(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)}))).json();const f=(j.files||[])[0];
+  if(!S.yo||!S.yo.email){const a=await rJson(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress,displayName)',{headers:hdr(t)})))||{user:{}};a.user=a.user||{};S.yo=Object.assign(S.yo||{},{email:String(a.user.emailAddress||'').toLowerCase(),nombre:(S.yo&&S.yo.nombre)||a.user.displayName||''});_save()}
+  const q="name='"+RFILE(S.yo.email)+"' and trashed=false";const j=await rJson(await dOk(fetch(DAPI+'?fields=files(id)&q='+encodeURIComponent(q),{headers:hdr(t)})))||{};const f=(j.files||[])[0];
   if(!f){S.recSt='sin';_save();recBarUI();lsG(DK.last,String(Date.now()));dStatus('ok');return}
   S.recSt='ok';const R=await dGet(t,f.id)||{};const ch=R.app==='retiroRec'?recMergeRec(R):false;
   if(ch){Object.values(S.clients).forEach(fix);snapAll()}_save();
