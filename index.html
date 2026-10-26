@@ -74,7 +74,8 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <div id="hHistBox"><div class="row" style="gap:6px;flex-wrap:wrap"><textarea id="hNota" rows="2" placeholder="Agregar nota (p. ej. «Me debe papeles», «Ya habíamos iniciado antes»)" style="flex:1 1 220px"></textarea><button id="hAddNota" style="flex:0 0 auto">Agregar nota</button></div>
 <label class="chk"><input type="checkbox" id="hSoloNotas"> Solo notas</label><div id="hList"></div></div>
 <div id="hDocsBox" class="hidden"><div id="hDocList"></div></div></div>
-<div id="hViewer" class="hidden"><img id="hViewImg" alt="Documento"><small>Toca para cerrar</small></div>
+<div id="visor" class="hidden" role="dialog" aria-modal="true" aria-label="Documento"><div id="visorBar"><button id="visorClose" type="button">✕ Cerrar</button><span id="visorZoom"><button type="button" id="visorMenos" class="sec" aria-label="Alejar">−</button><button type="button" id="visorMas" class="sec" aria-label="Acercar">+</button></span><a id="visorDesc" class="btn sec" href="#" download="documento">⬇ Descargar</a></div><div id="visorBody"></div></div>
+<style>#visor{position:fixed;inset:0;z-index:10000;background:rgba(20,20,20,.96);display:flex;flex-direction:column}#visor.hidden{display:none}#visorBar{position:sticky;top:0;display:flex;gap:8px;align-items:center;padding:8px;background:#111;flex:0 0 auto}#visorClose{font-size:20px;font-weight:bold;min-height:52px;min-width:130px;padding:8px 16px;background:#c62828;color:#fff;border:0;border-radius:10px}#visorZoom button{min-width:48px;min-height:48px;font-size:22px;margin-left:4px}#visorDesc{margin-left:auto;min-height:44px;line-height:44px;padding:0 12px;color:#fff;text-decoration:none}#visorBody{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center}#visorBody img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:0 0}#visorBody img.zoom{max-width:none;max-height:none}#visorBody canvas{display:block;margin:6px auto;max-width:100%;background:#fff}#visorBody iframe{width:100%;height:100%;border:0;background:#fff}</style>
 <section id="caseView" class="hidden">
 <div class="card"><button class="sec" id="btnBack">← Clientes</button> <button id="btnHist">📜 Historial y documentos</button>
 <div class="row"><div><label>Nombre</label><input type="text" id="f_nombre"></div>
@@ -742,11 +743,11 @@ $('clientList').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b
 else if(b.dataset.a==='resume'){c.estadoManual=true;c.estado=c.prevEstado&&c.prevEstado!=='cancelado'?c.prevEstado:'pendiente';save();renderList()}
 else if(confirm('¿Mover el caso de «'+(c.nombre||'sin nombre')+'» a Cancelados? No se borra: podrás reanudarlo después.')){c.estadoManual=true;c.prevEstado=c.estado;c.estado='cancelado';save();renderList()}};
 $('btnNew').onclick=()=>{const c=fix(newClient($('newName').value.trim()));S.clients[c.id]=c;$('newName').value='';save();openCase(c.id)};
-$('btnBack').onclick=()=>{cur=null;$('caseView').classList.add('hidden');$('listView').classList.remove('hidden');renderList()};
+$('btnBack').onclick=()=>{const hb=history.state&&history.state.caso&&!history.state.visor;cur=null;$('caseView').classList.add('hidden');$('listView').classList.remove('hidden');renderList();if(hb)history.back();scrollTo(0,window.__listScroll||0)};
 $('btnRem').onclick=()=>$('remPanel').classList.toggle('hidden');
 // caso
 const C=()=>S.clients[cur];
-function openCase(id){cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;altaSync(c);$('f_alta').checked=!!c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
+function openCase(id){if($('caseView').classList.contains('hidden'))window.__listScroll=scrollY;if(!(history.state&&history.state.caso===id))history.pushState({caso:id},'');cur=id;const c=C();$('listView').classList.add('hidden');$('caseView').classList.remove('hidden');$('f_nombre').value=c.nombre;$('f_curp').value=c.curp;$('f_nss').value=c.nss;altaSync(c);$('f_alta').checked=!!c.alta;$('f_r5').value=c.r5;$('f_last').value=c.last;$('f_aviso').checked=c.aviso;$('f_viv').value=c.sub.viv;$('errBox').classList.add('hidden');fix(c);if(c.nuevoForm){delete c.nuevoForm;save()}renderSubs();render();scrollTo(0,0)}
 function setImg(el,src){el.src=src||'';el.classList.toggle('hidden',!src)}
 function render(){const c=C();if(!c)return;
 document.querySelectorAll('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==c.step));
@@ -1321,16 +1322,32 @@ function renderHist(){const c=C();if(!c)return;$('histName').textContent=c.nombr
  const solo=$('hSoloNotas').checked,L=(c.historial||[]).filter(h=>!solo||h.tipo==='nota').slice().sort((a,b)=>b.ts-a.ts);
  $('hList').innerHTML=L.length?L.map(h=>'<div class="hItem'+(h.tipo==='nota'?' hNota':'')+'"><small>'+esc(hFmt(h.ts))+'</small><div>'+(H_ICO[h.tipo]||'•')+' '+esc(h.texto)+'</div></div>').join(''):'<p><small>'+(solo?'No hay notas.':'Sin historial.')+'</small></p>';
  const D=hDocs(c);window.__hDocs=D;$('hDocList').innerHTML=D.length?D.map((d,i)=>'<div class="hDoc" data-i="'+i+'">'+(isImg(d.data)?'<img src="'+d.data+'" alt="">':'<div class="hPdf">'+(isPdf(d.data)?'PDF':'Archivo')+'</div>')+'<div><b>'+esc(d.label)+'</b><br><small>'+(isImg(d.data)?'Imagen':isPdf(d.data)?'PDF':'Archivo')+' · '+(d.ts?'subido '+esc(hFmt(d.ts)):'fecha desconocida')+(d.arch?' · 🗄️ archivado (quitado '+esc(hFmt(d.arch))+')':'')+'</small></div></div>').join(''):'<p><small>No hay documentos guardados.</small></p>'}
-function abrirDoc(d){if(isImg(d.data)){$('hViewImg').src=d.data;$('hViewer').classList.remove('hidden');return}
- const [h,b64]=d.data.split(','),mime=(h.match(/data:([^;]+)/)||[])[1]||'application/octet-stream',bin=atob(b64),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
- const url=URL.createObjectURL(new Blob([u8],{type:mime}));window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),60000)}
+let visorUrl=null,visorScroll=0,visorZ=1;
+function dataBlob(data){const [h,b64]=data.split(','),mime=(h.match(/data:([^;]+)/)||[])[1]||'application/octet-stream',bin=atob(b64),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return{u8,mime}}
+function visorAbierto(){return !$('visor').classList.contains('hidden')}
+function visorZoom(z){const im=$('visorBody').querySelector('img');visorZ=Math.max(1,Math.min(5,z));if(im){if(visorZ===1){im.classList.remove('zoom');im.style.width=''}else{im.classList.add('zoom');im.style.width=($('visorBody').clientWidth*visorZ)+'px'}}
+ $('visorBody').querySelectorAll('canvas').forEach(cv=>{cv.style.maxWidth=visorZ===1?'100%':'none';cv.style.width=visorZ===1?'':($('visorBody').clientWidth*visorZ)+'px'})}
+async function abrirDoc(d){if(!d||!d.data)return;visorScroll=scrollY;const B=$('visorBody');B.innerHTML='';visorZ=1;if(visorUrl){URL.revokeObjectURL(visorUrl);visorUrl=null}
+ const {u8,mime}=dataBlob(d.data);visorUrl=URL.createObjectURL(new Blob([u8],{type:mime}));const ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg');$('visorDesc').href=visorUrl;$('visorDesc').download=(d.label||'documento').replace(/[^\wáéíóúñÁÉÍÓÚÑ .-]+/g,'_').slice(0,60)+'.'+ext;
+ $('visor').classList.remove('hidden');if(!(history.state&&history.state.visor))history.pushState(Object.assign({},history.state||{},{visor:1}),'');
+ if(isImg(d.data)){const im=new Image();im.alt=d.label||'Documento';im.src=d.data;im.ondblclick=()=>visorZoom(visorZ>1?1:2);B.appendChild(im);return}
+ if(isPdf(d.data)){B.innerHTML='<p style="color:#fff">Cargando PDF…</p>';try{const L=await loadPdf();const pdf=await L.getDocument({data:u8.slice()}).promise;if(!visorAbierto())return;B.innerHTML='';
+  for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i),v=pg.getViewport({scale:2}),cv=document.createElement('canvas');cv.width=v.width;cv.height=v.height;B.appendChild(cv);await pg.render({canvasContext:cv.getContext('2d'),viewport:v}).promise}return}
+  catch(e){if(!visorAbierto())return;B.innerHTML=''}}
+ const f=document.createElement('iframe');f.src=visorUrl;f.title='Documento';B.appendChild(f)}
+function cerrarVisorUI(){if(!visorAbierto())return;$('visor').classList.add('hidden');$('visorBody').innerHTML='';const y=visorScroll;scrollTo(0,y);requestAnimationFrame(()=>scrollTo(0,y))}
+function cerrarVisor(){if(history.state&&history.state.visor)history.back();else cerrarVisorUI()}
+$('visorClose').onclick=cerrarVisor;$('visorMas').onclick=()=>visorZoom(visorZ+0.5);$('visorMenos').onclick=()=>visorZoom(visorZ-0.5);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&visorAbierto()){e.preventDefault();cerrarVisor()}});
+// Botón «atrás» del teléfono: cierra el visor; desde un cliente regresa a la lista (sin salir del sitio)
+addEventListener('popstate',e=>{const st=e.state||{};if(visorAbierto()&&!st.visor){cerrarVisorUI();return}
+ if(!st.caso&&cur&&!$('caseView').classList.contains('hidden')){if(!$('histPanel').classList.contains('hidden'))$('histPanel').classList.add('hidden');cur=null;$('caseView').classList.add('hidden');$('listView').classList.remove('hidden');renderList();scrollTo(0,window.__listScroll||0)}});
 $('btnHist').onclick=()=>{hTab='hist';$('histPanel').classList.remove('hidden');renderHist()};
 $('hClose').onclick=()=>$('histPanel').classList.add('hidden');
 $('hTabH').onclick=()=>{hTab='hist';renderHist()};$('hTabD').onclick=()=>{hTab='docs';renderHist()};$('hSoloNotas').onchange=renderHist;
 $('hAddNota').onclick=()=>{const t=$('hNota').value.trim();if(!t)return;hist(C(),'nota',t);save();$('hNota').value='';renderHist()};
 $('hNota').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('hAddNota').click()}};
 $('hDocList').onclick=e=>{const d=e.target.closest('.hDoc');if(d)abrirDoc(window.__hDocs[+d.dataset.i])};
-$('hViewer').onclick=()=>$('hViewer').classList.add('hidden');
 // Enlaces «ver» junto a cada documento del detalle
 function renderCf(){const c=C();if(!c||!$('stCf'))return;const L=c.contratoFirm||[];$('stCf').textContent=L.length?'✅ Contrato firmado cargado'+(L.length>1?' ('+L.length+' archivos)':''):'❌ Falta contrato firmado';
  $('cfList').innerHTML=L.map((f,i)=>'<div><small>📎 '+esc(f.name||('Archivo '+(i+1)))+'</small> <a href="#" class="verL" data-vercf="'+i+'">ver</a> <button class="sec" data-cfdel="'+i+'">Quitar</button></div>').join('')}
