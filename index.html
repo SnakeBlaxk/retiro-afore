@@ -58,7 +58,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 .pTit{flex:1;min-width:0}.pTit b{display:block;font-size:18px}.pTit small{color:#555;font-size:14px}
 .pSt{font-size:13px;font-weight:bold;white-space:nowrap;padding:4px 8px;border-radius:999px;background:#eceff1}.pStep[data-st=ok] .pSt{background:#e8f5e9;color:#1b5e20}.pStep.actual .pSt{background:#e3f2fd;color:#0d47a1}
 .pChev{font-size:20px;transition:transform .2s}.pStep.closed .pChev{transform:rotate(-90deg)}.pStep.closed .pBody{display:none}.pBody{padding:4px 14px 14px}
-#btnPdf,#btnSolYa,#btnSeg2Wa,#btnSemWa,#btnAltaWa,#btnAgPag{display:block;width:100%;font-size:17px;min-height:54px}#btnPdf.off{background:#9e9e9e}
+#provSel{flex:1 1 auto;min-height:48px;font-size:1rem}#btnProvCfg{flex:0 0 56px;min-height:48px;font-size:1.4rem}#provCfg{background:#f6f8fb;border-radius:10px;padding:10px;margin:8px 0}#caseView .provRow{flex-wrap:nowrap}#caseView .provItem{display:grid;grid-template-columns:1fr 1.3fr 48px;gap:6px;align-items:center;margin:6px 0}#caseView .provItem button{width:48px;min-width:0;padding:0;margin:0}.provItem input,.provAdd input{min-width:0;width:100%;font-size:1rem;min-height:44px;box-sizing:border-box}.provAdd input{flex:1 1 45%;min-width:0}#btnProvAdd{width:100%;min-height:48px;margin-top:6px}#btnPdf,#btnSolYa,#btnSeg2Wa,#btnSemWa,#btnAltaWa,#btnAgPag{display:block;width:100%;font-size:17px;min-height:54px}#btnPdf.off{background:#9e9e9e}
 #caseView a.verL{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:72px;padding:6px 14px;border-radius:10px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;text-decoration:none;font-weight:bold;text-transform:capitalize;vertical-align:middle}#caseView a.verL.hidden{display:none}
 #caseView label.btn{display:inline-flex!important;align-items:center;background:#e3e8ef;color:#1d2433;font-weight:600;cursor:pointer}#caseView .docSt label.btn{display:flex!important;justify-content:center;width:100%;margin:6px 0}#caseView label.file{display:flex;align-items:center;justify-content:center;min-height:52px;width:100%;margin:8px 0;padding:10px 14px;border-radius:10px;background:#e3e8ef;color:#1d2433;font-weight:600;cursor:pointer;text-align:center}#caseView label.file input{display:none}.r5ok{color:#0b5d3b;font-weight:bold;margin:6px 0}.r5no{color:#b3261e;font-weight:bold}.preCheck{background:#f6f8fb;border-radius:10px;padding:10px 12px;line-height:1.7}#caseView .docSt{padding:8px 0;border-bottom:1px solid #eee}#caseView .chip{min-height:44px}#caseView details>summary{font-size:17px;font-weight:bold;min-height:48px;line-height:48px;padding:0 12px;background:#f1f4f8;border-radius:10px;margin:8px 0;cursor:pointer}#filtroDet>summary{font-weight:bold;min-height:44px;line-height:44px;cursor:pointer}
 #clientList .client{padding:12px 14px;margin:10px 0;font-size:16px}#clientList .client button:not(.mini){min-height:44px;padding:8px 14px}
@@ -154,7 +154,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 <div id="solMsg"></div><button class="sec hidden" id="btnSemRetry">Reintentar recordatorio</button>
 <div class="row" style="flex-wrap:wrap"><button class="sec" id="btnSemSent">Semanas enviadas</button></div><small id="semSent"></small></div></div>
 <div class="card" id="altaCard"><h3>Mensaje de alta para desempleo</h3><div id="altaLocked" class="warn"></div>
-<div id="altaArea" class="hidden"><pre id="altaText"></pre><div class="row"><input type="hidden" id="altaTel"><small style="flex:1 1 100%">WhatsApp Business: +52 871 149 3427</small><button id="btnAltaCopy" style="flex:0 0 auto">Copiar</button><button id="btnAltaWa" class="waBtn" title="Enviar por WhatsApp Business a +52 871 149 3427">Enviar por WhatsApp Business a +52 871 149 3427</button></div></div><div id="confBox" style="margin-top:8px"></div></div>
+<div id="altaArea" class="hidden"><pre id="altaText"></pre><input type="hidden" id="altaTel"><label for="provSel">Enviar a proveedor</label><div class="row provRow"><select id="provSel"></select><button id="btnProvCfg" class="sec" type="button" aria-label="Configurar proveedores" title="Configurar proveedores">⚙️</button></div><div id="provCfg" class="hidden"><b>Proveedores (nombre y WhatsApp)</b><div id="provList"></div><div class="row provAdd"><input id="provNom" placeholder="Nombre"><input id="provTel" type="tel" inputmode="tel" placeholder="WhatsApp (10 dígitos)"></div><button id="btnProvAdd" class="sec" type="button">➕ Agregar proveedor</button><small id="provMsg"></small></div><div class="row"><button id="btnAltaCopy" style="flex:0 0 auto">Copiar</button><button id="btnAltaWa" class="waBtn">📤 Enviar solicitud de alta</button></div><div id="altaSol"></div></div><div id="confBox" style="margin-top:8px"></div></div>
 </section></main><div id="printDoc"></div>
 <script>
 /** @license
@@ -714,7 +714,7 @@ function notifyDue(){const t=todayStr(),due=S.reminders.filter(r=>r.date<=t);if(
 function porHacer(c){if(!activo(c))return[];const A=[],t=todayStr(),add=(txt,lvl,o)=>A.push({t:txt,lvl,o});
 if(!firmadoOK(c))add('Falta firma del contrato','or',10);
 docFalta(c).forEach(x=>add('Falta '+x,'or',20));
-if(firmadoOK(c)){if(!c.altaEnviada)add('Enviar mensaje de alta','or',30);else if(confPend(c))add('Proveedor sin confirmar alta',Date.now()-c.altaEnviada>=2*864e5?'red':'or',31)}
+if(firmadoOK(c)&&!altaHecha(c)){if(!c.altaEnviada)add('Enviar mensaje de alta','or',30);else if(confPend(c))add('Proveedor sin confirmar alta',Date.now()-c.altaEnviada>=2*864e5?'red':'or',31)}
 pagosPend(c).forEach(x=>add('Falta pago de '+x,'or',40));
 normSol(c);if(c.fechaSolicitud&&!c.dineroSolicitado){if(c.fechaSolicitud<=t)add(c.fechaSolicitud===t?'Solicitar dinero HOY':'Solicitar dinero (vencido)','red',1);else if(c.fechaSolicitud<=addDias(t,7))add('Solicitar dinero el '+c.fechaSolicitud.split('-').reverse().slice(0,2).join('/'),'or',5)}
 if(c.dineroSolicitado&&!c.semanasEnviadas)add('Enviar semanas cotizadas','or',50);
@@ -735,7 +735,7 @@ function etapa(c,k){let done=false,par=false,f=[];
  if(k==='precal'){const d=precalData(c),r=r5Pre(c);done=!d.vig&&d.edo&&d.saldo&&d.sem&&d.r5;if(d.vig)f.push('⚠ VIGENTE con: '+d.vig+' (no puede tramitar)');if(!done){if(!d.edo)f.push('estado de cuenta de la Afore');else if(!d.saldo)f.push('saldo para retiro (sin vivienda)');if(!d.sem)f.push('semanas cotizadas (≥104'+(c.semanas!==''&&c.semanas!=null?', tiene '+c.semanas:'')+')');if(!d.r5)f.push(r.how==='fecha'?'5 años (faltan '+r.dias+' días)':r.falta==='fecha'?'fecha del último retiro (comprobante de 5 años)':'comprobante de 5 años')}par=!done&&(d.edo||c.semanas!==''&&c.semanas!=null||!!c.r5||!!c.comp5||calc(c).total>0)}
  else if(k==='firma'){const df=docFalta(c);done=firmadoOK(c)&&!df.length;if(!firmadoOK(c))f.push('firma del contrato');df.forEach(x=>f.push(x));par=!done&&(firmadoOK(c)||!!c.pagareVenc)}
  else if(k==='exp'){f=tramPend(c);done=!f.length;par=!done&&f.length<TRAM.length}
- else if(k==='alta'){done=!!c.altaConfirmada;if(!done)f.push(c.altaEnviada?'confirmación del proveedor':'enviar alta y baja al proveedor');par=!done&&!!c.altaEnviada}
+ else if(k==='alta'){done=altaHecha(c);if(!done)f.push(c.altaEnviada?'confirmación del proveedor':'enviar alta y baja al proveedor');par=!done&&!!c.altaEnviada}
  else if(k==='pagos'){const up=imssFalta(c),pp=pagosPend(c);up.forEach(x=>f.push('recibir '+x));pp.forEach(x=>f.push('pago de '+x));done=!f.length;par=!done&&PAGOS.some(([x])=>c[pk(x)]||c[pkp(x)])}
  return{k,done,st:done?'ok':par?'par':'no',falta:f}}
 const etapas=c=>ETAPAS.map(([k])=>etapa(c,k)),listoSol=c=>etapas(c).every(e=>e.done);
@@ -797,7 +797,7 @@ $('btnPrev').disabled=c.step===1;$('btnNext').classList.toggle('hidden',c.step==
 const ok=!allErr(c).length;if(!ok&&c.confirmed){c.confirmed=false;save()}
 renderContract(c);
 if(!$('errBox').classList.contains('hidden'))showErr(currentErr(c),true)}
-function msg(c){return'Nombre: '+c.nombre+'\nCURP: '+c.curp+'\nNSS: '+c.nss+'\nAlta para desempleo'}
+function msg(c){return'Alta para desempleo\nNombre: '+String(c.nombre||'').trim()+'\nCURP: '+(c.curp||'')+'\nNSS: '+(c.nss||'')}
 function currentErr(c){return c.step===4&&$('errBox').dataset.fin?allErr(c):VAL[c.step](c)}
 function showErr(e,quiet){const b=$('errBox');if(!e.length){b.classList.add('hidden');return}b.innerHTML='<b>No puedes avanzar. Falta:</b><ul>'+e.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';b.classList.remove('hidden');if(!quiet)b.scrollIntoView({block:'nearest'})}
 $('caseView').addEventListener('click',e=>{const c=C();if(e.target.id==='saveRem'){const s=r5Status(c);addRem(c,s.el);e.target.textContent='✔ Recordatorio guardado';e.target.disabled=true;if(confirm('¿Agendar también el evento en el calendario (Google Calendar o .ics)?'))agendar(S.reminders.find(r=>r.clientId===c.id&&r.date===s.el))}
@@ -1027,7 +1027,7 @@ function renderContract(c){$('f_estado').value=c.estado;$('condBox').classList.t
 document.querySelectorAll('#ubicChips [data-u]').forEach(b=>b.classList.toggle('sec',b.dataset.u!==c.ubic));
 docSync(c);$('stIne').textContent=c.docIne?'✅ INE cargada':'❌ Falta INE';$('stDom').textContent=c.docDom?'✅ Comprobante de domicilio cargado':'❌ Falta comprobante de domicilio';$('btnIneDel').classList.toggle('hidden',!c.ine);$('btnDomDel').classList.toggle('hidden',!c.dom);document.querySelectorAll('#datosContrato [data-f]').forEach(i=>{if(document.activeElement!==i)i.value=c[i.dataset.f]||''});document.querySelectorAll('#contractCard [data-fe]').forEach(i=>{if(document.activeElement!==i)i.value=c[i.dataset.fe]||''});$('btnAgPag').classList.toggle('hidden',!c.pagareVenc);
 const f=docFalta(c),w=$('docWarn');w.classList.toggle('hidden',!f.length);w.textContent='⚠️ Falta subir: '+f.join(' y ');
-const a=altaFalta(c);$('altaArea').classList.toggle('hidden',a.length>0);$('altaLocked').classList.toggle('hidden',!a.length);$('altaLocked').innerHTML='<b>Para mostrar el mensaje falta confirmar:</b><ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';$('altaText').textContent=msg(c);renderImss(c);renderConf(c);renderSeg2(c);renderTram(c);renderSol(c)}
+const a=altaFalta(c);$('altaArea').classList.toggle('hidden',a.length>0);$('altaLocked').classList.toggle('hidden',!a.length);$('altaLocked').innerHTML='<b>Para mostrar el mensaje falta confirmar:</b><ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';$('altaText').textContent=msg(c);renderProv();$('altaSol').innerHTML=altaHecha(c)?'<div class="agOk">✅ Alta hecha'+(c.altaConfirmada?' (proveedor confirmó)':' (ya hay SUA/SIPARE o pagos)')+'</div>':c.altaEnviada?'<div class="agOk">📤 Alta solicitada'+(c.altaProv?' a '+esc(c.altaProv):'')+' el '+new Date(c.altaEnviada).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})+' · en curso hasta recibir SUA/SIPARE</div>':'';renderImss(c);renderConf(c);renderSeg2(c);renderTram(c);renderSol(c)}
 $('altaTel').value=lsG('retiroApp.waTel')||'';$('altaTel').oninput=e=>lsG('retiroApp.waTel',e.target.value);
 $('btnAltaCopy').onclick=async()=>{const t=msg(C());try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(x){}a.remove()}$('btnAltaCopy').textContent='✔ Copiado'};
 // ===== Confirmación del proveedor + recordatorio cada 2 días =====
@@ -1035,13 +1035,13 @@ const DIA=864e5,REC_INT=2*DIA;
 const recTexto=c=>'@Zapia recuérdale '+String(c.nombre||'').trim()+' que nos confirme que ya está';
 const waLink=(n,t)=>'https://wa.me/'+n+'?text='+encodeURIComponent(t);
 function openWaText(n,t){if(isAndroid()){const u='intent://send?phone='+n+'&text='+encodeURIComponent(t)+'#Intent;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url='+encodeURIComponent(waLink(n,t))+';end';if(window.__waNav)window.__waNav(u);else location.href=u}else window.open(waLink(n,t),'_blank')}
-const confPend=c=>!!c.altaEnviada&&!c.altaConfirmada;
+const confPend=c=>!!c.altaEnviada&&!altaHecha(c);
 function recTarget(){let t=null;for(const c of Object.values(S.clients))if(confPend(c)&&c.estado!=='cancelado'&&(!t||c.altaEnviada>t.altaEnviada))t=c;return t}
 const recBase=c=>Math.max(c.altaEnviada||0,c.ultimoRecordatorio||0,c.recPospuesto||0);
 const recDue=(c,now)=>!!c&&confPend(c)&&(now||Date.now())-recBase(c)>=REC_INT;
 function checkRec(){const c=recTarget(),b=$('confBanner'),due=recDue(c);b.classList.toggle('hidden',!due);if(!due){b.innerHTML='';return}
  b.innerHTML='<b>🔔 '+esc(recTexto(c))+'</b><div class="row" style="margin-top:6px"><button id="btnRecSend">Enviar recordatorio por WhatsApp Business</button><button class="sec" id="btnRecPos" style="flex:0 0 auto">Posponer</button></div>';
- $('btnRecSend').onclick=()=>{const t=recTarget();if(!t)return;openWaText(WA_ALTA,recTexto(t));t.ultimoRecordatorio=Date.now();save();checkRec()};
+ $('btnRecSend').onclick=()=>{const t=recTarget();if(!t)return;openWaText(t.altaTelUsado||WA_ALTA,recTexto(t));t.ultimoRecordatorio=Date.now();save();checkRec()};
  $('btnRecPos').onclick=()=>{const t=recTarget();if(!t)return;t.recPospuesto=Date.now();save();checkRec()};
  const base=recBase(c);if(c.recNotif!==base){try{if(window.Notification&&Notification.permission==='granted'){new Notification('Recordatorio proveedor',{body:recTexto(c)});c.recNotif=base;save()}}catch(e){}}}
 setInterval(checkRec,60000);
@@ -1066,11 +1066,26 @@ function renderConf(c){const b=$('confBox');if(!b||!c)return;const f=t=>new Date
  b.innerHTML='<label>Confirmación del proveedor</label>'+(confPend(c)?'<div><span class="badge" style="background:#ffe0b2">Pendiente de confirmación</span> <small>alta enviada '+f(c.altaEnviada)+(c.recordEventId?' · 📅 recordatorio en Calendar':'')+'</small></div><button id="btnProvOk">Proveedor ya confirmó</button>':
  (c.altaConfirmada?'<div>✅ Proveedor confirmó ('+f(c.altaConfirmada)+')</div>':'<div><small>Sin alta enviada.</small></div>')+'<button class="sec" id="btnProvPend">Marcar pendiente de confirmación</button>');
  const ok=$('btnProvOk'),pd=$('btnProvPend');if(ok)ok.onclick=()=>proveedorConfirmo(C());if(pd)pd.onclick=()=>{const x=C();marcarPendiente(x);ofrecerEvento(x)}}
-$('btnAltaWa').onclick=()=>{const c=C();openWa(WA_ALTA);c.altaEnviada=Date.now();c.altaConfirmada=null;c.ultimoRecordatorio=null;c.recPospuesto=null;c.recOfrecido=false;save();renderConf(c);checkRec();setTimeout(()=>ofrecerEvento(c),300)};
+function telMX(t){let d=String(t||'').replace(/\D/g,'');if(d.length===10)d='52'+d;else if(d.length===13&&d.startsWith('521'))d='52'+d.slice(3);return/^52\d{10}$/.test(d)?d:(d.length>=11&&d.length<=15?d:'')}
+const fTel=d=>d.startsWith('52')&&d.length===12?'+52 '+d.slice(2,5)+' '+d.slice(5,8)+' '+d.slice(8):'+'+d;
+function provs(){if(!Array.isArray(S.provs)){S.provs=[{id:'p0',nombre:'Proveedor',tel:WA_ALTA}];S.provsTs=0}return S.provs}
+function provActual(){const L=provs();return L.find(p=>p.id===S.provLast)||L[0]||null}
+function renderProv(){const L=provs(),a=provActual(),sel=$('provSel');sel.innerHTML=L.length?L.map(p=>'<option value="'+esc(p.id)+'"'+(a&&a.id===p.id?' selected':'')+'>'+esc(p.nombre)+' · '+fTel(p.tel)+'</option>').join(''):'<option value="">(agrega un proveedor con ⚙️)</option>';
+ $('btnAltaWa').textContent=a?'📤 Enviar solicitud de alta a '+a.nombre:'📤 Enviar solicitud de alta';
+ $('provList').innerHTML=L.map(p=>'<div class="row provItem" data-pid="'+esc(p.id)+'"><input data-pf="nombre" value="'+esc(p.nombre)+'" aria-label="Nombre"><input data-pf="tel" type="tel" value="'+esc(fTel(p.tel))+'" aria-label="WhatsApp"><button class="sec mini" data-pdel="1" aria-label="Eliminar proveedor">🗑</button></div>').join('')||'<small>Sin proveedores.</small>'}
+const provSave=()=>{S.provsTs=Date.now();save();renderProv()};
+$('provSel').onchange=e=>{S.provLast=e.target.value;save();renderProv()};
+$('btnProvCfg').onclick=()=>{$('provCfg').classList.toggle('hidden');renderProv()};
+$('btnProvAdd').onclick=()=>{const n=$('provNom').value.trim(),t=telMX($('provTel').value);if(!n||!t){$('provMsg').textContent='Escribe nombre y un número de WhatsApp válido (10 dígitos).';return}const p={id:'p'+Date.now().toString(36),nombre:n,tel:t};provs().push(p);S.provLast=p.id;$('provNom').value=$('provTel').value='';$('provMsg').textContent='✓ Agregado '+n+' ('+fTel(t)+')';provSave()};
+$('provList').addEventListener('change',e=>{const r=e.target.closest('[data-pid]');if(!r)return;const p=provs().find(x=>x.id===r.dataset.pid);if(!p)return;if(e.target.dataset.pf==='tel'){const t=telMX(e.target.value);if(!t){$('provMsg').textContent='Número no válido';return}p.tel=t}else if(e.target.dataset.pf==='nombre')p.nombre=e.target.value.trim()||p.nombre;$('provMsg').textContent='✓ Guardado';provSave()});
+$('provList').addEventListener('click',e=>{const b=e.target.closest('[data-pdel]');if(!b)return;const id=b.closest('[data-pid]').dataset.pid,p=provs().find(x=>x.id===id);if(!p||!confirm('¿Eliminar a '+p.nombre+'?'))return;S.provs=provs().filter(x=>x.id!==id);if(S.provLast===id)S.provLast=(S.provs[0]||{}).id;provSave()});
+$('btnAltaWa').onclick=()=>{const c=C(),pv=provActual();if(!pv){$('provCfg').classList.remove('hidden');renderProv();return gToast('Agrega un proveedor con ⚙️ para enviar la solicitud de alta.','warn')}openWaText(pv.tel,msg(c));c.altaProv=pv.nombre;c.altaTelUsado=pv.tel;hist(c,'alta','Solicitud de alta enviada a '+pv.nombre+' ('+fTel(pv.tel)+')');c.altaEnviada=Date.now();c.altaConfirmada=null;c.ultimoRecordatorio=null;c.recPospuesto=null;c.recOfrecido=false;save();renderConf(c);checkRec();try{render()}catch(e){}setTimeout(()=>ofrecerEvento(c),300)};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkRec();const t=recTarget();if(t&&!t.recOfrecido)ofrecerEvento(t)}});
 // ===== Pagos IMSS (SUA, SIPARE obligatorios; Infonavit opcional) =====
 const PAGOS=[['sua','SUA',true],['sipare','SIPARE',true],['infonavit','Infonavit',false]];
 const pk=k=>'pago_'+k,pkp=k=>'pago_'+k+'Pagado';
+// Si ya hay SUA/SIPARE/Infonavit o algún pago, el alta con el proveedor ya se hizo
+function altaHecha(c){return!!(c.altaConfirmada||PAGOS.some(([x])=>c[pk(x)]||c[pkp(x)]))}
 const imssFalta=c=>PAGOS.filter(([k,,req])=>req&&!c[pk(k)]).map(x=>x[1]);
 const pagosPend=c=>PAGOS.filter(([k])=>c[pk(k)]&&!c[pkp(k)]).map(x=>x[1]);
 function renderImss(c){if(!c||!$('imssRows'))return;$('imssRows').innerHTML=PAGOS.map(([k,n,req])=>{const has=!!c[pk(k)],paid=!!c[pkp(k)];
@@ -1486,7 +1501,7 @@ try{updStepper()}catch(x){}
 function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
 function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
 function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),writer:{dev:devName(),id:devId(),origin:location.origin==='null'?location.protocol:location.origin,ts:Date.now()},clients:S.clients,reminders:S.reminders,form:S.form||null,
-flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||''}}}
+flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0}}}
 const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared,st.limpiarTs||0,(st.ignorados||[]).length]);
 // Fusión por campo: gana el más reciente según fieldTs (o updatedAt si no hay); las listas se unen por id/nombre+fecha.
 const M_LIST={files:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,contratoFirm:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,historial:h=>h.ts+'|'+h.tipo+'|'+h.texto,docsArchivo:a=>a.k+'|'+a.removed+'|'+(a.data||'').length,segHist:a=>(a.id||'')+'|'+a.fecha+'|'+a.hora+'|'+a.ts};
@@ -1510,6 +1525,7 @@ for(const r of R.reminders||[]){const cid=idMap[r.clientId]||r.clientId;if(IGI.h
 if(R.form){const F=syncMeta();if(R.form.maxRow>F.maxRow){F.maxRow=R.form.maxRow;changed=true}(R.form.ignore||[]).forEach(f=>{if(!F.ignore.includes(f)){F.ignore.push(f);changed=true}})}
 if(R.flags){if(R.flags.seeded&&!lsG('retiroApp.seeded'))lsG('retiroApp.seeded','1');if(R.flags.migFinal&&!lsG('retiroApp.migFinal'))lsG('retiroApp.migFinal','1')}
 if((R.lastFormSync||0)>(+lsG(SYNC_KEY)||0)){lsG(SYNC_KEY,String(R.lastFormSync));showLastSync()}
+if(R.shared&&Array.isArray(R.shared.provs)&&(R.shared.provsTs||0)>(S.provsTs||0)){S.provs=R.shared.provs;S.provsTs=R.shared.provsTs;changed=true;try{renderProv()}catch(e){}}
 if(R.shared&&R.shared.waTel&&!lsG('retiroApp.waTel')){lsG('retiroApp.waTel',R.shared.waTel);$('altaTel').value=R.shared.waTel}
 if(purgarViejos())changed=true;if(pendRespaldo.length)guardarRespaldoLocal();renderIgn();
 if(changed){Object.values(S.clients).forEach(fix);snapAll();_save()}return changed}
