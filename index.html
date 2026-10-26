@@ -46,7 +46,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 #clientList .client.st-listo{border-left-color:#2e7d32}.st-listo .dBadge{background:#2e7d32;color:#fff}.st-listo .stLbl{color:#2e7d32}
 #clientList .client.st-solicitado{border-left-color:#1565c0}.st-solicitado .dBadge{background:#1565c0;color:#fff}.st-solicitado .stLbl{color:#1565c0}
 html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,html.rec #recSettings,html.rec #gSettings,html.rec #paso_p5,html.rec #paso_p6,html.rec #paso_p7,html.rec #tramCard,html.rec #altaCard,html.rec #recAsig,html.rec .et[data-et=alta],html.rec .et[data-et=pagos],html.rec .et[data-et=exp],html.rec #btnImport{display:none!important}
-#btnBell{position:relative}#btnBell.bellOn{background:#fff3e0;border-color:#ef6c00}#bellN{background:#d32f2f;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px;font-weight:bold}.aviso{border-bottom:1px solid #e0e0e0;padding:10px 4px}.aviso.nuevo{background:#fff8e1}.aviso textarea{width:100%}
+#recAsig{background:#ede7f6;border-radius:12px;padding:8px 10px;margin:8px 0}#recAsig label{font-weight:bold;display:block}#f_rec{width:100%;min-height:52px!important;font-size:1.1rem!important}#recCfgMsg{font-weight:bold;margin-top:6px}#btnBell{position:relative}#btnBell.bellOn{background:#fff3e0;border-color:#ef6c00}#bellN{background:#d32f2f;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px;font-weight:bold}.aviso{border-bottom:1px solid #e0e0e0;padding:10px 4px}.aviso.nuevo{background:#fff8e1}.aviso textarea{width:100%}
 .b-rec{background:#ede7f6;color:#4527a0}#altaCard.recDest{outline:4px solid #ffb300;box-shadow:0 0 0 8px #ffe08255}#recBar .row button{min-height:48px}.recSol{padding:6px 0;border-bottom:1px dashed #ddd}.recRow input{flex:1 1 40%}
 </style><style id="stepperCss">
 #caseView{font-size:17px}#caseView button,#caseView .btn,#caseView label.btn{min-height:48px;font-size:16px;padding:10px 16px;border-radius:10px;margin:4px 2px}
@@ -112,7 +112,7 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 </div>
 <div class="card" id="contractCard"><h3>Contrato y firma</h3>
 <div class="row"><div><label>Grupo</label><select id="f_estado"><option value="pendiente">Pendiente de firma</option><option value="firmado">Ya está firmado</option><option value="espera">En espera</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option><option value="sinetapa">Sin etapa (por asignar)</option></select></div>
-<div id="recAsig" class="ownerOnly"><label>Recomendador</label><select id="f_rec"></select></div><div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
+<div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
 <label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div><div class="docSt" id="cfBox"><span id="stCf"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir contrato firmado (fotos o PDF)<input type="file" id="f_cf" accept="image/*,application/pdf,.pdf" multiple hidden></label><div id="cfList"></div></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
 <div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir INE<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div>
@@ -1461,7 +1461,7 @@ function buildStepper(){const cv=$('caseView'),head=cv.querySelector('.card'),cc
  PASOS.forEach(([k,t,sub],i)=>{const d=document.createElement('div');d.className='pStep';d.id='paso_'+k;d.innerHTML='<button type="button" class="pHead" aria-expanded="true"><span class="pNum">'+(i+1)+'</span><span class="pTit"><b>'+t+'</b><small>'+sub+'</small></span><span class="pSt"></span><span class="pChev">▾</span></button><div class="pBody"></div>';st.appendChild(d);body[k]=d.querySelector('.pBody');
   d.querySelector('.pHead').onclick=()=>{pasoAbierto[k]=d.classList.contains('closed');updStepper()}});
  // Datos generales (grupo/condición) quedan arriba con el nombre
- const gen=document.createElement('div');gen.id='datosGen';head.appendChild(gen);
+ const gen=document.createElement('div');gen.id='datosGen';head.appendChild(gen);{const ra=document.createElement('div');ra.id='recAsig';ra.innerHTML='<label for="f_rec">👤 Recomendador</label><select id="f_rec"></select>';(head.querySelector('h2')||head.firstElementChild).after(ra)}
  const kids=[...cc.children];let modo=null;
  for(const el of kids){const tx=el.tagName==='LABEL'?el.textContent:'';
   if(el.tagName==='H3'){el.remove();continue}
@@ -1586,7 +1586,7 @@ function recNom(e){const r=recDe(e);return r?r.nombre:e||''}
 function yoNom(){return(S.yo&&S.yo.nombre)||'La recomendadora'}
 function recBadge(c){return !REC_MODE&&c.rec?' <span class="badge b-rec">👤 '+esc(recNom(c.rec))+(c.recListo&&!altaHecha(c)&&!c.altaEnviada?' · listo para alta':'')+'</span>':''}
 function recMsg(t){const m=$('recCfgMsg');if(m)m.textContent=t}
-function recErr(e){const t=(e&&e.message)||String(e);lsG('retiroApp.recErr',t);recMsg('⚠️ Recomendadores: '+t)}
+function recErr(e){const t=(e&&e.message)||String(e);lsG('retiroApp.recErr',t);recMsg('⚠️ Error al sincronizar recomendadores: '+t)}
 const dOk=async p=>{const r=await p;if(!r.ok)throw new Error('Drive respondió '+r.status);return r};
 const nid=()=>'n'+Date.now()+Math.random().toString(36).slice(2,6);
 function nuevoAviso(n){if(n.para!==ROLE||n.leido)return;try{if(window.Notification&&Notification.permission==='granted')new Notification('Retiro Afore',{body:n.texto,tag:n.id})}catch(e){}}
@@ -1644,11 +1644,12 @@ async function recSyncUno(t,r){let ch=false;
  if(linkSolicitudes())ch=true;if(recAutoAvisos())ch=true;
  const out=recArchivo(r);if(!R||recCore(R)!==recCore(out))await dPut(t,r.fid,JSON.stringify(out));return ch}
 let recBusy=false,recAgain=false;
-async function recSyncOwner(interactivo){if(REC_MODE)return;if(recBusy){recAgain=true;return}const usa=(S.recs||[]).filter(r=>r.email&&(r.fid||Object.values(S.clients).some(c=>c.rec===r.email)));if(!usa.length)return;
+async function recSyncOwner(interactivo){if(REC_MODE)return;if(recBusy){recAgain=true;if(interactivo)recMsg('⟳ Sincronizando…');return}const usa=(S.recs||[]).filter(r=>r.email&&(interactivo||r.fid||Object.values(S.clients).some(c=>c.rec===r.email)));if(!usa.length){if(interactivo)recMsg('No hay recomendadores con correo. Agrega uno arriba.');return}if(interactivo)recMsg('⟳ Sincronizando…');
  if(!interactivo&&!gGranted().includes(DRIVE_FILE)){recMsg('Pulsa «Sincronizar recomendadores ahora» para dar permiso de compartir.');return}
  recBusy=true;try{const t=await gToken([DRIVE_FILE]);let ch=false;for(const r of usa)ch=(await recSyncUno(t,r))||ch;
   if(ch){Object.values(S.clients).forEach(fix);snapAll();_save();lsG(DK.dirty,'1');renderList();bellUI();if(cur&&S.clients[cur]&&!$('caseView').classList.contains('hidden'))render();clearTimeout(dTimer);dTimer=setTimeout(()=>syncDrive(false),3000)}
-  lsG('retiroApp.recErr',null);recMsg('✓ Recomendadores sincronizados '+new Date().toLocaleTimeString('es-MX'));recCfgUI()}
+  lsG('retiroApp.recErr',null);const sin=usa.filter(r=>!Object.values(S.clients).some(c=>c.rec===r.email)).map(r=>r.nombre);recMsg('✓ Recomendadores sincronizados '+new Date().toLocaleTimeString('es-MX')+(sin.length?'. '+sin.join(', ')+(sin.length>1?' aún no tienen':' aún no tiene')+' clientes asignados; se creó y compartió su archivo.':''));recCfgUI()}
+ catch(e){recErr(e);if(interactivo)gToast('⚠️ No se pudo sincronizar recomendadores: '+((e&&e.message)||e));throw e}
  finally{recBusy=false;if(recAgain){recAgain=false;setTimeout(()=>recSyncOwner(false).catch(recErr),500)}}}
 // Detección por correo: si quien inicia sesión es un recomendador configurado y este equipo no tiene clientes, se cambia a su vista
 async function recDetectar(t){if(REC_MODE||lsG('retiroApp.miEmail'))return;try{const a=await(await dOk(fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:hdr(t)}))).json();const e=String(a.user&&a.user.emailAddress||'').toLowerCase();if(!e)return;lsG('retiroApp.miEmail',e);
