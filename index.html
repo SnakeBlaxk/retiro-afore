@@ -9,7 +9,7 @@ header h1{font-size:1.1rem;margin:0}main{max-width:820px;margin:auto;padding:12p
 button{background:#0b5d3b;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:.95rem;cursor:pointer;margin:2px}
 button.sec{background:#e3e8ef;color:#1d2433}button.danger{background:#b3261e}button:disabled{opacity:.5;cursor:not-allowed}
 label{display:block;margin:8px 0 3px;font-weight:600;font-size:.92rem}
-input[type=text],input[type=number],input[type=date],input[type=tel],select{width:100%;padding:9px;border:1px solid #c5ccd6;border-radius:8px;font-size:1rem}
+input[type=text],input[type=number],input[type=date],input[type=tel],input[type=email],select{width:100%;padding:9px;border:1px solid #c5ccd6;border-radius:8px;font-size:1rem}
 .row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 200px}
 .alert{background:#fde8e7;border:1px solid #b3261e;color:#7a1610;border-radius:8px;padding:10px;margin:10px 0}
 .ok{background:#e5f5ec;border:1px solid #0b5d3b;color:#0b4a30;border-radius:8px;padding:10px;margin:10px 0}
@@ -95,8 +95,8 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <div><small>Sin Google: en la hoja abre Archivo › Descargar › Valores separados por comas (.csv), pestaña «Contrato», y usa «Importar CSV».</small></div>
 <input type="text" id="shSearch" placeholder="Buscar cliente por nombre" class="hidden"><div id="shList"></div></section>
 <section id="listView" class="card"><h2>Clientes</h2>
-<div class="row"><input type="text" id="newName" placeholder="Nombre del nuevo cliente"><button id="btnNew" style="flex:0 0 auto">+ Nuevo caso</button></div><div id="newDatos"><div class="row"><input type="tel" id="newTel" placeholder="Teléfono"><input type="email" id="newEmail" placeholder="Correo"><select id="newAfore" class="aforeSel"></select></div><div class="row"><input type="text" id="newCalle" placeholder="Calle y número"><input type="text" id="newColonia" placeholder="Colonia"></div><div class="row"><input type="text" id="newMunicipio" placeholder="Municipio"><input type="text" id="newCp" placeholder="C.P."></div></div>
-<small id="driveStatus"></small> <button class="sec" id="btnSyncNow" style="padding:2px 8px;font-size:.8rem">Sincronizar ahora</button><br><small id="lastWriter"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
+<div class="row"><input type="text" id="newName" placeholder="Nombre del nuevo cliente"><button id="btnNew" style="flex:0 0 auto">+ Nuevo caso</button></div><div id="newDatos" class="hidden"><small>Datos opcionales</small><div class="row"><input type="tel" id="newTel" placeholder="Teléfono"><input type="email" id="newEmail" placeholder="Correo"><select id="newAfore" class="aforeSel"></select></div><div class="row"><input type="text" id="newCalle" placeholder="Calle y número"><input type="text" id="newColonia" placeholder="Colonia"></div><div class="row"><input type="text" id="newMunicipio" placeholder="Municipio"><input type="text" id="newCp" placeholder="C.P."></div></div>
+<div style="margin-top:6px"><small id="driveStatus"></small> <button class="sec" id="btnSyncNow" style="padding:2px 8px;font-size:.8rem">Sincronizar ahora</button></div><small id="lastWriter"></small><br><small id="lastSync"></small><div id="sumBar" class="sumBar"></div><div class="lsTools"><input type="search" id="listSearch" placeholder="🔍 Buscar nombre o CURP"><label for="grupoSel" class="gLbl">Grupo</label><select id="grupoSel"></select></div><div id="clientList"></div></section>
 <div id="histPanel" class="hidden"><div class="hHead"><b>Historial y documentos · <span id="histName"></span></b><button class="sec" id="hClose">✕ Cerrar</button></div>
 <div class="row" style="gap:6px"><button id="hTabH">Historial</button><button class="sec" id="hTabD">Documentos</button></div>
 <div id="hHistBox"><div class="row" style="gap:6px;flex-wrap:wrap"><textarea id="hNota" rows="2" placeholder="Agregar nota (p. ej. «Me debe papeles», «Ya habíamos iniciado antes»)" style="flex:1 1 220px"></textarea><button id="hAddNota" style="flex:0 0 auto">Agregar nota</button></div>
@@ -787,7 +787,7 @@ function aforeOpts(sel,v){v=v||'';const L=AFORES.slice();if(v&&!L.includes(v))L.
 function aforeVal(sel){if(sel.value!=='__otra')return sel.value;const n=(prompt('Nombre de la Afore:')||'').trim();aforeOpts(sel,n);return n}
 aforeOpts($('newAfore'),'');$('newAfore').onchange=e=>aforeVal(e.target);
 const NEW_F={tel:'newTel',email:'newEmail',afore:'newAfore',calle:'newCalle',colonia:'newColonia',municipio:'newMunicipio',cp:'newCp'};
-$('btnNew').onclick=()=>{const c=fix(newClient($('newName').value.trim()));for(const k in NEW_F){const v=$(NEW_F[k]).value.trim();if(v&&v!=='__otra')c[k]=k==='email'?v.toLowerCase():v}S.clients[c.id]=c;$('newName').value='';for(const k in NEW_F)$(NEW_F[k]).value='';save();openCase(c.id)};
+$('btnNew').onclick=()=>{const nd=$('newDatos');if(nd.classList.contains('hidden')&&!$('newName').value.trim()){nd.classList.remove('hidden');$('newName').focus();return}nd.classList.add('hidden');const c=fix(newClient($('newName').value.trim()));for(const k in NEW_F){const v=$(NEW_F[k]).value.trim();if(v&&v!=='__otra')c[k]=k==='email'?v.toLowerCase():v}S.clients[c.id]=c;$('newName').value='';for(const k in NEW_F)$(NEW_F[k]).value='';save();openCase(c.id)};
 $('btnBack').onclick=()=>{const hb=history.state&&history.state.caso&&!history.state.visor;cur=null;$('caseView').classList.add('hidden');$('listView').classList.remove('hidden');renderList();if(hb)history.back();scrollTo(0,window.__listScroll||0)};
 $('btnRem').onclick=()=>$('remPanel').classList.toggle('hidden');
 // caso
@@ -1589,7 +1589,7 @@ const RFILE=e=>'retiro-recomendador-'+e+'.json';
 if(!REC_MODE&&!Array.isArray(S.recs)){S.recs=REC_DEF.map(x=>Object.assign({},x));S.recsTs=0}
 // Recomendadores solo-etiqueta (sin correo: nunca se comparten ni sincronizan con ellos)
 const REC_ETQ=['Adelaida','Adriana','Directo','Enrique (desempleo)','GIL','Ruth','Santiago','Teresa','Samuel','Viviana'];
-const recKey=r=>r?(r.email||('id:'+r.id)):'';
+function recKey(r){return r?(r.email||('id:'+r.id)):''}
 function recMigEtq(){if(REC_MODE||(S.recsSeedV||0)>=1)return false;const nn=x=>String(x||'').trim().toLowerCase();
  REC_ETQ.forEach(n=>{const id='etq-'+nn(n).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');if(!S.recs.some(r=>r.id===id||nn(r.nombre)===nn(n)))S.recs.push({id,nombre:n,email:'',tel:''})});
  S.recsSeedV=1;S.recsTs=Date.now();return true}
