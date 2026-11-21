@@ -973,7 +973,8 @@ migrarFinalizado();
 const LIMPIAR_FLAG='retiroApp.migLimpiar1',LIMPIAR_ON=location.protocol!=='file:'||!!window.__FORCE_LIMPIAR;let pendRespaldo=[];
 const normIgn=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
 function ignData(){if(!S.ignorados)S.ignorados=[];return S.ignorados}
-function ignSets(){const I=ignData();return{ids:new Set(I.map(x=>x.id).filter(Boolean)),curps:new Set(I.map(x=>x.curp).filter(Boolean)),noms:new Set(I.filter(x=>!x.curp&&x.nom).map(x=>x.nom))}}
+const curpNorm=s=>String(s||'').trim().toUpperCase();
+function ignSets(){const I=ignData();return{ids:new Set(I.map(x=>x.id).filter(Boolean)),curps:new Set(I.map(x=>curpNorm(x.curp)).filter(Boolean)),noms:new Set(I.filter(x=>!curpNorm(x.curp)&&x.nom).map(x=>x.nom))}}
 function addIgn(c){const I=ignData(),curp=String(c.curp||'').trim().toUpperCase(),nom=normIgn(c.nombre);if(I.some(x=>(c.id&&x.id===c.id)||(curp&&x.curp===curp&&x.nom===nom)))return false;I.push({id:c.id||'',curp,nom,seedKey:c.seedKey||'',ts:Date.now()});return true}
 function esViejo(c,ids){const t=S.limpiarTs;if(!t)return false;return (c.created||0)<t||(ids||ignSets().ids).has(c.id)}
 function respaldar(c){if(!pendRespaldo.some(x=>x.id===c.id))pendRespaldo.push(JSON.parse(JSON.stringify(c)))}
@@ -1293,15 +1294,16 @@ const SYNC_KEY='retiroApp.lastSync';
 function syncMeta(){if(!S.form)S.form={maxRow:0,ignore:[]};IGNORAR_FILAS.forEach(f=>{if(!S.form.ignore.includes(f))S.form.ignore.push(f)});
 const m=Math.max(0,...Object.values(S.clients).map(c=>+String(c.seedKey||'').replace('fila','')||0));if(m>S.form.maxRow)S.form.maxRow=m;return S.form}
 function showLastSync(){const t=lsG(SYNC_KEY);$('lastSync').textContent=t?'Última actualización desde el formulario: '+new Date(+t).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}):'Aún no se ha actualizado desde el formulario.'}
-function procesarFormulario(values){const F=syncMeta(),L=Object.values(S.clients);const filas=new Set(L.map(c=>c.seedKey).filter(Boolean)),curps=new Set(L.map(c=>c.curp).filter(Boolean)),
-mn=new Set(L.filter(c=>c.marca).map(c=>c.marca+'|'+normH(c.nombre)));const nuevos=[];let max=F.maxRow;
-const IG=ignSets();
-for(const r of rowsToRecs(values)){if(F.ignore.includes(r.fila)||filas.has('fila'+r.fila))continue;
-if(r.curp?IG.curps.has(r.curp):IG.noms.has(normIgn(r.nombre)))continue;
-const desconocido=(!r.curp||!curps.has(r.curp))&&!(r.marca&&mn.has(r.marca+'|'+normH(r.nombre)));if(!(r.fila>F.maxRow||desconocido))continue;
-const c=fix(newClient(r.nombre));c.id+='_f'+r.fila;['curp','nss','email','calle','colonia','municipio','cp','afore','tel','notas','marca'].forEach(k=>{if(r[k])c[k]=r[k]});
-c.estado='pendiente';c.seedKey='fila'+r.fila;c.nuevoForm=true;c.origen='formulario';S.clients[c.id]=c;filas.add(c.seedKey);if(r.curp)curps.add(r.curp);nuevos.push(c);if(r.fila>max)max=r.fila}
-F.maxRow=Math.max(max,...rowsToRecs(values).map(r=>r.fila),F.maxRow);save();return nuevos}
+function esPlantillaForm(r){if(r.marca)return false;const em=String(r.email||'').trim();return !em||/^[_.\-]+$/.test(em)}
+function procesarFormulario(values){const F=syncMeta(),L=Object.values(S.clients);
+const curps=new Set(L.map(c=>curpNorm(c.curp)).filter(Boolean)),noms=new Set(L.filter(c=>!curpNorm(c.curp)).map(c=>normIgn(c.nombre)));
+const mn=new Set(L.filter(c=>c.marca).map(c=>c.marca+'|'+normH(c.nombre)));const nuevos=[];let max=F.maxRow;const IG=ignSets();
+for(const r of rowsToRecs(values)){if(F.ignore.includes(r.fila)||esPlantillaForm(r))continue;const cp=curpNorm(r.curp),nom=normIgn(r.nombre);
+if(cp?(IG.curps.has(cp)||curps.has(cp)):(IG.noms.has(nom)||noms.has(nom)))continue;
+if(r.marca&&mn.has(r.marca+'|'+normH(r.nombre)))continue;
+const c=fix(newClient(r.nombre));c.id+='_f'+r.fila;['curp','nss','email','calle','colonia','municipio','cp','afore','tel','notas','marca'].forEach(k=>{if(r[k])c[k]=r[k]});if(cp)c.curp=cp;
+c.estado='pendiente';c.seedKey='fila'+r.fila;c.nuevoForm=true;c.origen='formulario';S.clients[c.id]=c;if(cp)curps.add(cp);else noms.add(nom);if(r.marca)mn.add(r.marca+'|'+normH(r.nombre));nuevos.push(c);if(r.fila>max)max=r.fila}
+F.maxRow=Math.max(max,F.maxRow);save();return nuevos}
 let syncing=false;
 async function syncFormulario(interactivo){if(syncing||REC_MODE)return;const banner=v=>$('syncBanner').classList.toggle('hidden',!needConnect());
 if(!gCid()){banner(true);if(interactivo)gToast('No hay Client ID de Google configurado. Pégalo en Recordatorios › Google Calendar.');return}
