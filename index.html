@@ -65,6 +65,8 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 #caseView a.verL{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:72px;padding:6px 14px;border-radius:10px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;text-decoration:none;font-weight:bold;text-transform:capitalize;vertical-align:middle}#caseView a.verL.hidden{display:none}
 #caseView label.btn{display:inline-flex!important;align-items:center;background:#e3e8ef;color:#1d2433;font-weight:600;cursor:pointer}#caseView .docSt label.btn{display:flex!important;justify-content:center;width:100%;margin:6px 0}#caseView label.file{display:flex;align-items:center;justify-content:center;min-height:52px;width:100%;margin:8px 0;padding:10px 14px;border-radius:10px;background:#e3e8ef;color:#1d2433;font-weight:600;cursor:pointer;text-align:center}#caseView label.file input{display:none}.r5ok{color:#0b5d3b;font-weight:bold;margin:6px 0}.r5no{color:#b3261e;font-weight:bold}.preCheck{background:#f6f8fb;border-radius:10px;padding:10px 12px;line-height:1.7}#caseView .docSt{padding:8px 0;border-bottom:1px solid #eee}#caseView .chip{min-height:44px}#caseView details>summary{font-size:17px;font-weight:bold;min-height:48px;line-height:48px;padding:0 12px;background:#f1f4f8;border-radius:10px;margin:8px 0;cursor:pointer}#filtroDet>summary{font-weight:bold;min-height:44px;line-height:44px;cursor:pointer}
 #clientList .client{padding:12px 14px;margin:10px 0;font-size:16px}#clientList .client button:not(.mini){min-height:44px;padding:8px 14px}
+#fbPanel h3,#fbRec h3,.fbBox h3{margin:10px 0 4px}.fbItem{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;margin:8px 0;border:1px solid #dde3ea;border-radius:10px;background:#fff}.fbItem>div:first-child{flex:1 1 220px;min-width:0;word-break:break-word}.fbRow{flex-wrap:wrap;gap:6px;align-items:center}.fbRow select{flex:1 1 160px;min-height:44px}.fbBox{background:#f3f8ff;border-radius:10px;padding:8px 10px;margin-top:10px}#fbRec{background:#f3f8ff;border-radius:10px;padding:8px 10px;margin:8px 0}
+@media (max-width:600px){.fbItem{flex-direction:column;align-items:stretch}.fbItem button,.fbRow button,#fbIn,#btnFbEnviar{width:100%;min-height:48px}.fbRow small{flex:1 1 100%}}
 </style>
 </head><body>
 <header><h1>Retiro por desempleo · Afore</h1><div><button class="sec" id="btnBell" aria-label="Avisos">🔔<span id="bellN" class="hidden"></span></button>
@@ -81,11 +83,12 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <section id="recBar" class="card hidden"><h2>👋 Hola <span id="recNombre"></span></h2><small id="recEmail"></small><div id="recSt" class="warn hidden"></div>
 <div class="row"><button id="btnFormCopy">📋 Copiar formulario</button><button id="btnFormWa">📤 Compartir formulario por WhatsApp</button></div>
 <details id="recSolBox"><summary>➕ Pedir autorización para un cliente</summary><label>Nombre del cliente</label><input type="text" id="solNombre"><label>Teléfono</label><input type="tel" id="solTel"><button id="btnSolEnviar">Enviar solicitud a la consultoría</button></details><div id="recSols"></div>
-<small><a href="#" id="recSalir">Salir del modo recomendadora</a></small></section>
+<div id="fbRec"></div><small><a href="#" id="recSalir">Salir del modo recomendadora</a></small></section>
+<section id="fbPanel" class="card hidden"><details id="fbDet" open><summary><b>☁️ Recomendadoras en línea</b></summary><div id="fbBody"></div></details></section>
 <div id="syncBanner" class="warn hidden">Conecta Google para traer nuevos registros del formulario y sincronizar entre tus dispositivos <button id="btnSyncConnect">Conectar Google</button></div>
 <section id="remPanel" class="card hidden"><h2>Recordatorios</h2><div id="remList"></div>
 <details id="recSettings"><summary>⚙️ Recomendadores</summary><div id="recCfgList"></div><div class="row"><input type="text" id="recNewNombre" placeholder="Nombre"><input type="tel" id="recNewTel" placeholder="Teléfono / WhatsApp"><input type="email" id="recNewEmail" placeholder="correo@gmail.com (opcional, solo si usa la app)"><button class="sec" id="btnRecAdd" style="flex:0 0 auto">Agregar</button></div>
-<label>Link del formulario de registro (Google Forms)</label><input type="url" id="recFormUrl" placeholder="https://forms.gle/…"><small>Link para la recomendadora: <code id="recLink"></code></small><div class="row"><button class="sec" id="btnRecSync">Sincronizar recomendadores ahora</button></div><div id="recCfgMsg"></div></details>
+<label>Link del formulario de registro (Google Forms)</label><input type="url" id="recFormUrl" placeholder="https://forms.gle/…"><button class="sec" type="button" id="btnForm2">Usar el formulario nuevo de recomendadoras</button><small>Link para la recomendadora: <code id="recLink"></code></small><div class="row"><button class="sec" id="btnRecSync">Sincronizar recomendadores ahora</button></div><div id="recCfgMsg"></div></details>
 <details id="gSettings"><summary>Google Calendar (opcional)</summary><label>Client ID de Google OAuth</label>
 <div class="row"><input type="text" id="gCidInput" placeholder="xxxx.apps.googleusercontent.com"><button class="sec" id="btnGCid" style="flex:0 0 auto">Guardar Client ID</button></div>
 <small id="gStatus"></small></details>
@@ -1373,7 +1376,7 @@ if(!gCid()){banner(true);if(interactivo)gToast('No hay Client ID de Google confi
 const g=gGranted(),tieneHoja=g.includes(SH_SCOPE);if(!interactivo&&!((gValid()||lsG(GK.ok))&&tieneHoja)){banner(true);return}
 syncing=true;try{const tok=await gToken([SH_SCOPE]);const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(SHEET_TAB),{headers:{Authorization:'Bearer '+tok}});
 if(res.status===401){lsG(GK.tok,null);lsG(GK.exp,null)}if(!res.ok)throw new Error('Sheets respondió '+res.status);
-const nuevos=procesarFormulario((await res.json()).values);lsG(SYNC_KEY,String(Date.now()));showLastSync();banner(false);renderList();
+const nuevos=procesarFormulario((await res.json()).values).concat(await form2Sync(tok,interactivo));lsG(SYNC_KEY,String(Date.now()));showLastSync();banner(false);renderList();
 if(nuevos.length)gToast((nuevos.length===1?'1 cliente nuevo del formulario: ':nuevos.length+' clientes nuevos del formulario: ')+nuevos.map(c=>c.nombre).join(', ')+'. Están en «Pendientes de firma».','ok');
 else if(interactivo)gToast('Sin registros nuevos en el formulario.','ok')}
 catch(e){banner(false);if(interactivo)gToast('No se pudo leer el formulario ('+(e&&e.message||'error')+').')}finally{syncing=false}}
@@ -1752,14 +1755,14 @@ $('recCfgList').onclick=e=>{const b=e.target.closest('[data-rdel]');if(!b)return
 $('btnRecAdd').onclick=()=>{const n=$('recNewNombre').value.trim(),t=$('recNewTel').value.trim(),e=$('recNewEmail').value.trim().toLowerCase();if(!n)return gToast('Escribe el nombre.');if(e&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return gToast('El correo no es válido (puedes dejarlo vacío).');if(e&&S.recs.some(x=>x.email===e))return gToast('Ese correo ya está registrado.');S.recs.push({id:'r'+Date.now(),nombre:n,email:e,tel:t});$('recNewNombre').value=$('recNewTel').value=$('recNewEmail').value='';recTouch()};
 $('recFormUrl').onchange=e=>{S.formUrl=e.target.value.trim();recTouch()};
 $('btnRecSync').onclick=()=>recSyncOwner(true).catch(recErr);
-$('f_rec').onchange=e=>{const c=C();if(!c)return;const v=e.target.value,old=c.rec;c.rec=v;if(!v)c.recListo=c.recListo||null;hist(c,'nota',v?'Asignado a recomendador: '+recNom(v):'Sin recomendador');save();renderList();if((recDe(v)||{}).email||(recDe(old)||{}).email)recSyncOwner(true).catch(recErr)};
+$('f_rec').onchange=e=>{const c=C();if(!c)return;const v=e.target.value,old=c.rec;c.rec=v;if(!v)c.recListo=c.recListo||null;hist(c,'nota',v?'Asignado a recomendador: '+recNom(v):'Sin recomendador');save();renderList();try{fbOnRecChange(c)}catch(x){}if((recDe(v)||{}).email||(recDe(old)||{}).email)recSyncOwner(true).catch(recErr)};
 // ---- Lado recomendadora ----
 function recMergeRec(R){let ch=false;const ids=new Set(Object.keys(R.clients||{}));
- for(const id of Object.keys(S.clients))if(!ids.has(id)){delete S.clients[id];ch=true}
+ for(const id of Object.keys(S.clients))if(!ids.has(id)&&!S.clients[id].fb){delete S.clients[id];ch=true}
  for(const id of ids){const x=R.clients[id],c=S.clients[id];if(!x)continue;if(!c){const n={};REC_F.forEach(k=>{if(x[k]!==undefined)n[k]=JSON.parse(JSON.stringify(x[k]))});n.fieldTs=Object.assign({},x.fieldTs||{});S.clients[id]=n;ch=true;continue}
   const ft=x.fieldTs||{},lt=c.fieldTs=c.fieldTs||{};
   for(const k of REC_F){if(k==='id')continue;if(REC_W.includes(k)&&(lt[k]||0)>(ft[k]||0))continue;if(JSON.stringify(c[k])!==JSON.stringify(x[k])){if(x[k]===undefined)delete c[k];else c[k]=JSON.parse(JSON.stringify(x[k]));ch=true}if(ft[k])lt[k]=ft[k]}
-  for(const k of Object.keys(c))if(!REC_F.includes(k)&&!['fieldTs','updatedAt','historial','nuevoForm'].includes(k)){delete c[k]}}
+  for(const k of Object.keys(c))if(!REC_F.includes(k)&&!['fieldTs','updatedAt','historial','nuevoForm','fbId','fbEnv','fbEnviado','fb','refTexto','entidad','citaPropFecha','citaPropHora'].includes(k)){delete c[k]}}
  if(R.rec&&R.rec.nombre&&(!S.yo||S.yo.nombre!==R.rec.nombre)){S.yo=Object.assign(S.yo||{},{nombre:R.rec.nombre});ch=true}if((R.formUrl||'')!==(S.formUrl||'')){S.formUrl=R.formUrl||'';ch=true}
  for(const n of R.notifs||[]){if(!n||!n.id)continue;const l=S.notifs.find(x=>x.id===n.id);if(!l){S.notifs.push(Object.assign({},n));nuevoAviso(n);ch=true;continue}
   if(l.para==='owner'){for(const k of ['estado','cid','ets','leido'])if(n[k]!==undefined&&JSON.stringify(n[k])!==JSON.stringify(l[k])){l[k]=n[k];ch=true}}}
@@ -1797,9 +1800,186 @@ function recRender(){const c=C();if(!c)return;
  x.innerHTML='<h3>📅 Fecha de solicitud / segunda visita</h3><p><b>'+(c.fechaSolicitud?fDMY(c.fechaSolicitud):'Aún sin fecha')+'</b>'+(c.fechaSolicitud?'':' <small>(la consultoría la confirma después del alta)</small>')+'</p>'+
   (c.recListo?'<div class="ok">✓ Informaste a la consultoría el '+new Date(c.recListo).toLocaleString('es-MX')+'</div>':'<button id="btnInformar"'+(listo3?'':' disabled')+'>📣 Informar a consultoría</button>'+(listo3?'':'<small> Se activa al completar el paso 3 (INE, comprobante y contrato firmado).</small>'));
  const bi=$('btnInformar');if(bi)bi.onclick=()=>{c.recListo=Date.now();addNotif({tipo:'listo',para:'owner',rec:S.yo&&S.yo.email,cid:c.id,nombre:c.nombre,texto:yoNom()+' terminó '+c.nombre+', listo para alta'});save();render();gToast('Listo: se avisó a la consultoría.')}}
-{const _r=render;render=function(){const r=_r.apply(this,arguments);try{recRender()}catch(e){console.error(e)}return r}}
+// ===== Firebase · Fase 1: panel en línea de recomendadoras (Auth Google + Firestore en tiempo real) =====
+// Aditivo: no toca ni migra los datos locales/Drive existentes. Solo la config web PÚBLICA de Firebase (no es secreta).
+const FB_CFG={apiKey:"AIzaSyAE1jihr6iF-cgEfnzEigVjUZSoFrj1T_Y",authDomain:"retiro-afore.firebaseapp.com",projectId:"retiro-afore",storageBucket:"retiro-afore.firebasestorage.app",messagingSenderId:"292397985794",appId:"1:292397985794:web:edac1c7f446ca4aa2eb71b"};
+const FB_ADMIN='pensionyretiros@gmail.com',FB_V='12.6.0',FB_ST='__serverTimestamp__';
+const FORM2_ID='1Uf2R4oTrG2hL_7mQ0lDj4nHLPhv-y2ApUzXMir5Kje8',FORM2_TAB='Respuestas de formulario 1',FORM2_URL='https://docs.google.com/forms/d/e/1FAIpQLSd2mYCG4Uo2S-C2SE4KRFUj77Y-AuCsulOvKGDxohIhyUCGzg/viewform';
+// Campos de un caso que viajan a Firestore (nada de proveedor, alta, pagos, pasos internos ni documentos)
+const FB_DATA=['nombre','curp','nss','tel','email','afore','calle','colonia','municipio','entidad','cp','notas','citaPropFecha','citaPropHora'];
+let fbP=null;
+function fbPlain(o){const r={};for(const k in o){const v=o[k];r[k]=v&&typeof v.toMillis==='function'?v.toMillis():v}return r}
+function fbLoad(){if(window.__FB_MOCK)return Promise.resolve(window.__FB_MOCK);if(fbP)return fbP;
+ fbP=(async()=>{const base='https://www.gstatic.com/firebasejs/'+FB_V+'/';
+  const [A,Au,F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+  const app=A.initializeApp(FB_CFG),auth=Au.getAuth(app);let db;
+  // Caché local persistente: funciona sin conexión y se sincroniza al volver la red (varias pestañas)
+  try{db=F.initializeFirestore(app,Object.assign({localCache:F.persistentLocalCache({tabManager:F.persistentMultipleTabManager()})},window.__FB_EMU?{experimentalForceLongPolling:true}:{}))}catch(e){db=F.getFirestore(app)}
+  if(window.__FB_EMU){F.connectFirestoreEmulator(db,'127.0.0.1',window.__FB_EMU.fs);Au.connectAuthEmulator(auth,'http://127.0.0.1:'+window.__FB_EMU.auth,{disableWarnings:true})} // solo pruebas locales
+  try{await Au.setPersistence(auth,Au.browserLocalPersistence)}catch(e){}
+  try{await Au.getRedirectResult(auth)}catch(e){}
+  const val=d=>{const o={};for(const k in d)o[k]=d[k]===FB_ST?F.serverTimestamp():d[k];return o};
+  const rows=q=>q.docs.map(d=>Object.assign({_id:d.id,_pend:d.metadata.hasPendingWrites},fbPlain(d.data({serverTimestamps:'estimate'}))));
+  const api={
+   user:()=>{const u=auth.currentUser;return u?{email:String(u.email||'').toLowerCase(),verified:!!u.emailVerified,nombre:u.displayName||''}:null},
+   onUser:cb=>Au.onAuthStateChanged(auth,()=>cb(api.user())),
+   signIn:async()=>{const p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+    try{await Au.signInWithPopup(auth,p)}catch(e){if(/popup-blocked|operation-not-supported|web-storage/.test(e&&e.code||'')){await Au.signInWithRedirect(auth,p);return null}throw e}return api.user()},
+   signOut:()=>Au.signOut(auth),
+   get:async path=>{const s=await F.getDoc(F.doc(db,path));return s.exists()?fbPlain(s.data()):null},
+   list:async coll=>rows(await F.getDocs(F.collection(db,coll))),
+   where:async(coll,field,v)=>rows(await F.getDocs(F.query(F.collection(db,coll),F.where(field,'==',v)))),
+   // Escucha en tiempo real (cambios de otro dispositivo llegan solos)
+   watch:(coll,field,v,cb,err)=>F.onSnapshot(field?F.query(F.collection(db,coll),F.where(field,'==',v)):F.collection(db,coll),q=>cb(rows(q)),e=>err&&err(e)),
+   _emuSignIn:e=>window.__FB_EMU?Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(JSON.stringify({sub:e,email:e,email_verified:true}))):Promise.reject(new Error('solo pruebas')),
+   batch:async ops=>{const b=F.writeBatch(db);for(const o of ops)b.set(F.doc(db,o.path),val(o.data),{merge:!!o.merge});await b.commit()}};
+  return api})().catch(e=>{fbP=null;throw e});return fbP}
+// ---- utilidades compartidas (mismo algoritmo en el Apps Script) ----
+const fbNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function fbHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16).padStart(8,'0')}
+const fbCurpOk=c=>c.length===18&&/^[A-Z]{4}\d{6}/.test(c);
+function fbCasoId(curp,nombre){const c=String(curp||'').trim().toUpperCase(),k=fbCurpOk(c)?'curp:'+c:'nom:'+fbNorm(nombre);return 'c'+fbHash(k)+fbHash('#'+k+'|'+k.length)}
+// Coincidencia del campo «persona que te compartió» con un recomendador (tolerante a acentos/mayúsculas). Solo si es única.
+function fbMatchRec(ref,recs){const r=fbNorm(ref);if(!r)return{rec:null,cands:[]};
+ const cands=(recs||[]).filter(x=>{const n=fbNorm(x.nombre);return n&&(n===r||r.startsWith(n+' ')||n.startsWith(r+' '))});
+ if(cands.length===1)return{rec:cands[0],cands};const ex=cands.filter(x=>fbNorm(x.nombre)===r);return{rec:ex.length===1?ex[0]:null,cands}}
+// ---- Formulario nuevo: columnas por NOMBRE de encabezado (no por posición) ----
+const F2H={marca:h=>h==='marca temporal',nombre:h=>h==='nombre completo'||h.startsWith('nombre completo'),curp:h=>h==='curp'||h.startsWith('curp'),
+ nss:h=>h==='nss'||h.startsWith('nss')||h.includes('seguridad social'),calle:h=>h.includes('calle'),colonia:h=>h.startsWith('colonia'),
+ municipio:h=>h.startsWith('municipio')||h.includes('alcaldia'),entidad:h=>h==='estado'||h.startsWith('estado '),cp:h=>h==='cp'||h.startsWith('codigo postal')||h.startsWith('cp '),
+ tel:h=>h.includes('telefono')||h.includes('celular'),email:h=>h.includes('correo'),ref:h=>h.includes('te compartio')||h.includes('te recomendo')||h.includes('persona que'),
+ fecha:h=>h.startsWith('fecha propuesta')||h.includes('fecha de reunion'),hora:h=>h.startsWith('hora propuesta')||h.includes('hora de reunion'),
+ consent:h=>h.includes('consentimiento')||h.startsWith('confirmacion'),afore:h=>h==='afore'||h.includes('afore')};
+function form2Map(head){const H=head.map(normH),m={},used=new Set();
+ for(const k of ['marca','ref','fecha','hora','consent','nombre','curp','nss','calle','colonia','municipio','entidad','cp','tel','email','afore']){const i=H.findIndex((h,j)=>!used.has(j)&&h&&F2H[k](h));if(i>=0){m[k]=i;used.add(i)}}
+ // Respaldo del nombre: duplicado de «Nombre completo» o la columna sobrante «Columna N» junto a él
+ m.nombreAlt=H.map((h,j)=>j).filter(j=>!used.has(j)&&(F2H.nombre(H[j])||(m.nombre!=null&&j===m.nombre+1&&/^columna \d+$/.test(H[j]))));return m}
+function form2Afore(v){v=String(v||'').trim();if(!v)return'';const n=fbNorm(v);const a=AFORES.find(x=>fbNorm(x)===n||fbNorm(x).split(' ').includes(n)||n.split(' ').some(w=>w.length>3&&fbNorm(x).split(' ').includes(w)));return a||v}
+function form2Recs(values){if(!values||values.length<2)return[];const m=form2Map(values[0]),g=(r,k)=>m[k]!=null?String(r[m[k]]??'').trim():'';
+ return values.slice(1).map((r,i)=>{let nombre=g(r,'nombre');if(!nombre)for(const j of m.nombreAlt){const v=String(r[j]??'').trim();if(v){nombre=v;break}}
+  return{fila:i+2,marca:g(r,'marca'),nombre:nombre.replace(/\s+/g,' '),curp:curpNorm(g(r,'curp')),nss:cleanN(g(r,'nss')),calle:g(r,'calle'),colonia:g(r,'colonia'),municipio:g(r,'municipio'),entidad:g(r,'entidad'),cp:cleanN(g(r,'cp')),tel:cleanN(g(r,'tel')),email:g(r,'email'),ref:g(r,'ref'),citaPropFecha:g(r,'fecha'),citaPropHora:g(r,'hora'),consentimiento:g(r,'consent'),afore:form2Afore(g(r,'afore'))}}).filter(r=>r.nombre||r.curp)}
+// ---- Estado de sesión ----
+const FB={api:null,user:null,casos:[],unsub:null,msg:'',err:'',seen:+lsG('retiroApp.fbSeen')||0};
+const fbIsAdmin=()=>!!(FB.user&&FB.user.verified&&FB.user.email===FB_ADMIN);
+const fbPerm=e=>/permission|insufficient/i.test((e&&(e.code||e.message))||'');
+function fbDocOf(c,extra){const o={};for(const k of FB_DATA){let v=c[k];if(v==null||String(v).trim()==='')continue;v=String(v);if(k==='curp')v=v.slice(0,18);if(k==='nss')v=v.slice(0,11);if(k==='notas')v=v.slice(0,3000);if(k==='nombre')v=v.slice(0,200);o[k]=v}return Object.assign(o,extra||{})}
+// Escritura con tolerancia a falta de red: con caché persistente queda en cola y se sube sola
+async function fbCommit(ops){const p=FB.api.batch(ops);const r=await Promise.race([p.then(()=>'ok'),new Promise(ok=>setTimeout(()=>ok('pend'),6000))]);if(r==='pend')p.catch(e=>{FB.err=String(e&&e.message||e);fbUI()});return r}
+function fbAudit(accion,casoId,detalle,ts,key){const rol=fbIsAdmin()?'admin':'rec';return{path:'audit/'+casoId+'_'+(key||accion+'_'+ts),data:{ts,actor:FB.user.email,rol,accion,casoId,detalle:String(detalle||'').slice(0,300)}}}
+async function fbStart(interactivo){try{FB.api=await fbLoad()}catch(e){FB.err='No se pudo cargar Firebase ('+(e&&e.message||e)+').';fbUI();return}
+ if(!fbStart.on){fbStart.on=true;FB.api.onUser(u=>{FB.user=u;FB.err='';if(u)lsG('retiroApp.fbOn','1');fbWatch();fbUI();if(u&&fbIsAdmin()&&!REC_MODE)fbAdminRefresh(false)})}
+ if(interactivo&&!FB.user){try{FB.user=await FB.api.signIn();if(FB.user)lsG('retiroApp.fbOn','1')}catch(e){FB.err='No se pudo iniciar sesión ('+(e&&(e.code||e.message)||e)+').'}}
+ fbUI()}
+function fbWatch(){if(FB.unsub){try{FB.unsub()}catch(e){}FB.unsub=null}FB.casos=[];if(!FB.user)return;
+ const onErr=e=>{FB.err=fbPerm(e)?(REC_MODE?'Tu correo '+FB.user.email+' no está autorizado en el panel en línea. Pide a la consultoría que te registre con ese correo.':'Esta cuenta ('+FB.user.email+') no es la de administrador ('+FB_ADMIN+').'):'Sin conexión con Firebase: '+(e&&e.message||e);fbUI()};
+ if(REC_MODE)FB.unsub=FB.api.watch('casos','recomendadoraEmail',FB.user.email,L=>{FB.casos=L;FB.err='';fbRecMerge(L);fbUI()},onErr);
+ else if(fbIsAdmin())FB.unsub=FB.api.watch('casos',null,null,L=>{FB.casos=L;FB.err='';fbAdminAvisos(L);fbUI()},onErr);
+ else onErr({code:'permission-denied'})}
+// ================= Lado recomendadora =================
+// Último cambio gana por campo: se aplica el valor remoto si su actualizadoAt (hora del servidor) es más reciente que la edición local
+function fbRecMerge(L){if(!REC_MODE)return;let ch=false;
+ for(const x of L){let c=Object.values(S.clients).find(c=>c.fbId===x._id)||S.clients[x._id];
+  if(!c&&x.curp)c=Object.values(S.clients).find(c=>!c.fbId&&curpNorm(c.curp)&&curpNorm(c.curp)===curpNorm(x.curp));
+  const rt=+x.actualizadoAt||+x.creadoAt||1;
+  if(!c){c=fix(newClient(x.nombre||''));c.id=x._id;c.fb=true;c.fbId=x._id;c.estado='pendiente';c.created=+x.creadoAt||Date.now();c.fieldTs={};for(const k of FB_DATA)if(x[k]){c[k]=x[k];c.fieldTs[k]=rt}if(x.refTexto)c.refTexto=x.refTexto;S.clients[c.id]=c;ch=true;snap[c.id]=sj(c);snapF[c.id]=fmap(c);continue}
+  if(c.fbId!==x._id){c.fbId=x._id;ch=true}c.fieldTs=c.fieldTs||{};
+  for(const k of FB_DATA){const v=x[k]==null?'':String(x[k]);if(v===String(c[k]??''))continue;if(rt>(c.fieldTs[k]||0)){c[k]=v;c.fieldTs[k]=rt;ch=true}}
+  snap[c.id]=sj(c);snapF[c.id]=fmap(c)}
+ if(ch){_save();renderList();if(cur&&S.clients[cur]&&!$('caseView').classList.contains('hidden'))render()}}
+async function fbEnviar(c){if(!FB.user){await fbStart(true);if(!FB.user)return}
+ const me=FB.user.email,id=c.fbId||fbCasoId(c.curp,c.nombre);
+ if(!c.fbEnv||c.fbEnv.ok)c.fbEnv={n:nid(),ts:Date.now()};const ts=c.fbEnv.ts;save();// mismo nonce en reintentos = idempotente
+ const data=fbDocOf(c,{recomendadoraEmail:me,estatus:'enviado',enviadoAt:ts,actualizadoAt:FB_ST,actualizadoPor:me,v:1});
+ try{const r=await fbCommit([{path:'casos/'+id,data,merge:true},fbAudit('enviar',id,'Caso enviado a la herramienta principal',ts,'env_'+c.fbEnv.n)]);
+  c.fbId=id;c.fbEnv.ok=Date.now();c.fbEnviado=ts;save();render();gToast(r==='ok'?'✓ Enviado a la herramienta principal.':'Sin conexión: quedó en cola y se enviará solo al volver internet.','ok')}
+ catch(e){gToast(fbPerm(e)?'No se pudo enviar: este cliente ya está registrado con otra persona, o tu correo no está autorizado en el panel.':'No se pudo enviar ('+(e&&e.message||e)+'). Vuelve a intentar; no se duplicará.')}}
+function fbRecCase(){if(!REC_MODE)return;const c=C(),x=$('recCase');if(!c||!x)return;let d=$('fbRecCase');if(!d){d=document.createElement('div');d.id='fbRecCase';d.className='fbBox';x.appendChild(d)}
+ const remoto=FB.casos.find(k=>k._id===c.fbId),st=remoto&&remoto.estatus==='recibido'?'<div class="ok">✓ La consultoría ya lo recibió</div>':c.fbEnviado?'<div class="ok">✓ Enviado el '+new Date(c.fbEnviado).toLocaleString('es-MX')+'</div>':'';
+ d.innerHTML='<h3>☁️ Herramienta principal</h3>'+st+'<button id="btnFbEnviar">📤 '+(c.fbEnviado?'Volver a enviar cambios':'Enviar a herramienta principal')+'</button><small>Envía los datos del cliente (sin documentos). Puedes repetirlo: no se duplica.</small>';
+ $('btnFbEnviar').onclick=()=>fbEnviar(c)}
+// ================= Lado administrador =================
+function fbAdminAvisos(L){let max=FB.seen,ch=false;for(const x of L){const t=+x.enviadoAt||0;if(x.estatus==='enviado'&&t>FB.seen){addNotif({tipo:'fbEnv',para:'owner',ts:Date.now(),texto:(x.recNombre||recNom(x.recomendadoraEmail)||'Una recomendadora')+' envió el caso de '+(x.nombre||'un cliente')});ch=true}if(t>max)max=t}
+ if(max>FB.seen){FB.seen=max;lsG('retiroApp.fbSeen',String(max))}if(ch)save()}
+async function fbRespaldoUnaVez(){if(lsG('retiroApp.respaldoFB1'))return true;let ok=false;
+ try{const list=Object.values(S.clients).map(c=>{const o={};for(const f in c)if(!/^data:/.test(String(c[f]))&&f!=='files'&&f!=='contratoFirm'&&f!=='docsArchivo')o[f]=c[f];return o});localStorage.setItem('retiroApp.respaldoAntesFirebase',JSON.stringify({fecha:new Date().toISOString(),clientes:list}));ok=true}catch(e){}
+ try{if(driveListo()){const t=await gToken([DRIVE_SCOPE]);await dRespaldo(t,Object.values(S.clients));ok=true}}catch(e){}
+ if(ok)lsG('retiroApp.respaldoFB1',String(Date.now()));return ok}
+async function fbPublicarRecs(){const ts=Date.now(),ops=[],rem=await FB.api.list('recs'),act=new Set();
+ for(const r of S.recs||[]){if(!r.email)continue;act.add(r.email);const x=rem.find(k=>k._id===r.email);if(!x||x.nombre!==r.nombre||x.activo!==true)ops.push({path:'recs/'+r.email,data:{nombre:r.nombre,email:r.email,activo:true,actualizadoAt:ts},merge:true})}
+ for(const x of rem)if(!act.has(x._id)&&x.activo!==false)ops.push({path:'recs/'+x._id,data:{activo:false,actualizadoAt:ts},merge:true});
+ if(ops.length)await fbCommit(ops)}
+// Importa al panel en línea las filas del formulario nuevo (solo crea las que faltan; nunca sobrescribe)
+async function fbImportarForm2(rows){if(!fbIsAdmin())return 0;await fbRespaldoUnaVez();const ex=new Map((await FB.api.list('casos')).map(x=>[x._id,x])),ts=Date.now();let ops=[],n=0;
+ for(const r of rows){const id=fbCasoId(r.curp,r.nombre),m=fbMatchRec(r.ref,S.recs);const loc=Object.values(S.clients).find(c=>c.fbId===id);const recL=loc&&loc.rec?recDe(loc.rec):null;
+  const x=ex.get(id);
+  if(x){if(!x.recomendadoraEmail&&recL&&(recL.email||!x.recNombre)&&!(recL.nombre===x.recNombre&&!recL.email)){ops.push({path:'casos/'+id,data:{recomendadoraEmail:recL.email||'',recNombre:recL.nombre,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',id,'Asignado a '+recL.nombre,ts))}continue}
+  const rec=recL||m.rec;const d=fbDocOf(r,{recomendadoraEmail:rec&&rec.email||'',recNombre:rec?rec.nombre:'',refTexto:String(r.ref||'').slice(0,120),consentimiento:String(r.consentimiento||'').slice(0,200),origen:'formulario',estatus:'formulario',creadoAt:ts,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN,formMarca:r.marca||'',v:1});
+  if(!rec&&m.cands.length)d.recSugerido=m.cands.map(k=>k.nombre).join(' / ').slice(0,200);
+  ex.set(id,d);ops.push({path:'casos/'+id,data:d},fbAudit('importar',id,'Fila del formulario nuevo importada'+(rec&&rec.email?' y asignada a '+rec.nombre:' (sin asignar)'),ts));n++;
+  if(ops.length>=400){await fbCommit(ops);ops=[]}}
+ if(ops.length)await fbCommit(ops);return n}
+async function fbLeerForm2(tok){const base='https://sheets.googleapis.com/v4/spreadsheets/'+FORM2_ID;let res=await fetch(base+'/values/'+encodeURIComponent(FORM2_TAB),{headers:{Authorization:'Bearer '+tok}});
+ if(res.status===400){const mt=await fetch(base+'?fields=sheets.properties.title',{headers:{Authorization:'Bearer '+tok}});if(mt.ok){const t=(((await mt.json()).sheets||[])[0]||{}).properties;if(t)res=await fetch(base+'/values/'+encodeURIComponent(t.title),{headers:{Authorization:'Bearer '+tok}})}}
+ if(!res.ok)throw new Error('Hoja del formulario nuevo respondió '+res.status);return form2Recs((await res.json()).values)}
+// Altas locales desde el formulario nuevo (se asigna recomendador solo si la coincidencia es única; si no, queda «Sin asignar»)
+function form2Local(rows){const L=Object.values(S.clients),IG=ignSets(),nuevos=[];
+ for(const r of rows){const id=fbCasoId(r.curp,r.nombre),cp=curpNorm(r.curp),nom=normIgn(r.nombre);
+  if(L.some(c=>c.fbId===id))continue;if(cp?IG.curps.has(cp):IG.noms.has(nom))continue;
+  const ya=(cp&&L.find(c=>curpNorm(c.curp)===cp))||L.find(c=>normIgn(c.nombre)===nom&&(!cp||!curpNorm(c.curp)));if(ya){if(!ya.fbId)ya.fbId=id;continue}
+  const c=fix(newClient(r.nombre));c.id+='_g'+r.fila;['curp','nss','email','calle','colonia','municipio','cp','afore','tel','entidad','citaPropFecha','citaPropHora'].forEach(k=>{if(r[k])c[k]=r[k]});
+  c.fbId=id;c.refTexto=r.ref||'';c.marca=r.marca||'';c.estado='pendiente';c.nuevoForm=true;c.origen='formulario2';
+  const m=fbMatchRec(r.ref,S.recs);if(m.rec){c.rec=recKey(m.rec);hist(c,'nota','Asignado a recomendador por el formulario («'+r.ref+'»): '+m.rec.nombre)}else hist(c,'nota','Sin asignar: «'+(r.ref||'sin dato')+'»'+(m.cands.length>1?' coincide con varios: '+m.cands.map(k=>k.nombre).join(', '):''));
+  S.clients[c.id]=c;L.push(c);nuevos.push(c)}
+ if(nuevos.length)save();return nuevos}
+async function form2Sync(tok,interactivo){try{const rows=await fbLeerForm2(tok);const nuevos=form2Local(rows);let enLinea=0;
+  if(fbIsAdmin()){try{enLinea=await fbImportarForm2(rows)}catch(e){FB.err='No se pudo subir al panel en línea: '+(e&&e.message||e)}}
+  FB.msg='Formulario nuevo: '+rows.length+' respuesta(s); '+nuevos.length+' nueva(s) en tu lista'+(fbIsAdmin()?', '+enLinea+' nueva(s) en el panel en línea':'')+' · '+new Date().toLocaleTimeString('es-MX');fbUI();return nuevos}
+ catch(e){FB.msg='⚠️ '+(e&&e.message||e);fbUI();if(interactivo)gToast('No se pudo leer el formulario nuevo ('+(e&&e.message||e)+').');return[]}}
+async function fbAdminRefresh(interactivo){if(!fbIsAdmin()){if(interactivo)await fbStart(true);if(!fbIsAdmin())return}
+ try{await fbPublicarRecs()}catch(e){FB.err='No se pudieron publicar los recomendadores: '+(e&&e.message||e)}
+ if(interactivo){try{const tok=await gToken([SH_SCOPE]);await form2Sync(tok,true);renderList()}catch(e){}}fbUI()}
+async function fbAsignar(id,key){const x=FB.casos.find(k=>k._id===id),r=recDe(key);if(!x||!r)return;const ts=Date.now();
+ const loc=Object.values(S.clients).find(c=>c.fbId===id);if(loc&&loc.rec!==key){loc.rec=key;hist(loc,'nota','Asignado a recomendador: '+r.nombre);save();renderList()}
+ try{await fbCommit([{path:'casos/'+id,data:{recomendadoraEmail:r.email||'',recNombre:r.nombre,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',id,'Asignado a '+r.nombre+(r.email?'':' (sin panel)'),ts)]);gToast('Asignado a '+r.nombre+'.','ok')}
+ catch(e){gToast('No se pudo asignar ('+(e&&e.message||e)+').')}}
+// Recibe en la lista local un caso enviado por la recomendadora: llena lo vacío y anota lo distinto (no sobrescribe lo tuyo)
+async function fbRecibir(id){const x=FB.casos.find(k=>k._id===id);if(!x)return;const cp=curpNorm(x.curp),nom=normIgn(x.nombre);
+ let c=Object.values(S.clients).find(c=>c.fbId===id)||(cp&&Object.values(S.clients).find(c=>curpNorm(c.curp)===cp))||Object.values(S.clients).find(c=>!curpNorm(c.curp)&&normIgn(c.nombre)===nom);const nuevo=!c;
+ if(!c){c=fix(newClient(x.nombre||''));c.id+='_fb';c.estado='pendiente';c.nuevoForm=true;c.origen='recomendadora';S.clients[c.id]=c}
+ const dif=[];for(const k of FB_DATA){const v=x[k]==null?'':String(x[k]);if(!v)continue;if(!String(c[k]??'').trim())c[k]=v;else if(String(c[k])!==v)dif.push(k)}
+ c.fbId=id;const r=(S.recs||[]).find(k=>k.email&&k.email===x.recomendadoraEmail);if(r&&!c.rec)c.rec=recKey(r);
+ hist(c,'nota',(nuevo?'Caso recibido de ':'Datos recibidos de ')+(r?r.nombre:'recomendadora')+(dif.length?'. Distinto a lo tuyo (no se cambió): '+dif.join(', '):''));save();renderList();
+ const ts=Date.now();try{await fbCommit([{path:'casos/'+id,data:{estatus:'recibido',recibidoAt:ts,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},{path:'casosAdmin/'+id,data:{localId:c.id,recibidoAt:ts},merge:true},fbAudit('recibir',id,'Recibido en la herramienta principal',ts)])}catch(e){FB.err='No se pudo marcar como recibido: '+(e&&e.message||e)}
+ gToast((nuevo?'Agregado a tu lista: ':'Actualizado: ')+c.nombre+(dif.length?' · revisa diferencias en el historial':''),'ok');fbUI()}
+// Cuando cambias el recomendador en el caso, se refleja en el panel en línea
+function fbOnRecChange(c){if(!c||!c.fbId||!fbIsAdmin())return;const x=FB.casos.find(k=>k._id===c.fbId);if(!x)return;const r=recDe(c.rec);const em=r&&r.email||'';if(x.recomendadoraEmail===em&&x.recNombre===(r?r.nombre:''))return;
+ fbCommit([{path:'casos/'+c.fbId,data:{recomendadoraEmail:em,recNombre:r?r.nombre:'',actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',c.fbId,r?'Asignado a '+r.nombre:'Sin recomendador',Date.now())]).catch(e=>{FB.err=String(e&&e.message||e);fbUI()})}
+// ================= Interfaz =================
+function fbUI(){if(REC_MODE)return fbRecUI();const p=$('fbPanel');if(!p)return;p.classList.remove('hidden');const b=$('fbBody');if(!b)return;
+ const u=FB.user;let h='';
+ if(!u)h='<p>Conecta tu cuenta <b>'+FB_ADMIN+'</b> para ver y asignar los clientes del formulario nuevo y recibir lo que envían las recomendadoras, en tiempo real en todos tus dispositivos.</p><button id="fbIn">Conectar panel en línea</button>';
+ else{h='<div class="row fbRow"><small>Sesión: '+esc(u.email)+'</small><button class="sec mini" id="fbOut">Salir</button><button class="sec" id="fbRef">🔄 Actualizar desde formulario nuevo</button></div>';
+  const sin=FB.casos.filter(x=>!x.recomendadoraEmail&&!x.recNombre),env=FB.casos.filter(x=>x.estatus==='enviado');
+  const opts=k=>'<option value="">— Elegir —</option>'+(S.recs||[]).map(r=>'<option value="'+esc(recKey(r))+'"'+(k&&fbNorm(r.nombre)===fbNorm(k)?' selected':'')+'>'+esc(r.nombre)+(r.email?'':' (sin panel)')+'</option>').join('');
+  h+='<h3>Sin asignar ('+sin.length+')</h3>'+(sin.map(x=>'<div class="fbItem" data-id="'+esc(x._id)+'"><div><b>'+esc(x.nombre)+'</b><br><small>Lo compartió: «'+esc(x.refTexto||'sin dato')+'»'+(x.recSugerido?' · posibles: '+esc(x.recSugerido):'')+'</small></div><div class="row fbRow"><select data-fsel>'+opts(x.recSugerido&&!x.recSugerido.includes('/')?x.recSugerido:'')+'</select><button data-fa="asig">Asignar</button></div></div>').join('')||'<small>Nada pendiente.</small>');
+  h+='<h3>Enviados por recomendadoras ('+env.length+')</h3>'+(env.map(x=>{const loc=Object.values(S.clients).some(c=>c.fbId===x._id);return '<div class="fbItem" data-id="'+esc(x._id)+'"><div><b>'+esc(x.nombre)+'</b><br><small>'+esc(x.recNombre||recNom(x.recomendadoraEmail))+' · '+(x.enviadoAt?new Date(+x.enviadoAt).toLocaleString('es-MX'):'')+(x._pend?' · ⏳ subiendo':'')+'</small></div><button data-fa="rec">'+(loc?'Actualizar en mi lista':'Agregar a mi lista')+'</button></div>'}).join('')||'<small>Nada nuevo.</small>');
+  h+='<small>Total en el panel en línea: '+FB.casos.length+' caso(s).</small>'}
+ h+=(FB.msg?'<div class="ok">'+esc(FB.msg)+'</div>':'')+(FB.err?'<div class="warn">'+esc(FB.err)+'</div>':'');b.innerHTML=h;
+ const q=id=>$(id);if(q('fbIn'))q('fbIn').onclick=()=>fbStart(true);if(q('fbOut'))q('fbOut').onclick=async()=>{await FB.api.signOut();lsG('retiroApp.fbOn',null)};if(q('fbRef'))q('fbRef').onclick=()=>fbAdminRefresh(true);
+ b.onclick=e=>{const t=e.target.closest('[data-fa]');if(!t)return;const it=t.closest('[data-id]'),id=it&&it.dataset.id;if(!id)return;
+  if(t.dataset.fa==='rec')return fbRecibir(id);if(t.dataset.fa==='asig'){const v=it.querySelector('[data-fsel]').value;if(!v)return gToast('Elige a quién asignarlo.');fbAsignar(id,v)}}}
+function fbRecUI(){const d=$('fbRec');if(!d)return;const u=FB.user;
+ d.innerHTML='<h3>☁️ Mis clientes en línea</h3>'+(!u?'<p><small>Entra con tu Gmail para ver los clientes que llenaron tu formulario. Se actualiza solo en tu celular y en tu computadora.</small></p><button id="fbIn">Entrar con Google</button>':
+  '<div class="row fbRow"><small>Sesión: '+esc(u.email)+' · '+FB.casos.length+' cliente(s)</small><button class="sec" id="fbRecRef">🔄 Actualizar mis clientes</button><button class="sec mini" id="fbOut">Salir</button></div>')+(FB.err?'<div class="warn">'+esc(FB.err)+'</div>':'')+(FB.msg?'<div class="ok">'+esc(FB.msg)+'</div>':'');
+ if($('fbIn'))$('fbIn').onclick=()=>fbStart(true);if($('fbOut'))$('fbOut').onclick=async()=>{await FB.api.signOut();lsG('retiroApp.fbOn',null)};
+ if($('fbRecRef'))$('fbRecRef').onclick=async()=>{try{const L=await FB.api.where('casos','recomendadoraEmail',FB.user.email);FB.casos=L;fbRecMerge(L);FB.err='';FB.msg='✓ Actualizado '+new Date().toLocaleTimeString('es-MX')+' · '+L.length+' cliente(s)'}catch(e){FB.err=fbPerm(e)?'Tu correo '+FB.user.email+' no está autorizado en el panel en línea. Pide a la consultoría que te registre con ese correo.':'No se pudo actualizar ('+(e&&e.message||e)+').'}fbRecUI()};
+ if(cur&&!$('caseView').classList.contains('hidden'))fbRecCase()}
+
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{recRender()}catch(e){console.error(e)}try{fbRecCase()}catch(e){console.error(e)}return r}}
 if(REC_MODE){const p=$('paso_p4');if(p){p.querySelector('.pTit b').textContent='Notas y seguimiento';p.querySelector('.pTit small').textContent='Pendientes, notas y fecha de la segunda visita'}recBarUI()}else recCfgUI();
 bellUI();
+if(lsG('retiroApp.fbOn')||window.__FB_MOCK)fbStart(false);else fbUI();
+$('btnForm2').onclick=()=>{S.formUrl=FORM2_URL;recTouch();gToast('Listo: las recomendadoras compartirán el formulario nuevo.','ok')};
 setInterval(()=>dStatus(),30000);
 (async()=>{await syncDrive(false);syncFormulario(false)})();setInterval(()=>syncFormulario(false),5*60*1000);setInterval(()=>syncDrive(false),60000);addEventListener('focus',()=>syncDrive(false));addEventListener('online',()=>syncDrive(false));
 

@@ -1,0 +1,103 @@
+rules_version = '2';
+// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fase 1
+// Pegar completo en Firebase Console > Firestore Database > Reglas > Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Quién es quién ----------
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    // Administrador: Canek (cuenta de la consultoría)
+    function isAdmin() { return signedIn() && myEmail() == 'pensionyretiros@gmail.com'; }
+    // Recomendadora: su correo debe estar dado de alta por el admin en /recs/{correo} con activo == true
+    function isRec() {
+      return signedIn() && !isAdmin()
+        && exists(/databases/$(database)/documents/recs/$(myEmail()))
+        && get(/databases/$(database)/documents/recs/$(myEmail())).data.activo == true;
+    }
+
+    // ---------- Campos permitidos en un caso (sin proveedor, sin pasos internos, sin notas internas) ----------
+    function casoKeys() {
+      return ['nombre','curp','nss','tel','email','afore','calle','colonia','municipio','entidad','cp','notas',
+              'citaPropFecha','citaPropHora','consentimiento','recomendadoraEmail','recNombre','recSugerido',
+              'refTexto','origen','estatus','creadoAt','actualizadoAt','actualizadoPor','enviadoAt','recibidoAt',
+              'formMarca','v'];
+    }
+    // Lo único que una recomendadora puede modificar de SU caso
+    function recEditKeys() {
+      return ['nombre','curp','nss','tel','email','afore','calle','colonia','municipio','entidad','cp','notas',
+              'citaPropFecha','citaPropHora','estatus','enviadoAt','actualizadoAt','actualizadoPor','v'];
+    }
+    function strOk(d) {
+      return (!('nombre' in d) || (d.nombre is string && d.nombre.size() <= 200))
+          && (!('notas' in d) || (d.notas is string && d.notas.size() <= 3000))
+          && (!('curp' in d) || (d.curp is string && d.curp.size() <= 18))
+          && (!('nss' in d) || (d.nss is string && d.nss.size() <= 11));
+    }
+
+    // ---------- Recomendadores (los publica el admin desde su herramienta) ----------
+    match /recs/{email} {
+      allow read: if isAdmin() || (signedIn() && myEmail() == email);
+      allow write: if isAdmin();
+    }
+
+    // ---------- Casos visibles para la recomendadora dueña ----------
+    match /casos/{casoId} {
+      allow read: if isAdmin()
+        || (isRec() && resource.data.recomendadoraEmail == myEmail());
+
+      allow create: if strOk(request.resource.data) && request.resource.data.keys().hasOnly(casoKeys()) && (
+        isAdmin()
+        || (isRec()
+            && request.resource.data.recomendadoraEmail == myEmail()
+            && (!('origen' in request.resource.data) || request.resource.data.origen == 'panel')
+            && request.resource.data.estatus in ['borrador','enviado']
+            && request.resource.data.actualizadoPor == myEmail()
+            && !('recibidoAt' in request.resource.data)
+            && !('recSugerido' in request.resource.data))
+      );
+
+      allow update: if strOk(request.resource.data) && request.resource.data.keys().hasOnly(casoKeys()) && (
+        isAdmin()
+        || (isRec()
+            && resource.data.recomendadoraEmail == myEmail()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(recEditKeys())
+            && request.resource.data.estatus in ['borrador','enviado']
+            && request.resource.data.actualizadoPor == myEmail())
+      );
+
+      // Nunca se borran expedientes desde la app
+      allow delete: if false;
+    }
+
+    // ---------- Datos solo del admin (proveedor, pasos internos, notas internas, vínculo con su lista) ----------
+    match /casosAdmin/{casoId} {
+      allow read, write: if isAdmin();
+    }
+    match /meta/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- Bitácora de auditoría: solo agregar, nunca editar ni borrar ----------
+    match /audit/{entryId} {
+      function auditOk(d) {
+        return d.keys().hasOnly(['ts','actor','rol','accion','casoId','detalle'])
+          && d.actor == myEmail() && d.ts is number && d.accion is string
+          && (!('detalle' in d) || (d.detalle is string && d.detalle.size() <= 300));
+      }
+      allow read: if isAdmin();
+      allow create: if (isAdmin() && auditOk(request.resource.data) && request.resource.data.rol == 'admin')
+        || (isRec() && auditOk(request.resource.data) && request.resource.data.rol == 'rec'
+            && request.resource.data.casoId is string
+            && getAfter(/databases/$(database)/documents/casos/$(request.resource.data.casoId)).data.recomendadoraEmail == myEmail());
+      // Reintento idéntico (idempotente): se permite solo si no cambia NADA
+      allow update: if (isAdmin() || isRec()) && request.resource.data == resource.data;
+      allow delete: if false;
+    }
+
+    // Todo lo demás: cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

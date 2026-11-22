@@ -1,0 +1,93 @@
+/**
+ * Retiro por desempleo · Importador del formulario de recomendadoras → Firebase (Firestore)
+ * Va pegado en la hoja de respuestas del formulario nuevo (Extensiones > Apps Script).
+ * Cada respuesta nueva se guarda en Firestore como caso de la recomendadora que compartió el formulario
+ * (si el nombre coincide con UNA sola recomendadora con correo); si no, queda «Sin asignar» para el admin.
+ * - No usa claves ni tokens guardados: usa la sesión de Google de quien lo instala (debe ser el dueño del
+ *   proyecto Firebase, pensionyretiros@gmail.com).
+ * - Solo CREA casos nuevos; nunca sobrescribe ni borra nada.
+ * - No envía correos ni mensajes a nadie.
+ */
+const PROYECTO='retiro-afore';
+const HOJA='Respuestas de formulario 1';
+const DOCS='projects/'+PROYECTO+'/databases/(default)/documents';
+const API='https://firestore.googleapis.com/v1/';
+const AFORES=['Azteca','Citibanamex/Banamex','Coppel','Inbursa','Invercap','PensionISSSTE','Principal','Profuturo','SURA','XXI Banorte'];
+const normH=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+const cleanN=v=>String(v??'').trim().replace(/\.0$/,'');
+const curpNorm=s=>String(s||'').trim().toUpperCase();
+const FB_DATA=['nombre','curp','nss','tel','email','afore','calle','colonia','municipio','entidad','cp','notas','citaPropFecha','citaPropHora'];
+
+// ---- Lógica compartida con la app (copiada tal cual de la app; la prueba test-apps-script.js verifica que coincida) ----
+const fbNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function fbHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16).padStart(8,'0')}
+const fbCurpOk=c=>c.length===18&&/^[A-Z]{4}\d{6}/.test(c);
+function fbCasoId(curp,nombre){const c=String(curp||'').trim().toUpperCase(),k=fbCurpOk(c)?'curp:'+c:'nom:'+fbNorm(nombre);return 'c'+fbHash(k)+fbHash('#'+k+'|'+k.length)}
+function fbMatchRec(ref,recs){const r=fbNorm(ref);if(!r)return{rec:null,cands:[]};
+ const cands=(recs||[]).filter(x=>{const n=fbNorm(x.nombre);return n&&(n===r||r.startsWith(n+' ')||n.startsWith(r+' '))});
+ if(cands.length===1)return{rec:cands[0],cands};const ex=cands.filter(x=>fbNorm(x.nombre)===r);return{rec:ex.length===1?ex[0]:null,cands}}
+const F2H={marca:h=>h==='marca temporal',nombre:h=>h==='nombre completo'||h.startsWith('nombre completo'),curp:h=>h==='curp'||h.startsWith('curp'),
+ nss:h=>h==='nss'||h.startsWith('nss')||h.includes('seguridad social'),calle:h=>h.includes('calle'),colonia:h=>h.startsWith('colonia'),
+ municipio:h=>h.startsWith('municipio')||h.includes('alcaldia'),entidad:h=>h==='estado'||h.startsWith('estado '),cp:h=>h==='cp'||h.startsWith('codigo postal')||h.startsWith('cp '),
+ tel:h=>h.includes('telefono')||h.includes('celular'),email:h=>h.includes('correo'),ref:h=>h.includes('te compartio')||h.includes('te recomendo')||h.includes('persona que'),
+ fecha:h=>h.startsWith('fecha propuesta')||h.includes('fecha de reunion'),hora:h=>h.startsWith('hora propuesta')||h.includes('hora de reunion'),
+ consent:h=>h.includes('consentimiento')||h.startsWith('confirmacion'),afore:h=>h==='afore'||h.includes('afore')};
+function form2Map(head){const H=head.map(normH),m={},used=new Set();
+ for(const k of ['marca','ref','fecha','hora','consent','nombre','curp','nss','calle','colonia','municipio','entidad','cp','tel','email','afore']){const i=H.findIndex((h,j)=>!used.has(j)&&h&&F2H[k](h));if(i>=0){m[k]=i;used.add(i)}}
+ // Respaldo del nombre: duplicado de «Nombre completo» o la columna sobrante «Columna N» junto a él
+ m.nombreAlt=H.map((h,j)=>j).filter(j=>!used.has(j)&&(F2H.nombre(H[j])||(m.nombre!=null&&j===m.nombre+1&&/^columna \d+$/.test(H[j]))));return m}
+function form2Afore(v){v=String(v||'').trim();if(!v)return'';const n=fbNorm(v);const a=AFORES.find(x=>fbNorm(x)===n||fbNorm(x).split(' ').includes(n)||n.split(' ').some(w=>w.length>3&&fbNorm(x).split(' ').includes(w)));return a||v}
+function form2Recs(values){if(!values||values.length<2)return[];const m=form2Map(values[0]),g=(r,k)=>m[k]!=null?String(r[m[k]]??'').trim():'';
+ return values.slice(1).map((r,i)=>{let nombre=g(r,'nombre');if(!nombre)for(const j of m.nombreAlt){const v=String(r[j]??'').trim();if(v){nombre=v;break}}
+  return{fila:i+2,marca:g(r,'marca'),nombre:nombre.replace(/\s+/g,' '),curp:curpNorm(g(r,'curp')),nss:cleanN(g(r,'nss')),calle:g(r,'calle'),colonia:g(r,'colonia'),municipio:g(r,'municipio'),entidad:g(r,'entidad'),cp:cleanN(g(r,'cp')),tel:cleanN(g(r,'tel')),email:g(r,'email'),ref:g(r,'ref'),citaPropFecha:g(r,'fecha'),citaPropHora:g(r,'hora'),consentimiento:g(r,'consent'),afore:form2Afore(g(r,'afore'))}}).filter(r=>r.nombre||r.curp)}
+
+// ---- Instalación ----
+function instalar(){
+  ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==='alEnviarFormulario').forEach(t=>ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('alEnviarFormulario').forSpreadsheet(SpreadsheetApp.getActive()).onFormSubmit().create();
+  const r=importarTodo();
+  Logger.log('Instalado. Casos nuevos creados ahora: '+r.creados+' · ya existían: '+r.existentes+' · sin asignar: '+r.sinAsignar);
+}
+function alEnviarFormulario(e){ importar_(e&&e.range?[e.range.getRow()]:null); }
+function importarTodo(){ return importar_(null); }
+
+// ---- Importación ----
+function hoja_(){const ss=SpreadsheetApp.getActive();return ss.getSheetByName(HOJA)||ss.getSheets()[0];}
+function importar_(soloFilas){
+  const values=hoja_().getDataRange().getDisplayValues();
+  let rows=form2Recs(values);if(soloFilas)rows=rows.filter(r=>soloFilas.indexOf(r.fila)>=0);
+  const recs=leerRecs_();const res={creados:0,existentes:0,sinAsignar:0,errores:0};const ts=Date.now();
+  const actor=(Session.getEffectiveUser().getEmail()||'apps-script').toLowerCase();
+  for(const r of rows){
+    const id=fbCasoId(r.curp,r.nombre),m=fbMatchRec(r.ref,recs),rec=m.rec;
+    const d={};for(const k of FB_DATA){const v=r[k];if(v!=null&&String(v).trim()!=='')d[k]=String(v).slice(0,k==='nombre'?200:k==='curp'?18:k==='nss'?11:3000);}
+    Object.assign(d,{recomendadoraEmail:rec?rec.email:'',recNombre:rec?rec.nombre:'',refTexto:String(r.ref||'').slice(0,120),consentimiento:String(r.consentimiento||'').slice(0,200),
+      origen:'formulario',estatus:'formulario',creadoAt:ts,actualizadoAt:ts,actualizadoPor:actor,formMarca:r.marca||'',v:1});
+    if(!rec&&m.cands.length)d.recSugerido=m.cands.map(k=>k.nombre).join(' / ').slice(0,200);
+    const audit={ts:ts,actor:actor,rol:'script',accion:'importar',casoId:id,detalle:'Fila del formulario nuevo importada (Apps Script)'+(rec?' y asignada a '+rec.nombre:' (sin asignar)')};
+    const out=commit_([
+      {update:{name:DOCS+'/casos/'+id,fields:aCampos_(d)},currentDocument:{exists:false}},
+      {update:{name:DOCS+'/audit/'+id+'_importar_'+ts,fields:aCampos_(audit)},currentDocument:{exists:false}}]);
+    if(out==='ok'){res.creados++;if(!rec)res.sinAsignar++;}else if(out==='existe')res.existentes++;else res.errores++;
+  }
+  return res;
+}
+function leerRecs_(){
+  const r=pedir_('get',API+DOCS+'/recs?pageSize=300');if(r.code!==200)throw new Error('No se pudieron leer las recomendadoras ('+r.code+'): '+r.text.slice(0,200));
+  return (JSON.parse(r.text||'{}').documents||[]).map(x=>deCampos_(x.fields||{})).filter(x=>x.activo===true&&x.email);
+}
+function commit_(writes){
+  const r=pedir_('post',API+DOCS+':commit',{writes:writes});
+  if(r.code===200)return'ok';
+  if(r.code===409||/FAILED_PRECONDITION|ALREADY_EXISTS/.test(r.text))return'existe';
+  Logger.log('Error al guardar en Firestore ('+r.code+'): '+r.text.slice(0,300));return'error';
+}
+function pedir_(method,url,body){
+  const o={method:method,muteHttpExceptions:true,contentType:'application/json',
+    headers:{Authorization:'Bearer '+ScriptApp.getOAuthToken(),'X-Goog-User-Project':PROYECTO}};
+  if(body)o.payload=JSON.stringify(body);
+  const r=UrlFetchApp.fetch(url,o);return{code:r.getResponseCode(),text:r.getContentText()};
+}
+function aCampos_(o){const f={};for(const k in o){const v=o[k];
+  if(typeof v==='number')f[k]={integerValue:String(Math.round(v))};else if(typeof v==='boolean')f[k]={booleanValue:v};else f[k]={stringValue:String(v)};}return f;}
+function deCampos_(f){const o={};for(const k in f){const v=f[k];o[k]='stringValue' in v?v.stringValue:'booleanValue' in v?v.booleanValue:'integerValue' in v?+v.integerValue:null;}return o;}
