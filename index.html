@@ -45,7 +45,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px}td input{width:100%;pad
 #clientList .client.st-riesgo{border-left-color:#ef6c00}.st-riesgo .dBadge{background:#ef6c00;color:#fff}.st-riesgo .stLbl{color:#ef6c00}
 #clientList .client.st-listo{border-left-color:#2e7d32}.st-listo .dBadge{background:#2e7d32;color:#fff}.st-listo .stLbl{color:#2e7d32}
 #clientList .client.st-solicitado{border-left-color:#1565c0}.st-solicitado .dBadge{background:#1565c0;color:#fff}.st-solicitado .stLbl{color:#1565c0}
-html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,html.rec #recSettings,html.rec #gSettings,html.rec #paso_p5,html.rec #paso_p6,html.rec #paso_p7,html.rec #tramCard,html.rec #altaCard,html.rec #recAsig,html.rec .et[data-et=alta],html.rec .et[data-et=pagos],html.rec .et[data-et=exp],html.rec #btnImport{display:none!important}
+html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,html.rec #recSettings,html.rec #gSettings,html.rec #paso_p5,html.rec #paso_p6,html.rec #paso_p7,html.rec #tramCard,html.rec #altaCard,html.rec #recAsig,html.rec .et[data-et=alta],html.rec .et[data-et=pagos],html.rec .et[data-et=exp],html.rec #btnImport,html.rec #festSettings{display:none!important}
 #recAsig{background:#ede7f6;border-radius:12px;padding:8px 10px;margin:8px 0}#recAsig label{font-weight:bold;display:block}#f_rec{width:100%;min-height:52px!important;font-size:1.1rem!important}#recCfgMsg{font-weight:bold;margin-top:6px}#btnBell{position:relative}#btnBell.bellOn{background:#fff3e0;border-color:#ef6c00}#bellN{background:#d32f2f;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px;font-weight:bold}.aviso{border-bottom:1px solid #e0e0e0;padding:10px 4px}.aviso.nuevo{background:#fff8e1}.aviso textarea{width:100%}
 .b-rec{background:#ede7f6;color:#4527a0}#altaCard.recDest{outline:4px solid #ffb300;box-shadow:0 0 0 8px #ffe08255}#recBar .row button{min-height:48px}.recSol{padding:6px 0;border-bottom:1px dashed #ddd}.recRow input{flex:1 1 40%}
 </style><style id="stepperCss">
@@ -88,7 +88,13 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <label>Link del formulario de registro (Google Forms)</label><input type="url" id="recFormUrl" placeholder="https://forms.gle/…"><small>Link para la recomendadora: <code id="recLink"></code></small><div class="row"><button class="sec" id="btnRecSync">Sincronizar recomendadores ahora</button></div><div id="recCfgMsg"></div></details>
 <details id="gSettings"><summary>Google Calendar (opcional)</summary><label>Client ID de Google OAuth</label>
 <div class="row"><input type="text" id="gCidInput" placeholder="xxxx.apps.googleusercontent.com"><button class="sec" id="btnGCid" style="flex:0 0 auto">Guardar Client ID</button></div>
-<small id="gStatus"></small></details><a href="#" id="gSignOut" class="hidden"><small>Cerrar sesión de Google</small></a></section>
+<small id="gStatus"></small></details>
+<details id="festSettings"><summary>Días festivos (fecha de solicitud)</summary>
+<p><small>Si la fecha de solicitud (baja + 46 días o la regla de 5 años) cae en sábado, domingo o un día de esta lista, se recorre al siguiente día hábil. Zona horaria: Ciudad de México. La lista inicial son los días de descanso obligatorio de la Ley Federal del Trabajo, artículo 74, para 2026 y 2027.</small></p>
+<textarea id="festList" rows="12" style="width:100%;font:14px/1.4 monospace"></textarea>
+<div class="row"><button type="button" id="btnFestSave">Guardar días festivos</button><button class="sec" type="button" id="btnFestReset">Restablecer lista oficial 2026-2027</button></div>
+<small id="festMsg"></small></details>
+<a href="#" id="gSignOut" class="hidden"><small>Cerrar sesión de Google</small></a></section>
 <section id="sheetPanel" class="card hidden"><h2>Generar nuevo contrato</h2>
 <div id="shMsg"><small>Carga los datos del formulario «Contrato (respuestas)» y elige al cliente.</small></div>
 <button id="btnShLoad">Cargar desde Google Sheets</button><button class="sec" id="btnShCsv">Importar CSV</button><input type="file" id="shCsvFile" accept=".csv,text/csv" class="hidden">
@@ -114,6 +120,12 @@ html.rec #btnSync,html.rec #btnContrato,html.rec #btnImpCli,html.rec #ignInfo,ht
 <div class="row"><div><label>Grupo</label><select id="f_estado"><option value="pendiente">Pendiente de firma</option><option value="firmado">Ya está firmado</option><option value="espera">En espera</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option><option value="sinetapa">Sin etapa (por asignar)</option></select></div>
 <div id="condBox"><label>Condición de espera</label><input type="text" id="f_cond" placeholder="Ej. vacaciones, alta en Uber"><label>Revisar la condición el</label><div class="row"><input type="date" data-fe="condFecha"><button class="sec" data-ag="cond" style="flex:0 0 auto">📅 Agendar</button><span class="agOk" data-agok="cond"></span></div></div></div>
 <label>¿Dónde está guardado el contrato firmado?</label><div id="ubicChips"><button class="sec chip" data-u="Carpeta">Carpeta</button><button class="sec chip" data-u="Fanny">Fanny</button><button class="sec chip" data-u="Ruth">Ruth</button><button class="sec chip" data-u="Oficina">Oficina</button><button class="sec chip" data-u="Otro">Otro</button></div><div class="docSt" id="cfBox"><span id="stCf"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir contrato firmado (fotos o PDF)<input type="file" id="f_cf" accept="image/*,application/pdf,.pdf" multiple hidden></label><div id="cfList"></div></div>
+<div class="docSt" id="avPrivBox"><span id="stAvPriv"></span>
+<label class="btn sec" style="display:inline-block;cursor:pointer">Subir aviso de privacidad firmado (foto o PDF)<input type="file" id="f_avPriv" accept="image/*,application/pdf,.pdf" hidden></label>
+<label style="display:inline-flex;align-items:center;gap:8px;margin:8px 0;font-weight:600"><input type="checkbox" id="f_avPrivOk"> Aviso de privacidad firmado</label>
+<small id="avPrivInfo"></small>
+<a href="#" class="verL hidden" data-ver="avisoPriv">ver</a>
+<button class="sec hidden" id="btnAvPrivDel">Quitar</button></div>
 <input type="text" id="f_ubic" placeholder="Ubicación (texto libre)">
 <div class="docSt"><span id="stIne"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">📷 INE frente<input type="file" id="f_ine2" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ine">ver</a> <button class="sec hidden" id="btnIneDel">Quitar</button></div><div class="docSt"><span id="stIneR"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">📷 INE reverso<input type="file" id="f_ineR" accept="image/*" hidden></label> <a href="#" class="verL hidden" data-ver="ineR">ver</a> <button class="sec hidden" id="btnIneRDel">Quitar</button></div>
 <div class="docSt"><span id="stDom"></span> <label class="btn sec" style="display:inline-block;cursor:pointer">Subir comprobante de domicilio<input type="file" id="f_dom" accept="image/*,application/pdf" hidden></label> <a href="#" class="verL hidden" data-ver="dom">ver</a> <button class="sec hidden" id="btnDomDel">Quitar</button></div>
@@ -583,7 +595,8 @@ const num=v=>{const n=parseFloat(String(v??'').replace(/[$,\s]/g,''));return isF
 const r2=n=>Math.round(n*100)/100;
 const CURP_RE=/^[A-Z][AEIOUX][A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HMX](AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$/;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+const TZ_MX='America/Mexico_City';
+function todayStr(){return new Intl.DateTimeFormat('en-CA',{timeZone:TZ_MX,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
 function dStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function addY(s,n){const d=parseD(s);const t=new Date(d.getFullYear()+n,d.getMonth(),d.getDate());if(t.getMonth()!==d.getMonth())t.setDate(0);return dStr(t)}
@@ -712,8 +725,8 @@ const VAL=[null,e1,e2,e3,e4];
 function allErr(c){let e=[];for(let i=1;i<=4;i++)e=e.concat(VAL[i](c));return e.concat(eFinal(c))}
 function calc(c){const s=c.sub;let t=SUBS.reduce((a,[k])=>a+num(s[k]),0)+s.otras.reduce((a,o)=>a+num(o.v),0);t=r2(t);const m=Math.min(t,TOPE);return{total:t,monto:m,com:r2(m*.3),libre:r2(m-r2(m*.3)),viv:num(s.viv)}}
 // recordatorios
-function addRem(c,date,auto){if(S.reminders.some(r=>r.clientId===c.id&&r.date===date))return false;S.reminders.push({id:'r'+Date.now(),clientId:c.id,date,nombre:c.nombre,curp:c.curp,nss:c.nss,text:'ya puede tramitar retiro por desempleo',notified:false});save();renderRem();return true}
-function remText(r){return r.nombre+' (CURP: '+(r.curp||'-')+', NSS: '+(r.nss||'-')+') ya puede tramitar retiro por desempleo'}
+function addRem(c,date,auto){if(S.reminders.some(r=>r.clientId===c.id&&r.date===date))return false;S.reminders.push({id:'r'+Date.now(),clientId:c.id,date,nombre:c.nombre,text:'ya puede tramitar retiro por desempleo',notified:false});save();renderRem();return true}
+function remText(r){return (r.nombre||'Cliente')+' ya puede tramitar retiro por desempleo'}
 function ics(r){const d=r.date.replace(/-/g,''),n=new Date(parseD(r.date).getTime()+864e5),d2=dStr(n).replace(/-/g,''),st=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';const t=remText(r).replace(/[,;\\]/g,m=>'\\'+m);
 const s=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//RetiroApp//ES','BEGIN:VEVENT','UID:'+r.id+'@retiroapp','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+d,'DTEND;VALUE=DATE:'+d2,'SUMMARY:Retiro por desempleo: '+t.split(' (')[0],'DESCRIPTION:'+t,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+t,'TRIGGER:PT9H','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
 const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/calendar'}));a.download='recordatorio-'+(r.nombre||'cliente').replace(/\W+/g,'_')+'-'+r.date+'.ics';document.body.appendChild(a);a.click();a.remove()}
@@ -771,7 +784,7 @@ function renderList(){renderTabs();const q=normQ(qF.trim());const G=Object.value
  const L=G.filter(c=>!stF||estadoSol(c)===stF),rk={atrasado:0,riesgo:1};
  const LC=L.filter(c=>c.fechaSolicitud).sort((a,b)=>((rk[estadoSol(a)]??2)-(rk[estadoSol(b)]??2))||a.fechaSolicitud.localeCompare(b.fechaSolicitud)||b.created-a.created),LS=L.filter(c=>!c.fechaSolicitud).sort((a,b)=>b.created-a.created);
  const row=c=>{const e=estadoSol(c),E=etapas(c);return `<div class="client st-${e}" data-id="${c.id}" data-st="${e}"><div class="cMain"><b>${esc(c.nombre||'(sin nombre)')}</b>${c.nuevoForm?' <span class="badge b-nuevo">Nuevo (formulario)</span>':''}${recBadge(c)}<br><small>${esc(c.curp||'Sin CURP')} · <span class="badge b-${c.estado}">${GNOM[c.estado]}</span>${c.estado==='espera'&&c.cond?' · Condición: '+esc(c.cond):''}${c.ubic?' · 📁 '+esc(c.ubic):''}</small>${tab==='tramite'?'<div class="pagosPills">'+tramPend(c).map(x=>'<span class="pill-or">'+x+'</span>').join(' ')+'</div>':''}${tab==='pagos'?'<div class="pagosPills">'+pagosPend(c).map(x=>'<span class="pill-or">Falta pago de '+x+'</span>').join(' ')+'</div>':''}</div>`+
- `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(c.solPor5?' (por regla de 5 años)':solMovida(c)?' (domingo → lunes)':''):'')}</span>${pendBadge(c)}<div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
+ `<div class="cSide"><span class="dBadge">${e==='solicitado'?'✓ Solicitado':diasTxt(c)}</span><span class="stLbl">${e==='solicitado'?(c.fechaSolicitud?c.fechaSolicitud.split('-').reverse().join('/'):''):(e==='sinfecha'?'':ST_TXT[e])+(c.fechaSolicitud?' · '+c.fechaSolicitud.split('-').reverse().join('/')+(c.solPor5?' (por regla de 5 años)':(!REC_MODE&&solMotivo(c)?' ('+solMotivo(c)+')':'')):'')}</span>${pendBadge(c)}<div class="cAct"><button data-a="open">Abrir</button>${c.estado==='cancelado'?'<button class="sec" data-a="resume">Reanudar</button>':'<button class="mini" data-a="del" title="Eliminar (mover a Cancelados)" aria-label="Eliminar">🗑</button>'}</div></div>`+
  `<div class="etRow"><div class="pasoTxt">${esc(pasoTxt(c))}</div>${E.map((x,i)=>`<button class="et et-${x.st}" data-et="${x.k}" title="${esc(ETAPAS[i][1]+': '+(x.done?'listo'+(x.k==='precal'&&c.semanas!==''&&c.semanas!=null?' · '+c.semanas+' semanas restantes':''):'falta '+x.falta.join(', ')))}"><span class="etE">${ET_UI[x.k][0]}</span> ${ET_UI[x.k][1]}: <strong>${ET_ST[x.st]}</strong></button>`).join('')}<div class="etLeg">Toca una etapa para ver qué falta · <span class="lg ok">Hecho</span> <span class="lg par">En curso</span> <span class="lg no">Pendiente</span></div></div><div class="etFalta hidden"></div></div>`};
  $('clientList').innerHTML=L.length?LC.map(row).join('')+(LS.length?'<div class="solSep" id="solSep">Sin fecha de solicitud ('+LS.length+')</div>'+LS.map(row).join(''):''):'<p><small>No hay clientes'+(Object.keys(S.clients).length?' en este grupo'+(stF?' con ese estado':'')+'.':'. Crea un nuevo caso.')+'</small></p>'}
 $('sumBar').onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;stF=stF===b.dataset.st?'':b.dataset.st;renderList()};
@@ -940,6 +953,12 @@ $('btnGCid').onclick=()=>{const v=$('gCidInput').value.trim();if(v!==gCid()){lsG
 $('gSignOut').onclick=e=>{e.preventDefault();const t=lsG(GK.tok);try{if(t&&window.google&&google.accounts&&google.accounts.oauth2)google.accounts.oauth2.revoke(t,()=>{})}catch(x){}
 lsG(GK.tok,null);lsG(GK.exp,null);lsG(GK.ok,null);lsG(GK.sc,null);gUI();gToast('Sesión de Google cerrada.','ok')};
 gUI();if(gCid()&&location.protocol!=='file:')loadGIS().catch(()=>{});
+function festListText(){return festivosLista().join('\n')}
+function renderFest(){const ta=$('festList');if(!ta)return;if(document.activeElement!==ta)ta.value=festListText()}
+function aplicarFestivos(lista,msg){S.festivos=festivosNorm(lista);S.festivosTs=Date.now();Object.values(S.clients).forEach(c=>{const old=c.fechaSolicitud;normSol(c);if(c.seg2Txt&&old&&c.fechaSolicitud&&old!==c.fechaSolicitud&&typeof fechaTexto==='function')c.seg2Txt=c.seg2Txt.split(fechaTexto(old)).join(fechaTexto(c.fechaSolicitud))});save();renderFest();try{if(cur){renderSeg2(C());renderList()}}catch(e){}const m=$('festMsg');if(m)m.textContent=msg}
+$('btnFestSave').onclick=()=>{const raw=$('festList').value.split(/\r?\n/),n=festivosNorm(raw);if(!n.length){const m=$('festMsg');if(m)m.textContent='Escribe al menos una fecha (AAAA-MM-DD).';return}aplicarFestivos(n,'✔ Se guardaron '+n.length+' días festivos. Las fechas de solicitud se actualizaron.')};
+$('btnFestReset').onclick=()=>{if(!confirm('¿Restablecer la lista oficial de 2026 y 2027 (Ley Federal del Trabajo, art. 74)?'))return;aplicarFestivos(festivosOficiales(),'✔ Lista restablecida (2026-2027). Las fechas de solicitud se actualizaron.')};
+renderFest();
 // ===== Grupos de clientes =====
 const GRUPOS=[['todos','Todos'],['firmado','Firmados'],['pendiente','Pendientes de firma'],['espera','En espera'],['finalizado','Finalizado'],['sinetapa','Sin etapa'],['cancelado','Cancelados']];
 const GNOM={firmado:'Firmado',pendiente:'Pendiente de firma',espera:'En espera',finalizado:'Finalizado',cancelado:'Cancelado',sinetapa:'Sin etapa'};
@@ -1032,11 +1051,11 @@ $('f_ine2').onchange=e=>{subirDoc('ine',e.target.files[0]);e.target.value=''};$(
 $('btnIneDel').onclick=()=>quitarDoc('ine');$('f_ineR').onchange=e=>{subirDoc('ineR',e.target.files[0]);e.target.value=''};$('btnIneRDel').onclick=()=>quitarDoc('ineR');DOC_KW.ineR=DOC_KW.ine;$('btnDomDel').onclick=()=>quitarDoc('dom');
 document.querySelectorAll('#contractCard [data-fe]').forEach(i=>i.oninput=()=>{C()[i.dataset.fe]=i.value;save()});
 const SEG_DEF='Dar seguimiento al trámite';
-function eventoDe(c,k){const n=c.nombre||'cliente',id=' (CURP: '+(c.curp||'-')+', NSS: '+(c.nss||'-')+')';
-if(k==='cita')return{tipo:'Cita de firma',titulo:'Firma de contrato: '+n,desc:'Cita para firmar el contrato de retiro por desempleo de '+n+id+'.',fecha:c.citaFecha,hora:c.citaHora,dur:60,uid:c.id+'-cita'};
-if(k==='seg'){const mo=(c.segNota||'').trim()||SEG_DEF;return{tipo:'Seguimiento',motivo:mo,titulo:'Seguimiento: '+n+' · '+mo,desc:'Seguimiento del trámite de '+n+id+'. Motivo: '+mo+'.',fecha:c.segFecha,hora:c.segHora,dur:30,uid:c.id+'-seg'};}
-if(k==='cond')return{tipo:'Condición En espera',titulo:'Revisar condición de '+n+(c.cond?': '+c.cond:''),desc:n+id+' está en espera'+(c.cond?' por: '+c.cond:'')+'. Revisar si ya puede continuar.',fecha:c.condFecha,uid:c.id+'-cond'};
-if(k==='pagare')return{tipo:'Vencimiento del pagaré',titulo:'Vence pagaré de '+n+' ($ '+money(c.pagareMonto)+')',desc:'Vencimiento del pagaré de '+n+id+' por $ '+money(c.pagareMonto)+'.',fecha:c.pagareVenc,uid:c.id+'-pagare'}}
+function eventoDe(c,k){const n=c.nombre||'cliente';
+if(k==='cita')return{tipo:'Cita de firma',titulo:'Firma de contrato: '+n,desc:'Cita para firmar el contrato de retiro por desempleo de '+n+'.',fecha:c.citaFecha,hora:c.citaHora,dur:60,uid:c.id+'-cita'};
+if(k==='seg'){const mo=(c.segNota||'').trim()||SEG_DEF;return{tipo:'Seguimiento',motivo:mo,titulo:'Seguimiento: '+n+' · '+mo,desc:'Seguimiento del trámite de '+n+'. Motivo: '+mo+'.',fecha:c.segFecha,hora:c.segHora,dur:30,uid:c.id+'-seg'};}
+if(k==='cond')return{tipo:'Condición En espera',titulo:'Revisar condición de '+n+(c.cond?': '+c.cond:''),desc:n+' está en espera'+(c.cond?' por: '+c.cond:'')+'. Revisar si ya puede continuar.',fecha:c.condFecha,uid:c.id+'-cond'};
+if(k==='pagare')return{tipo:'Vencimiento del pagaré',titulo:'Vence pagaré de '+n+' ($ '+money(c.pagareMonto)+')',desc:'Vencimiento del pagaré de '+n+' por $ '+money(c.pagareMonto)+'.',fecha:c.pagareVenc,uid:c.id+'-pagare'}}
 document.querySelector('#caseView').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(b){const ev=eventoDe(C(),b.dataset.ag);if(ev){ev.k=b.dataset.ag;programar(ev)}}});
 document.querySelectorAll('#datosContrato [data-f]').forEach(i=>{if(i.tagName==='SELECT')i.onchange=()=>{C()[i.dataset.f]=aforeVal(i);save()};else i.oninput=()=>{C()[i.dataset.f]=i.value;save()}});
 function altaFalta(c){docSync(c);const f=[];if(!firmadoOK(c))f.push('Contrato firmado (marca el grupo «Ya está firmado»)');if(!c.ine)f.push('INE frente');if(!c.ineR)f.push('INE reverso');if(!c.docDom)f.push('Comprobante de domicilio');return f}
@@ -1128,17 +1147,35 @@ function findBaja(text){const L=String(text||'').split(/\r?\n/).map(nrm);const c
    else for(let j=i+1;j<=i+2&&j<L.length;j++){const d2=fechasEn(L[j]);if(d2.length){cand.push(d2[0].iso);break}}}
   else if(movHdr&&/(^|\s)0?2(\s|$)/.test(l.replace(/\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}/g,' '))){const ds=fechasEn(l);if(ds.length)cand.push(ds[0].iso)}}
  return cand.sort().pop()||null}
-function addDias(iso,n){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m-1,d+n);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
-function setBaja(c,iso){c.fechaBaja=iso||'';c.fechaSolicitud=iso?solDesdeBaja(iso):'';c.solBase=c.fechaSolicitud;c.solCalc=c.fechaSolicitud;c.seg2Txt=null;normSol(c)}
-// Regla: si la fecha de solicitud cae en domingo, se recorre al lunes siguiente
-function esDomingo(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return false;const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).getDay()===0}
-function sinDomingo(iso){return esDomingo(iso)?addDias(iso,1):iso}
-function solDesdeBaja(iso){return sinDomingo(addDias(iso,46))}
-function solMovida(c){return !!(c&&c.fechaSolicitud&&!c.solPor5&&(c.solDomingo||(c.fechaBaja&&esDomingo(addDias(c.fechaBaja,46))&&c.fechaSolicitud===solDesdeBaja(c.fechaBaja))))}
-function sol5(c){if(!c||!c.comp5Fecha||c.r5Conf)return null;const d=c.semDesc;if(d!==''&&d!=null&&String(d).trim()!==''&&num(d)===0)return null;return sinDomingo(addY(c.comp5Fecha,5))}
-// Fecha de solicitud = la más tardía entre (baja SUA + 46 días) y el día que cumple 5 años del último retiro; domingo → lunes
-function normSol(c){if(!c)return c;if(c.fechaSolicitud!==(c.solCalc??null))c.solBase=c.fechaSolicitud||'';let b=c.solBase||'';
- if(b&&esDomingo(b)){b=addDias(b,1);c.solBase=b;c.solDomingo=true}const r=b?sol5(c):null,nf=r&&r>b?r:b,old=c.fechaSolicitud||'';c.solPor5=!!(r&&r>b);
+function addDias(iso,n){const [y,m,d]=iso.split('-').map(Number),t=new Date(Date.UTC(y,m-1,d+n));return t.getUTCFullYear()+'-'+String(t.getUTCMonth()+1).padStart(2,'0')+'-'+String(t.getUTCDate()).padStart(2,'0')}
+function setBaja(c,iso){c.fechaBaja=iso||'';const raw=iso?addDias(iso,46):'';c.solBase=raw;c.fechaSolicitud=raw;c.solCalc=raw;c.solAjuste='';c.solDomingo=false;c.seg2Txt=null;normSol(c)}
+// Días festivos oficiales (LFT art. 74) y recorrido al siguiente día hábil (sábado, domingo o festivo), zona America/Mexico_City
+function festivosLFT(years){const out=[],nthMon=(y,mo,n)=>{const dow=new Date(Date.UTC(y,mo-1,1)).getUTCDay(),first=dow===0?2:dow===1?1:(9-dow),d=first+(n-1)*7;return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0')};
+ const lab={ '01-01':'Año Nuevo','05-01':'Día del Trabajo','09-16':'Independencia','12-25':'Navidad'};
+ (years||[]).forEach(y=>{out.push(y+'-01-01 Año Nuevo');out.push(nthMon(y,2,1)+' Constitución');out.push(nthMon(y,3,3)+' Natalicio de Benito Juárez');out.push(y+'-05-01 Día del Trabajo');out.push(y+'-09-16 Independencia');out.push(nthMon(y,11,3)+' Revolución Mexicana');out.push(y+'-12-25 Navidad')});return out}
+function festivosOficiales(){return festivosLFT([2026,2027])}
+function festivosNorm(arr){const out=[],seen=new Set();(arr||[]).forEach(x=>{const m=String(x||'').trim().match(/^(\d{4}-\d{2}-\d{2})(?:\s+(.*))?$/);if(!m||seen.has(m[1]))return;seen.add(m[1]);out.push(m[2]?m[1]+' '+m[2].trim():m[1])});return out.sort((a,b)=>a.slice(0,10).localeCompare(b.slice(0,10)))}
+function festivosLista(){if(!Array.isArray(S.festivos)||!S.festivos.length)S.festivos=festivosOficiales();return S.festivos}
+function festivoIso(iso){return festivosLista().some(x=>x.slice(0,10)===iso)}
+function dowUTC(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return -1;const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).getUTCDay()}
+function esDomingo(iso){return dowUTC(iso)===0}
+function esNoHabil(iso){const d=dowUTC(iso);return d===0||d===6||festivoIso(iso)}
+function tagsNoHabil(iso){const t=[],d=dowUTC(iso);if(d===6)t.push('sábado');if(d===0)t.push('domingo');if(festivoIso(iso))t.push('festivo');return t}
+function ajusteHabil(iso){if(!iso||!/^\d{4}-\d{2}-\d{2}$/.test(iso))return{fecha:iso||'',motivo:''};let d=iso;const tags=[],seen=new Set();
+ while(esNoHabil(d)&&!seen.has(d)){seen.add(d);tagsNoHabil(d).forEach(t=>{if(!tags.includes(t))tags.push(t)});d=addDias(d,1);if(seen.size>21)break}
+ return{fecha:d,motivo:d!==iso?'se recorrió por '+tags.join('/'):''}}
+function diaHabil(iso){return ajusteHabil(iso).fecha}
+function sinDomingo(iso){return diaHabil(iso)}
+function solDesdeBaja(iso){return diaHabil(addDias(iso,46))}
+function solBruta46(c){return c&&c.fechaBaja?addDias(c.fechaBaja,46):(c&&c.solBase)||''}
+function solMotivo(c){if(!c||!c.fechaSolicitud)return '';if(c.solAjuste)return c.solAjuste;if(c.solPor5&&c.comp5Fecha){const a=ajusteHabil(addY(c.comp5Fecha,5));return a.fecha===c.fechaSolicitud?a.motivo:''}const raw=solBruta46(c);if(!raw)return '';const a=ajusteHabil(raw);return a.fecha===c.fechaSolicitud?a.motivo:''}
+function solMovida(c){return !!(c&&c.fechaSolicitud&&!c.solPor5&&solMotivo(c))}
+function sol5(c){if(!c||!c.comp5Fecha||c.r5Conf)return null;const d=c.semDesc;if(d!==''&&d!=null&&String(d).trim()!==''&&num(d)===0)return null;return diaHabil(addY(c.comp5Fecha,5))}
+// Fecha de solicitud = la más tardía entre (baja SUA + 46 días) y el día que cumple 5 años del último retiro; si cae en sábado, domingo o festivo → siguiente día hábil
+function normSol(c){if(!c||REC_MODE)return c;if(c.fechaSolicitud!==(c.solCalc??null))c.solBase=c.fechaSolicitud||'';let b=c.solBase||'';
+ const aj=b?ajusteHabil(b):{fecha:'',motivo:''};if(aj.fecha)b=aj.fecha;const r=b?sol5(c):null,nf=r&&r>b?r:b,old=c.fechaSolicitud||'';c.solPor5=!!(r&&r>b);
+ if(c.solPor5&&c.comp5Fecha){const a5=ajusteHabil(addY(c.comp5Fecha,5));c.solAjuste=a5.fecha===nf?a5.motivo:'';}else c.solAjuste=aj.motivo||'';
+ c.solDomingo=/domingo/.test(c.solAjuste||'');
  if(nf!==old){c.fechaSolicitud=nf;if(c.seg2Txt&&old&&nf&&typeof fechaTexto==='function')c.seg2Txt=c.seg2Txt.split(fechaTexto(old)).join(fechaTexto(nf))}c.solCalc=c.fechaSolicitud||'';return c}
 async function leerSua(f,id){const m=$('bajaMsg'),say=h=>{if(cur===id)m.innerHTML='<small>'+h+'</small>'};say('Leyendo la fecha de baja del SUA…');
  let t='';try{t=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)?await pdfText(await f.arrayBuffer()):await ocr(await prepImg(await readURL(f)))}catch(x){}
@@ -1150,7 +1187,13 @@ function fechaTexto(iso){const [y,m,d]=iso.split('-').map(Number),t=new Date(y,m
 function seg2Default(c){return'Hola '+primerNombre(c)+', te informo que el '+fechaTexto(c.fechaSolicitud)+' podremos realizar el segundo paso de tu trámite: solicitar tu dinero del retiro por desempleo. Te contactamos ese día para hacerlo. ¡Saludos!'}
 function telCliente(v){let s=String(v??'').trim().replace(/\.0$/,''),d=s.replace(/\D/g,'');if(d.length===13&&d.startsWith('521'))d='52'+d.slice(3);else if(d.length===10)d='52'+d;return /^52\d{10}$/.test(d)?d:null}
 function renderSeg2(c){if(!c||!$('seg2Card'))return;$('f_baja').value=c.fechaBaja||'';
- normSol(c);$('solInfo').innerHTML=c.fechaSolicitud?'Fecha para solicitar el dinero ('+(c.solPor5?'regla de 5 años del último retiro; con el SUA sería el '+fDMY(c.solBase):'baja + 46 días')+'): <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>'+(c.solPor5?' <small class="r5Note">(por regla de 5 años)</small>':'')+(solMovida(c)?' <small class="domNote">(domingo → lunes)</small>':''):'';
+ normSol(c);$('solInfo').innerHTML=(function(){if(!c.fechaSolicitud)return '';const raw=solBruta46(c);let h='';
+ if(raw)h+='Fecha base (baja + 46 días): <b>'+esc(fechaTexto(raw))+'</b>. ';
+ if(c.solPor5&&c.comp5Fecha)h+='Fecha por regla de 5 años: <b>'+esc(fechaTexto(addY(c.comp5Fecha,5)))+'</b>. ';
+ h+='Fecha para solicitar el dinero: <b>'+esc(fechaTexto(c.fechaSolicitud))+'</b>';
+ if(c.solPor5)h+=' <small class="r5Note">(por regla de 5 años)</small>';
+ const mot=solMotivo(c);if(mot)h+=' <small class="domNote">('+esc(mot)+')</small>';
+ return h})();
  if(!c.fechaBaja&&c.pago_sua&&!/Leyendo/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='<small>No se detectó la fecha de baja, escríbela</small>';if(c.fechaBaja&&/No se detectó la fecha de baja, escríbela/.test($('bajaMsg').innerText))$('bajaMsg').innerHTML='';
  const has=!!c.fechaSolicitud;$('seg2Body').classList.toggle('hidden',!has);$('seg2Locked').classList.toggle('hidden',has);if(!has)return;
  const ta=$('seg2Text');if(document.activeElement!==ta)ta.value=c.seg2Txt||seg2Default(c);
@@ -1279,14 +1322,34 @@ doc.setFontSize(10);doc.text(D.fecha,L+W,205,{align:'right'});y=235;const P=PAG_
 para([[P.deb,0]],L,W,false,9.5);para([['el ',0],[D.venc,1]],L,W,false,9.5);para([['La Cantidad de:',1]],L,W,false,9.5);
 doc.rect(L+80,y-8,W-120,20);doc.setFontSize(9.5);font(1);doc.text(D.letras,L+90,y+5);font(0);y+=32;
 para(P.valor,L,W,true,9.5);y+=16;['Nombre: '+D.nombre,'Teléfono: '+(D.tel||''),'Domicilio: '+D.domP].forEach(t=>para([[t,0]],L,W,false,9.5));
-sign(560);return doc}
+sign(560);avisoPrivPDF(doc,c);return doc}
 function contratoHTML(c){const D=contratoData(c),seg=s=>s.map(([t,b])=>b?'<b>'+esc(t)+'</b>':esc(t)).join(''),P=PAG_TXT(D);
 const pg=contratoBlocks(D).map(p=>'<div class="pp">'+p.map(b=>b.t==='logo'?'<img src="'+LOGO+'" style="width:70px">':b.t==='right'?'<p style="text-align:right"><b>'+esc(b.s)+'</b></p>':b.t==='p'?'<p>'+seg(b.segs)+'</p>':b.t==='h'?'<p><b>'+esc(b.s)+'</b></p>':b.t==='sep'?'<p style="text-align:center"><b>---------- '+b.s+' ----------</b></p>':b.t==='ol'?'<ol>'+b.items.map(i=>'<li>'+seg(i)+'</li>').join('')+'</ol>':b.t==='ul'?'<ul>'+b.items.map(i=>'<li>'+seg(i)+'</li>').join('')+'</ul>':b.t==='sign'?'<p style="margin-top:60px">ACEPTO “EL CONTRATANTE” ________________ &nbsp; ________________ MORENO NAVARRETE AARON CANEK, ACEPTO “LA PRESTADORA”</p>':'<br>').join('')+'</div>');
-pg.push('<div class="pp"><img src="'+LOGO+'" style="width:70px"><h2>PAGARÉ</h2><p>No. 1/1 &nbsp; <b>BUENO POR $ '+money(D.monto)+'</b></p><p style="text-align:right"><b>'+esc(D.fecha)+'</b></p><p>'+esc(P.deb)+'<br>el <b>'+esc(D.venc)+'</b><br><b>La Cantidad de:</b> <b>'+esc(D.letras)+'</b></p><p>'+seg(P.valor)+'</p><p>Nombre: '+esc(D.nombre)+'<br>Teléfono: '+esc(D.tel)+'<br>Domicilio: '+esc(D.domP)+'</p><p style="margin-top:60px">ACEPTO “EL CONTRATANTE” ________________ &nbsp; ________________ MORENO NAVARRETE AARON CANEK, ACEPTO “LA PRESTADORA”</p></div>');return pg.join('')}
+pg.push('<div class="pp"><img src="'+LOGO+'" style="width:70px"><h2>PAGARÉ</h2><p>No. 1/1 &nbsp; <b>BUENO POR $ '+money(D.monto)+'</b></p><p style="text-align:right"><b>'+esc(D.fecha)+'</b></p><p>'+esc(P.deb)+'<br>el <b>'+esc(D.venc)+'</b><br><b>La Cantidad de:</b> <b>'+esc(D.letras)+'</b></p><p>'+seg(P.valor)+'</p><p>Nombre: '+esc(D.nombre)+'<br>Teléfono: '+esc(D.tel)+'<br>Domicilio: '+esc(D.domP)+'</p><p style="margin-top:60px">ACEPTO “EL CONTRATANTE” ________________ &nbsp; ________________ MORENO NAVARRETE AARON CANEK, ACEPTO “LA PRESTADORA”</p></div>');pg.push(avisoPrivHTML(c));return pg.join('')}
+function avisoPrivTxt(c){const nom=String((c&&c.nombre)||'').trim()||'________________________________';
+ return['AVISO DE PRIVACIDAD',
+ 'Responsable: Canek Moreno (MORENO NAVARRETE AARON CANEK), con domicilio en Bosque de Bugambilias K3, Rinconada Los Sauces, C.P. 58893, Tarímbaro, Michoacán.',
+ 'Los datos personales que se recaban, incluyendo nombre, CURP, Número de Seguridad Social (NSS), domicilio, teléfono, correo electrónico, AFORE, datos de identificación y documentos (credencial de elector, comprobante de domicilio, estados de cuenta y documentos relacionados con el trámite de retiro por desempleo), se utilizarán para: identificarle y contactarle; evaluar si cumple los requisitos del trámite de retiro por desempleo; elaborar el contrato de prestación de servicios y el pagaré correspondientes; dar seguimiento al trámite y coordinar las gestiones que usted nos encomiende; y conservar el expediente, así como cumplir las obligaciones legales aplicables.',
+ 'Sus datos se tratarán de forma confidencial y se protegerán con medidas de seguridad administrativas y técnicas. Solo se transferirán cuando sea necesario para realizar el trámite ante las instituciones competentes (por ejemplo, el IMSS, la AFORE u otras autoridades o prestadores relacionados) o cuando lo exija la ley.',
+ 'Usted puede ejercer sus derechos de Acceso, Rectificación, Cancelación y Oposición (ARCO), así como revocar su consentimiento, solicitándolo al responsable.',
+ 'Al firmar este aviso, usted otorga su consentimiento expreso para el tratamiento de sus datos personales y documentos en los términos aquí descritos.',
+ 'Nombre del titular: '+nom,
+ 'Firma del titular: _______________________________',
+ 'Fecha: _______________________________'].join('\n')}
+function avisoPrivHTML(c){const T=avisoPrivTxt(c).split('\n'),tit=T[0],nom=T[6],firma=T[7],fec=T[8],ps=T.slice(1,6);
+ return'<div class="pp"><img src="'+LOGO+'" style="width:70px"><h2>'+esc(tit)+'</h2>'+ps.map(p=>'<p>'+esc(p)+'</p>').join('')+'<p style="margin-top:28px">'+esc(nom)+'</p><p style="margin-top:48px">'+esc(firma)+'</p><p>'+esc(fec)+'</p></div>'}
+function avisoPrivPDF(doc,c){const L=48,W=499,FS=11,LH=15;let y=110;
+ doc.addPage();doc.addImage(LOGO,'JPEG',L,30,60,60);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('AVISO DE PRIVACIDAD',L,y);y+=28;
+ doc.setFont('helvetica','normal');doc.setFontSize(FS);
+ const lines=avisoPrivTxt(c).split('\n').slice(1,6);
+ lines.forEach(p=>{const wrap=doc.splitTextToSize(p,W);wrap.forEach(ln=>{doc.text(ln,L,y);y+=LH});y+=8});
+ const rest=avisoPrivTxt(c).split('\n').slice(6);
+ y+=20;doc.setFontSize(12);rest.forEach((p,i)=>{doc.text(p,L,y);y+=i===0?48:28});
+ return doc}
 function contratoFalta(c){const f=[];if(!c.nombre.trim())f.push('nombre');if(!c.curp)f.push('CURP');if(!c.nss)f.push('NSS');if(!String(c.calle||'').trim()||!String(c.colonia||'').trim()||!String(c.municipio||'').trim())f.push(['dirección','calle']);if(!String(c.tel||'').trim())f.push(['teléfono','tel']);if(!String(c.afore||'').trim())f.push(['Afore','afore']);if(!String(c.email||'').trim())f.push(['correo','email']);if(!(calc(c).com>0))f.push('saldos de la Afore (Paso 4) para calcular la comisión del pagaré');return f}
 $('pdfMsg').onclick=e=>{const b=e.target.closest('[data-irf]');if(!b)return;const d=$('datosContrato');d.open=true;const i=d.querySelector('[data-f="'+b.dataset.irf+'"]');if(i){i.scrollIntoView({block:'center'});i.focus()}};
 $('btnPdf').onclick=()=>{const c=C(),f=contratoFalta(c),m=$('pdfMsg');if(f.length){const t=f.map(x=>Array.isArray(x)?x[0]:x),bt=f.filter(Array.isArray).map(x=>'<button class="sec mini" data-irf="'+x[1]+'">Ir a '+esc(x[0])+'</button>').join(' ');m.innerHTML='<div class="alert">Falta: '+esc(t.join(', '))+'.<br>'+bt+'</div>';return}
-if(window.jspdf&&window.jspdf.jsPDF){try{const doc=contratoPDF(c);{const d=new Date(),v=new Date(d.getFullYear(),d.getMonth(),d.getDate()+50);c.pagareVenc=dStr(v);c.pagareMonto=calc(c).com;save();renderContract(c)}doc.save('contrato-'+c.nombre.trim().replace(/\W+/g,'_')+'.pdf');m.innerHTML='<div class="ok">✔ Contrato generado (3 páginas).</div>';return}catch(e){}}
+if(window.jspdf&&window.jspdf.jsPDF){try{const doc=contratoPDF(c);{const d=new Date(),v=new Date(d.getFullYear(),d.getMonth(),d.getDate()+50);c.pagareVenc=dStr(v);c.pagareMonto=calc(c).com;save();renderContract(c)}doc.save('contrato-'+c.nombre.trim().replace(/\W+/g,'_')+'.pdf');m.innerHTML='<div class="ok">✔ Contrato generado (4 páginas, incluye aviso de privacidad).</div>';return}catch(e){}}
 $('printDoc').innerHTML=contratoHTML(c);m.innerHTML='<div class="warn">No se pudo generar el PDF; se abrió la impresión (elige «Guardar como PDF»).</div>';window.print()};
 // ===== Sincronización automática con el formulario (hoja «Contrato») =====
 const IGNORAR_FILAS=[17,30,55,56]; // excluidas a propósito por el usuario: nunca se importan
@@ -1338,9 +1401,9 @@ function semMsgDefault(c){return'Solicitud de semanas cotizadas\nNombre: '+Strin
 function fechaCorta(d){return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
 async function crearEvSemanas(c){const m=$('solMsg'),say=(h,err)=>{if(cur===c.id){m.innerHTML='<small>'+h+'</small>';$('btnSemRetry').classList.toggle('hidden',!err)}};
  if(!gCid()){const t='No hay conexión con Google Calendar (falta el Client ID). Conecta Google y usa «Reintentar recordatorio».';gToast(t);say(t,true);return false}
- try{const a=new Date(c.dineroSolicitado),s=new Date(a.getFullYear(),a.getMonth(),a.getDate()+2,10,0),e=new Date(s.getTime()+15*6e4),tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Mexico_City',t=c.semTxt||semMsgDefault(c);
+ try{const a=new Date(c.dineroSolicitado),s=new Date(a.getFullYear(),a.getMonth(),a.getDate()+2,10,0),e=new Date(s.getTime()+15*6e4),tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Mexico_City',calDesc='Enviar solicitud de semanas cotizadas\nNombre: '+String(c.nombre||'').trim()+'\n\nEnviar al grupo de WhatsApp Business “Canek”';
   if(c.semanasEventId){try{await calReq('DELETE',CAL+'/'+encodeURIComponent(c.semanasEventId))}catch(x){}c.semanasEventId=null}
-  const r=await calReq('POST',CAL,{summary:'Enviar solicitud de semanas cotizadas: '+String(c.nombre||'').trim(),description:t+'\n\nEnviar al grupo de WhatsApp Business “Canek”',start:{dateTime:isoL(s),timeZone:tz},end:{dateTime:isoL(e),timeZone:tz},reminders:{useDefault:false,overrides:[{method:'popup',minutes:0}]}});
+  const r=await calReq('POST',CAL,{summary:'Enviar solicitud de semanas cotizadas: '+String(c.nombre||'').trim(),description:calDesc,start:{dateTime:isoL(s),timeZone:tz},end:{dateTime:isoL(e),timeZone:tz},reminders:{useDefault:false,overrides:[{method:'popup',minutes:0}]}});
   if(!r.ok)throw new Error('Calendar respondió '+r.status);c.semanasEventId=(await r.json()).id;save();const f=fechaCorta(s)+' a las 10:00';gToast('Recordatorio creado en tu Google Calendar para el '+f,'ok');say('📅 Recordatorio en Google Calendar: '+f,false);return true}
  catch(x){const t='No se pudo crear el recordatorio en Google Calendar ('+(x&&x.message||'error')+').';gToast(t);say(t,true);return false}}
 async function solEvidencia(f){if(!f)return;const id=cur;await subirDoc('evidenciaSol',f);const c=S.clients[id];if(!c||!c.evidenciaSol)return;
@@ -1364,11 +1427,11 @@ $('btnSemSent').onclick=async()=>{const c=C();c.semanasEnviadas=Date.now();save(
  if(c.semanasEventId&&confirm('¿Borrar el recordatorio «Enviar solicitud de semanas cotizadas» de tu Google Calendar?')){try{const r=await calReq('DELETE',CAL+'/'+encodeURIComponent(c.semanasEventId));if(!(r.ok||r.status===404||r.status===410))throw new Error('Calendar respondió '+r.status);c.semanasEventId=null;save();gToast('✔ Recordatorio eliminado de Google Calendar.','ok')}catch(e){gToast('No se pudo borrar el evento ('+e.message+'). Bórralo manualmente.')}}renderSol(c)};
 
 /*HIST*/// ===== Historial por cliente (automático por diferencias al guardar + notas) y visor de documentos =====
-const H_DOCS={ine:'INE frente',ineR:'INE reverso',dom:'Comprobante de domicilio',proof:'Imagen del último retiro',pago_sua:'SUA',pago_sipare:'SIPARE',pago_infonavit:'Infonavit',pago_suaPagado:'Comprobante de pago SUA',pago_siparePagado:'Comprobante de pago SIPARE',pago_infonavitPagado:'Comprobante de pago Infonavit',evidenciaSol:'Evidencia de solicitud',constSem:'Constancia de semanas cotizadas'};
+const H_DOCS={ine:'INE frente',ineR:'INE reverso',dom:'Comprobante de domicilio',avisoPriv:'Aviso de privacidad firmado',proof:'Imagen del último retiro',pago_sua:'SUA',pago_sipare:'SIPARE',pago_infonavit:'Infonavit',pago_suaPagado:'Comprobante de pago SUA',pago_siparePagado:'Comprobante de pago SIPARE',pago_infonavitPagado:'Comprobante de pago Infonavit',evidenciaSol:'Evidencia de solicitud',constSem:'Constancia de semanas cotizadas'};
 const H_FECHA=k=>v=>{try{return human(v)}catch(e){return v}};
 const H_CAMPOS=[['fechaBaja','fecha',v=>'Fecha de baja: '+H_FECHA()(v)],['fechaSolicitud','fecha',v=>'Fecha de solicitud del dinero: '+H_FECHA()(v)],['last','fecha',v=>'Fecha del último retiro: '+H_FECHA()(v)],
  ['pagareVenc','contrato',v=>'Contrato y pagaré PDF generados (vence el '+H_FECHA()(v)+')'],['altaEnviada','alta',()=>'Mensaje de alta enviado por WhatsApp Business'],['altaConfirmada','alta',()=>'Proveedor confirmó el alta'],
- ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado'],['comp5At','documento',()=>'Comprobante de 5 años del último retiro subido']];
+ ['ultimoRecordatorio','recordatorio',()=>'Recordatorio enviado al proveedor (@Zapia)'],['recPospuesto','recordatorio',()=>'Recordatorio al proveedor pospuesto 2 días'],['msgSegundoPasoEnviado','mensaje',()=>'Mensaje del segundo paso enviado al cliente'],['dineroSolicitado','tramite',()=>'Dinero solicitado (evidencia guardada)'],['semanasEnviadas','mensaje',()=>'Solicitud de semanas cotizadas enviada'],['precalificadoAt','tramite',()=>'Marcado como precalificado'],['comp5At','documento',()=>'Comprobante de 5 años del último retiro subido'],['avisoPrivAt','documento',()=>'Aviso de privacidad firmado'],['avisoPrivOk','documento',()=>'Aviso de privacidad marcado como firmado']];
 const H_MAX_ARCH=400e3,H_MAX_ARCH_TOT=1.5e6;
 let hsnap={},hMute=false;
 function hSnap(c){const o={estado:c.estado,files:(c.files||[]).map(f=>f.name+'|'+(f.data||'').length),fdata:(c.files||[]).map(f=>f),cf:(c.contratoFirm||[]).map(f=>f.name+'|'+(f.data||'').length),cfdata:(c.contratoFirm||[]).slice(),tram:{expElectronico:!!c.expElectronico,tarjetaN4:!!c.tarjetaN4},ev:c.recordEventId||null,ev2:c.semanasEventId||null};
@@ -1453,13 +1516,23 @@ function renderAg(){const c=C();if(!c)return;document.querySelectorAll('[data-ag
  const sn=document.querySelector('[data-fe="segNota"]');if(sn&&!sn.value&&document.activeElement!==sn)sn.value=SEG_DEF;
  const L=c.segHist||[],lk=a=>a.link?' <a href="'+esc(a.link)+'" target="_blank" rel="noopener" style="color:#1565c0;text-decoration:underline">ver</a>':'';
  $('segBox').innerHTML=L.length?'<div class="agOk" id="segProx">Próximo seguimiento: '+esc(agFmt(L[0]))+' · '+esc(L[0].motivo||'')+lk(L[0])+'</div>'+(L.length>1?'<div id="segHist">'+L.slice(1).map(a=>'<div class="segH">✓ '+esc(agFmt(a))+' · '+esc(a.motivo||'')+lk(a)+'</div>').join('')+'</div>':''):''}
-function updVer(){renderAg();renderCf();const c=C();document.querySelectorAll('#caseView [data-ver]').forEach(a=>a.classList.toggle('hidden',!(c&&c[a.dataset.ver])))}
+function renderAvPriv(){const c=C();if(!c||!$('stAvPriv'))return;const ok=!!(c.avisoPrivOk||c.avisoPriv),when=c.avisoPrivAt?new Date(c.avisoPrivAt).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'}):'';
+ $('stAvPriv').textContent=ok?'✅ Aviso de privacidad firmado'+(when?' · '+when:''):'Aviso de privacidad (opcional en expedientes ya existentes)';
+ const cb=$('f_avPrivOk');if(cb&&document.activeElement!==cb)cb.checked=ok;
+ $('avPrivInfo').textContent=when?'Registrado el '+when:'';
+ $('btnAvPrivDel').classList.toggle('hidden',!c.avisoPriv);
+ const v=document.querySelector('#avPrivBox [data-ver=avisoPriv]');if(v)v.classList.toggle('hidden',!c.avisoPriv)}
+$('f_avPrivOk').onchange=()=>{const c=C();if(!c)return;c.avisoPrivOk=$('f_avPrivOk').checked;c.avisoPrivAt=c.avisoPrivOk||c.avisoPriv?Date.now():null;save();renderAvPriv()};
+$('f_avPriv').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const id=cur;let d;try{if(/^image\//.test(f.type))d=await compress(f);else if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>1.5e6){alert('El PDF pesa más de 1.5 MB; sube una foto.');return}d=await readURL(f)}else{alert('Sube una imagen o un PDF.');return}}catch(x){alert('No se pudo leer el archivo.');return}
+ const c=S.clients[id];c.avisoPriv=d;c.avisoPrivOk=true;c.avisoPrivAt=Date.now();if(!save()){c.avisoPriv=null;alert('No hay espacio para guardar el archivo.')}if(cur===id)render()};
+$('btnAvPrivDel').onclick=()=>{const c=C();if(!c||!confirm('¿Quitar el archivo del aviso de privacidad?'))return;c.avisoPriv='';if(!c.avisoPrivOk)c.avisoPrivAt=null;save();render()};
+function updVer(){renderAg();renderCf();renderAvPriv();const c=C();document.querySelectorAll('#caseView [data-ver]').forEach(a=>a.classList.toggle('hidden',!(c&&c[a.dataset.ver])))}
 for(const n of ['renderContract','render','renderPrecal','renderSol','renderImss']){const o=window[n];if(typeof o==='function')window[n]=function(){const r=o.apply(this,arguments);try{updVer()}catch(x){}return r}}
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.verL');if(!a)return;e.preventDefault();e.stopPropagation();const c=C();if(!c)return;
  const d=a.dataset.vercf!=null?((c.contratoFirm||[])[+a.dataset.vercf]||{}).data:a.dataset.verf!=null?((c.files||[])[+a.dataset.verf]||{}).data:c[a.dataset.ver];if(d)abrirDoc({data:d})},true);
 try{updVer()}catch(x){}
 // ===== Expediente como pasos cronológicos (stepper) =====
-const PASOS=[['p1','Validar requisitos','Precalificación: semanas, saldo Afore, 5 años'],['p2','Generar contrato','Datos, PDF e impresión'],['p3','Firma','INE, comprobante de domicilio y contrato firmado'],
+const PASOS=[['p1','Validar requisitos','Precalificación: semanas, saldo Afore, 5 años'],['p2','Generar contrato','Datos, PDF e impresión'],['p3','Firma','INE, comprobante de domicilio, contrato firmado y aviso de privacidad'],
  ['p4','Agendar seguimiento de pendientes','Expediente electrónico, nivel 4, alta y baja con el proveedor'],['p5','SUA, Infonavit y SIPARE','Recibir y realizar los pagos IMSS'],['p6','Mensaje: segunda parte','Avisar al cliente cuándo nos vemos'],['p7','Solicitud del dinero','El día de la fecha de solicitud']];
 const pasoAbierto={};let pasoCaso=null;
 const autoColapsar=()=>window.__AUTO_COLLAPSE!=null?!!window.__AUTO_COLLAPSE:!navigator.webdriver;
@@ -1484,7 +1557,7 @@ function buildStepper(){const cv=$('caseView'),head=cv.querySelector('.card'),cc
  const lock=document.createElement('div');lock.id='pdfLock';lock.className='warn hidden';$('btnPdf').before(lock);
  // Orden paso 3: INE, domicilio, contrato firmado, ubicación
  {const cl=[...b2.children].find(x=>x.tagName==='LABEL'&&/Cita de firma/.test(x.textContent));if(cl){const r=cl.nextElementSibling;b2.append(cl,r)}}
- {const b3=body.p3,ul=[...b3.children].find(x=>x.tagName==='LABEL'&&/Dónde está guardado/.test(x.textContent));const dd=[...b3.querySelectorAll(':scope > .docSt')].filter(x=>x.id!=='cfBox');b3.prepend(...dd,$('docOcr'),$('docWarn'));b3.append($('cfBox'),ul,$('ubicChips'),$('f_ubic'))}
+ {const b3=body.p3,ul=[...b3.children].find(x=>x.tagName==='LABEL'&&/Dónde está guardado/.test(x.textContent));const dd=[...b3.querySelectorAll(':scope > .docSt')].filter(x=>x.id!=='cfBox');b3.prepend(...dd,$('docOcr'),$('docWarn'));b3.append($('cfBox'),$('avPrivBox'),ul,$('ubicChips'),$('f_ubic'))}
  cc.remove();
  // Paso 1: precalificación + filtro detallado
  body.p1.append($('precalCard'));const fl=document.createElement('details');fl.id='filtroDet';fl.open=true;fl.innerHTML='<summary>Filtro detallado (4 preguntas)</summary>';body.p1.appendChild(fl);
@@ -1521,7 +1594,7 @@ try{updStepper()}catch(x){}
 function devName(){const u=navigator.userAgent;return(/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Equipo')+' · '+(/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox/.test(u)?'Firefox':/Safari/.test(u)?'Safari':'Navegador')}
 function devId(){let d=lsG('retiroApp.devId');if(!d){d='d'+Math.random().toString(36).slice(2,10);lsG('retiroApp.devId',d)}return d}
 function buildState(){return{app:'retiroApp',v:1,savedAt:Date.now(),writer:{dev:devName(),id:devId(),origin:location.origin==='null'?location.protocol:location.origin,ts:Date.now()},clients:S.clients,reminders:S.reminders,form:S.form||null,
-flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0,recs:S.recs||null,recsTs:S.recsTs||0,recsSeedV:S.recsSeedV||0,formUrl:S.formUrl||'',notifs:S.notifs||[]}}}
+flags:{seeded:!!lsG('retiroApp.seeded'),migFinal:!!lsG('retiroApp.migFinal')},lastFormSync:+lsG(SYNC_KEY)||0,limpiarTs:S.limpiarTs||0,ignorados:S.ignorados||[],shared:{waTel:lsG('retiroApp.waTel')||'',provs:S.provs||null,provsTs:S.provsTs||0,recs:S.recs||null,recsTs:S.recsTs||0,recsSeedV:S.recsSeedV||0,formUrl:S.formUrl||'',notifs:S.notifs||[],festivos:S.festivos||null,festivosTs:S.festivosTs||0}}}
 const coreJ=st=>JSON.stringify([st.clients,st.reminders,st.form,st.flags,st.lastFormSync,st.shared,st.limpiarTs||0,(st.ignorados||[]).length]);
 // Fusión por campo: gana el más reciente según fieldTs (o updatedAt si no hay); las listas se unen por id/nombre+fecha.
 const M_LIST={files:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,contratoFirm:f=>f.name+'|'+(f.ts||'')+'|'+(f.data||'').length,historial:h=>h.ts+'|'+h.tipo+'|'+h.texto,docsArchivo:a=>a.k+'|'+a.removed+'|'+(a.data||'').length,segHist:a=>(a.id||'')+'|'+a.fecha+'|'+a.hora+'|'+a.ts};
@@ -1549,6 +1622,7 @@ if(R.shared&&Array.isArray(R.shared.provs)&&(R.shared.provsTs||0)>(S.provsTs||0)
 if(R.shared&&Array.isArray(R.shared.recs)&&(R.shared.recsTs||0)>(S.recsTs||0)){S.recs=R.shared.recs.map(r=>Object.assign({},(S.recs||[]).find(x=>(r.id&&x.id===r.id)||(r.email&&x.email===r.email))||{},r));S.recsTs=R.shared.recsTs;S.recsSeedV=Math.max(S.recsSeedV||0,R.shared.recsSeedV||0);if(R.shared.formUrl!=null)S.formUrl=R.shared.formUrl;changed=true}
 if(R.shared&&Array.isArray(R.shared.notifs)&&notifUnion(R.shared.notifs))changed=true;
 if(R.shared&&R.shared.waTel&&!lsG('retiroApp.waTel')){lsG('retiroApp.waTel',R.shared.waTel);$('altaTel').value=R.shared.waTel}
+if(R.shared&&Array.isArray(R.shared.festivos)&&(R.shared.festivosTs||0)>(S.festivosTs||0)){S.festivos=R.shared.festivos;S.festivosTs=R.shared.festivosTs;changed=true}
 if(purgarViejos())changed=true;if(pendRespaldo.length)guardarRespaldoLocal();renderIgn();
 if(changed){Object.values(S.clients).forEach(fix);snapAll();_save()}return changed}
 const DAPI='https://www.googleapis.com/drive/v3/files',hdr=t=>({Authorization:'Bearer '+t});
@@ -1584,7 +1658,7 @@ finally{dBusy=false;$('syncBanner').classList.toggle('hidden',!needConnect());if
 // ===== Recomendadores: acceso limitado (archivo compartido en Drive con SOLO sus clientes y SOLO campos permitidos) =====
 const REC_DEF=[{id:'r1',nombre:'Stephanie',email:'neymodatendencia1@gmail.com'}];
 // Campos que SÍ viajan al archivo de la recomendadora (lista blanca). Nada de proveedor, alta, SUA, SIPARE, Infonavit, pagos ni historial interno.
-const REC_F=['id','nombre','curp','nss','ineR','tel','email','afore','calle','colonia','municipio','cp','notas','estado','estadoManual','cond','condFecha','step','sub','semanas','semVigente','semDesc','semCot','semReint','semUltBaja','semUltBajaPat','semRevisa','semTxt','semLeida','semTotalDoc','subLeidas','r5','r5Conf','r5ConfAt','comp5','comp5Fecha','comp5FechaManual','comp5At','last','files','constSem','ine','dom','docIne','docDom','contratoFirm','docTs','pagareVenc','pagareMonto','citaFecha','citaHora','segFecha','segHora','segNota','segHist','ubic','created','confirmed','edoRevisa','aviso','fechaSolicitud','solBase','solCalc','solPor5','solDomingo','recListo'];
+const REC_F=['id','nombre','curp','nss','ineR','tel','email','afore','calle','colonia','municipio','cp','notas','estado','estadoManual','cond','condFecha','step','sub','semanas','semVigente','semDesc','semCot','semReint','semUltBaja','semUltBajaPat','semRevisa','semTxt','semLeida','semTotalDoc','subLeidas','r5','r5Conf','r5ConfAt','comp5','comp5Fecha','comp5FechaManual','comp5At','last','files','constSem','ine','dom','docIne','docDom','contratoFirm','avisoPriv','avisoPrivOk','avisoPrivAt','docTs','pagareVenc','pagareMonto','citaFecha','citaHora','segFecha','segHora','segNota','segHist','ubic','created','confirmed','edoRevisa','aviso','fechaSolicitud','solBase','solCalc','solPor5','solDomingo','recListo'];
 const REC_RO=new Set(['id','created','fechaSolicitud','solBase','solCalc','solPor5','solDomingo']);
 const REC_W=REC_F.filter(k=>!REC_RO.has(k));
 const RFILE=e=>'retiro-recomendador-'+e+'.json';
