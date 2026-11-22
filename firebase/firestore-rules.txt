@@ -1,5 +1,5 @@
 rules_version = '2';
-// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fase 1
+// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5
 // Pegar completo en Firebase Console > Firestore Database > Reglas > Publicar.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -21,12 +21,30 @@ service cloud.firestore {
       return ['nombre','curp','nss','tel','email','afore','calle','colonia','municipio','entidad','cp','notas',
               'citaPropFecha','citaPropHora','consentimiento','recomendadoraEmail','recNombre','recSugerido',
               'refTexto','origen','estatus','creadoAt','actualizadoAt','actualizadoPor','enviadoAt','recibidoAt',
-              'formMarca','v'];
+              'formMarca','v',
+              // Fase 2: cita
+              'citaEstado','citaFecha','citaHora','citaDur','citaNota','citaPor','citaAt',
+              // Fase 3: precalificación, contrato y aviso
+              'precalOk','precalFalta','precalAt','contratoEstado','contratoVer','contratoNota','avisoFirmado',
+              // Fase 4: pendientes y fecha de solicitud (la fecha la publica solo el admin)
+              'expedienteOk','nivel4Ok','fechaSolicitud','fechaSolAt',
+              // Fase 5: cierre
+              'pagoEstado','pagoVer','pagoNota','cerradoAt'];
     }
     // Lo único que una recomendadora puede modificar de SU caso
     function recEditKeys() {
       return ['nombre','curp','nss','tel','email','afore','calle','colonia','municipio','entidad','cp','notas',
-              'citaPropFecha','citaPropHora','estatus','enviadoAt','actualizadoAt','actualizadoPor','v'];
+              'citaPropFecha','citaPropHora','estatus','enviadoAt','actualizadoAt','actualizadoPor','v',
+              'citaEstado','citaFecha','citaHora','citaDur','citaNota','citaPor','citaAt',
+              'precalOk','precalFalta','precalAt','contratoEstado','contratoVer','avisoFirmado',
+              'expedienteOk','nivel4Ok','pagoEstado','pagoVer'];
+    }
+    // La recomendadora solo puede marcar «subido» (aprobar / pedir corrección / cerrar es del admin)
+    function recFlowOk(d, ch) {
+      return (!('estatus' in ch) || d.estatus in ['borrador','enviado'])
+        && (!('contratoEstado' in ch) || d.contratoEstado == 'subido')
+        && (!('pagoEstado' in ch) || d.pagoEstado == 'subido')
+        && (!('citaEstado' in ch) || d.citaEstado in ['pendiente_revision','nueva_fecha','esperando_cliente','confirmada','reprogramar','cancelada']);
     }
     function strOk(d) {
       return (!('nombre' in d) || (d.nombre is string && d.nombre.size() <= 200))
@@ -53,8 +71,8 @@ service cloud.firestore {
             && (!('origen' in request.resource.data) || request.resource.data.origen == 'panel')
             && request.resource.data.estatus in ['borrador','enviado']
             && request.resource.data.actualizadoPor == myEmail()
-            && !('recibidoAt' in request.resource.data)
-            && !('recSugerido' in request.resource.data))
+            && request.resource.data.keys().hasOnly(recEditKeys().concat(['recomendadoraEmail','origen']))
+            && recFlowOk(request.resource.data, request.resource.data.keys()))
       );
 
       allow update: if strOk(request.resource.data) && request.resource.data.keys().hasOnly(casoKeys()) && (
@@ -62,11 +80,30 @@ service cloud.firestore {
         || (isRec()
             && resource.data.recomendadoraEmail == myEmail()
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(recEditKeys())
-            && request.resource.data.estatus in ['borrador','enviado']
+            && recFlowOk(request.resource.data, request.resource.data.diff(resource.data).affectedKeys())
             && request.resource.data.actualizadoPor == myEmail())
       );
 
       // Nunca se borran expedientes desde la app
+      allow delete: if false;
+    }
+
+    // ---------- Documentos: SOLO metadatos (el archivo vive en Google Drive) ----------
+    match /docs/{docId} {
+      function docKeys() { return ['casoId','recEmail','tipo','version','fileId','link','nombreArchivo','mime','tamano','subidoPor','subidoAt','estado','nota','revisadoAt','copiaId']; }
+      function docBase(d) {
+        return d.keys().hasOnly(docKeys()) && d.tipo in ['contrato','pago'] && d.version is int && d.version >= 1
+          && d.fileId is string && d.fileId.size() <= 200 && d.subidoPor == myEmail();
+      }
+      allow read: if isAdmin() || (isRec() && resource.data.recEmail == myEmail());
+      allow create: if (isAdmin() && docBase(request.resource.data))
+        || (isRec() && docBase(request.resource.data) && request.resource.data.estado == 'pendiente'
+            && request.resource.data.recEmail == myEmail()
+            && getAfter(/databases/$(database)/documents/casos/$(request.resource.data.casoId)).data.recomendadoraEmail == myEmail());
+      // El admin revisa (aprobado / corregir); un reintento idéntico también se permite
+      allow update: if (isAdmin() && request.resource.data.keys().hasOnly(docKeys())
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado','nota','revisadoAt','copiaId']))
+        || ((isAdmin() || isRec()) && request.resource.data == resource.data);
       allow delete: if false;
     }
 
