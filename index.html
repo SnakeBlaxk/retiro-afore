@@ -1936,7 +1936,9 @@ async function form2Sync(tok,interactivo){try{const rows=await fbLeerForm2(tok);
  catch(e){FB.msg='⚠️ '+(e&&e.message||e);fbUI();if(interactivo)gToast('No se pudo leer el formulario nuevo ('+(e&&e.message||e)+').');return[]}}
 async function fbAdminRefresh(interactivo){if(!fbIsAdmin()){if(interactivo)await fbStart(true);if(!fbIsAdmin())return}
  try{await fbPublicarRecs()}catch(e){FB.err='No se pudieron publicar los recomendadores: '+(e&&e.message||e)}
- if(interactivo){try{const tok=await gToken([SH_SCOPE]);await form2Sync(tok,true);renderList()}catch(e){}}fbUI()}
+ if(interactivo){try{const tok=await gToken([SH_SCOPE]);await form2Sync(tok,true);renderList()}catch(e){}}
+ try{const n=await fbPublicarAsignados();if(n)FB.msg=(FB.msg?FB.msg+' · ':'')+n+' cliente(s) de tu lista publicados en el panel de su recomendadora'}catch(e){FB.err='No se pudieron publicar tus clientes asignados: '+(e&&e.message||e)}
+ fbUI()}
 async function fbAsignar(id,key){const x=FB.casos.find(k=>k._id===id),r=recDe(key);if(!x||!r)return;const ts=Date.now();
  const loc=Object.values(S.clients).find(c=>c.fbId===id);if(loc&&loc.rec!==key){loc.rec=key;hist(loc,'nota','Asignado a recomendador: '+r.nombre);save();renderList()}
  try{await fbCommit([{path:'casos/'+id,data:{recomendadoraEmail:r.email||'',recNombre:r.nombre,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',id,'Asignado a '+r.nombre+(r.email?'':' (sin panel)'),ts)]);gToast('Asignado a '+r.nombre+'.','ok')}
@@ -1952,9 +1954,37 @@ async function fbRecibir(id){const x=FB.casos.find(k=>k._id===id);if(!x)return;c
  hist(c,'nota',(nuevo?'Caso recibido de ':'Datos recibidos de ')+(r?r.nombre:'recomendadora')+(dif.length?'. Distinto a lo tuyo (no se cambió): '+dif.join(', '):''));save();renderList();
  const ts=Date.now();try{await fbCommit([{path:'casos/'+id,data:{estatus:'recibido',recibidoAt:ts,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},{path:'casosAdmin/'+id,data:{localId:c.id,recibidoAt:ts},merge:true},fbAudit('recibir',id,'Recibido en la herramienta principal',ts)])}catch(e){FB.err='No se pudo marcar como recibido: '+(e&&e.message||e)}
  gToast((nuevo?'Agregado a tu lista: ':'Actualizado: ')+c.nombre+(dif.length?' · revisa diferencias en el historial':''),'ok');fbUI()}
-// Cuando cambias el recomendador en el caso, se refleja en el panel en línea
-function fbOnRecChange(c){if(!c||!c.fbId||!fbIsAdmin())return;const x=FB.casos.find(k=>k._id===c.fbId);if(!x)return;const r=recDe(c.rec);const em=r&&r.email||'';if(x.recomendadoraEmail===em&&x.recNombre===(r?r.nombre:''))return;
- fbCommit([{path:'casos/'+c.fbId,data:{recomendadoraEmail:em,recNombre:r?r.nombre:'',actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',c.fbId,r?'Asignado a '+r.nombre:'Sin recomendador',Date.now())]).catch(e=>{FB.err=String(e&&e.message||e);fbUI()})}
+// Cuando cambias el recomendador en el caso, se refleja en el panel en línea.
+// Si el cliente aún no está en el panel (formulario viejo o alta manual) y la recomendadora tiene correo, se publica con datos seguros.
+function fbOnRecChange(c){if(!c||!fbIsAdmin())return;const r=recDe(c.rec);const x=c.fbId&&FB.casos.find(k=>k._id===c.fbId);
+ if(x){const em=r&&r.email||'';if(x.recomendadoraEmail===em&&x.recNombre===(r?r.nombre:''))return;
+  fbCommit([{path:'casos/'+c.fbId,data:{recomendadoraEmail:em,recNombre:r?r.nombre:'',actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',c.fbId,r?'Asignado a '+r.nombre+(em?'':' (sin panel)'):'Sin recomendador',Date.now())]).catch(e=>{FB.err=String(e&&e.message||e);fbUI()});return}
+ if(!r||!r.email)return;
+ fbPublicarCliente(c).then(n=>{if(n)gToast('Publicado en el panel de '+r.nombre+'.','ok')}).catch(e=>{FB.err='No se pudo publicar en el panel en línea: '+(e&&e.message||e);fbUI()})}
+// Solo campos permitidos a la recomendadora (sin notas internas, proveedor, pasos, documentos ni alta/baja)
+const FB_PUB=FB_DATA.filter(k=>k!=='notas');
+function fbPubDoc(c,r,ts){const o={};for(const k of FB_PUB){let v=c[k];if(v==null)continue;v=String(v).trim();if(k==='curp')v=curpNorm(v);if(!v)continue;
+  v=v.slice(0,k==='curp'?18:k==='nss'?11:k==='nombre'?200:300);o[k]=v}
+ return Object.assign(o,{recomendadoraEmail:r.email,recNombre:r.nombre,origen:'herramienta',estatus:'recibido',creadoAt:ts,recibidoAt:ts,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN,v:1})}
+// Operaciones para dejar un cliente local en el panel de su recomendadora. L = casos actuales (se le agrega lo creado).
+// Busca primero por fbId, luego por CURP y luego por nombre (sin duplicar). masivo=true no le quita un caso a otra recomendadora.
+function fbPubOps(c,L,ts,masivo){const r=recDe(c.rec);if(!r||!r.email||!String(c.nombre||'').trim())return null;
+ const cp=curpNorm(c.curp),nom=normIgn(c.nombre);
+ const x=(c.fbId&&L.find(k=>k._id===c.fbId))||(cp&&L.find(k=>curpNorm(k.curp)===cp))||L.find(k=>normIgn(k.nombre)===nom&&!(cp&&curpNorm(k.curp)&&curpNorm(k.curp)!==cp));
+ if(x){c.fbId=x._id;if(x.recomendadoraEmail===r.email&&x.recNombre===r.nombre)return{id:x._id,ops:[]};
+  if(masivo&&x.recomendadoraEmail&&x.recomendadoraEmail!==r.email)return{id:x._id,ops:[]};
+  x.recomendadoraEmail=r.email;x.recNombre=r.nombre;
+  return{id:x._id,ops:[{path:'casos/'+x._id,data:{recomendadoraEmail:r.email,recNombre:r.nombre,actualizadoAt:FB_ST,actualizadoPor:FB_ADMIN},merge:true},fbAudit('asignar',x._id,'Asignado a '+r.nombre,ts)]}}
+ const id=c.fbId||fbCasoId(c.curp,c.nombre),d=fbPubDoc(c,r,ts);c.fbId=id;L.push(Object.assign({_id:id},d));
+ return{id,nuevo:true,ops:[{path:'casos/'+id,data:d,merge:true},{path:'casosAdmin/'+id,data:{localId:c.id,recibidoAt:ts},merge:true},fbAudit('asignar',id,'Publicado desde la herramienta principal y asignado a '+r.nombre,ts)]}}
+async function fbPublicarCliente(c){const L=await FB.api.list('casos');const p=fbPubOps(c,L,Date.now(),false);if(!p)return 0;save();if(p.ops.length)await fbCommit(p.ops);return p.ops.length?1:0}
+// Una vez al conectar y en cada «Actualizar»: publica los clientes ya asignados a una recomendadora con correo (idempotente)
+async function fbPublicarAsignados(){if(!fbIsAdmin())return 0;
+ const cand=Object.values(S.clients).filter(c=>!['finalizado','cancelado'].includes(c.estado)&&(recDe(c.rec)||{}).email);if(!cand.length)return 0;
+ const L=await FB.api.list('casos'),ts=Date.now();let ops=[],n=0,ch=false;
+ for(const c of cand){const antes=c.fbId,p=fbPubOps(c,L,ts,true);if(!p)continue;if(c.fbId!==antes)ch=true;
+  if(p.ops.length){if(p.nuevo&&!n)await fbRespaldoUnaVez();ops.push(...p.ops);n++}if(ops.length>=400){await fbCommit(ops);ops=[]}}
+ if(ch)save();if(ops.length)await fbCommit(ops);return n}
 // ================= Acciones idempotentes (toda transición deja auditoría) =================
 // El identificador de cada acción se guarda hasta que el servidor la confirma: un reintento no duplica nada.
 async function fbAct(id,patch,accion,detalle,extra){if(!FB.user)throw new Error('Sin sesión');const key='retiroApp.fbAct.'+id+'.'+accion+'.'+fbHash(JSON.stringify(patch)+JSON.stringify((extra||[]).map(o=>o.path)));
