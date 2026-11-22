@@ -1,0 +1,286 @@
+<!doctype html><html lang="en" translate="no" class="notranslate"><head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width,initial-scale=1"><title>rules</title>
+<style>body{font-family:sans-serif;margin:12px}button{font-size:20px;padding:14px 20px;width:100%;background:#1a73e8;color:#fff;border:0;border-radius:10px}pre{white-space:pre-wrap;font-size:12px;background:#f3f3f3;padding:8px}#ok{color:green;font-size:18px}</style></head>
+<body translate="no"><button id="b">Copiar reglas</button><p id="ok"></p>
+<textarea id="t" readonly style="position:absolute;left:-9999px">rules_version = &#x27;2&#x27;;
+// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5
+// Pegar completo en Firebase Console &gt; Firestore Database &gt; Reglas &gt; Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Quién es quién ----------
+    function signedIn() { return request.auth != null &amp;&amp; request.auth.token.email_verified == true; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    // Administrador: Canek (cuenta de la consultoría)
+    function isAdmin() { return signedIn() &amp;&amp; myEmail() == &#x27;pensionyretiros@gmail.com&#x27;; }
+    // Recomendadora: su correo debe estar dado de alta por el admin en /recs/{correo} con activo == true
+    function isRec() {
+      return signedIn() &amp;&amp; !isAdmin()
+        &amp;&amp; exists(/databases/$(database)/documents/recs/$(myEmail()))
+        &amp;&amp; get(/databases/$(database)/documents/recs/$(myEmail())).data.activo == true;
+    }
+
+    // ---------- Campos permitidos en un caso (sin proveedor, sin pasos internos, sin notas internas) ----------
+    function casoKeys() {
+      return [&#x27;nombre&#x27;,&#x27;curp&#x27;,&#x27;nss&#x27;,&#x27;tel&#x27;,&#x27;email&#x27;,&#x27;afore&#x27;,&#x27;calle&#x27;,&#x27;colonia&#x27;,&#x27;municipio&#x27;,&#x27;entidad&#x27;,&#x27;cp&#x27;,&#x27;notas&#x27;,
+              &#x27;citaPropFecha&#x27;,&#x27;citaPropHora&#x27;,&#x27;consentimiento&#x27;,&#x27;recomendadoraEmail&#x27;,&#x27;recNombre&#x27;,&#x27;recSugerido&#x27;,
+              &#x27;refTexto&#x27;,&#x27;origen&#x27;,&#x27;estatus&#x27;,&#x27;creadoAt&#x27;,&#x27;actualizadoAt&#x27;,&#x27;actualizadoPor&#x27;,&#x27;enviadoAt&#x27;,&#x27;recibidoAt&#x27;,
+              &#x27;formMarca&#x27;,&#x27;v&#x27;,
+              // Fase 2: cita
+              &#x27;citaEstado&#x27;,&#x27;citaFecha&#x27;,&#x27;citaHora&#x27;,&#x27;citaDur&#x27;,&#x27;citaNota&#x27;,&#x27;citaPor&#x27;,&#x27;citaAt&#x27;,
+              // Fase 3: precalificación, contrato y aviso
+              &#x27;precalOk&#x27;,&#x27;precalFalta&#x27;,&#x27;precalAt&#x27;,&#x27;contratoEstado&#x27;,&#x27;contratoVer&#x27;,&#x27;contratoNota&#x27;,&#x27;avisoFirmado&#x27;,
+              // Fase 4: pendientes y fecha de solicitud (la fecha la publica solo el admin)
+              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;fechaSolicitud&#x27;,&#x27;fechaSolAt&#x27;,
+              // Fase 5: cierre
+              &#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,&#x27;pagoNota&#x27;,&#x27;cerradoAt&#x27;];
+    }
+    // Lo único que una recomendadora puede modificar de SU caso
+    function recEditKeys() {
+      return [&#x27;nombre&#x27;,&#x27;curp&#x27;,&#x27;nss&#x27;,&#x27;tel&#x27;,&#x27;email&#x27;,&#x27;afore&#x27;,&#x27;calle&#x27;,&#x27;colonia&#x27;,&#x27;municipio&#x27;,&#x27;entidad&#x27;,&#x27;cp&#x27;,&#x27;notas&#x27;,
+              &#x27;citaPropFecha&#x27;,&#x27;citaPropHora&#x27;,&#x27;estatus&#x27;,&#x27;enviadoAt&#x27;,&#x27;actualizadoAt&#x27;,&#x27;actualizadoPor&#x27;,&#x27;v&#x27;,
+              &#x27;citaEstado&#x27;,&#x27;citaFecha&#x27;,&#x27;citaHora&#x27;,&#x27;citaDur&#x27;,&#x27;citaNota&#x27;,&#x27;citaPor&#x27;,&#x27;citaAt&#x27;,
+              &#x27;precalOk&#x27;,&#x27;precalFalta&#x27;,&#x27;precalAt&#x27;,&#x27;contratoEstado&#x27;,&#x27;contratoVer&#x27;,&#x27;avisoFirmado&#x27;,
+              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;];
+    }
+    // La recomendadora solo puede marcar «subido» (aprobar / pedir corrección / cerrar es del admin)
+    function recFlowOk(d, ch) {
+      return (!(&#x27;estatus&#x27; in ch) || d.estatus in [&#x27;borrador&#x27;,&#x27;enviado&#x27;])
+        &amp;&amp; (!(&#x27;contratoEstado&#x27; in ch) || d.contratoEstado == &#x27;subido&#x27;)
+        &amp;&amp; (!(&#x27;pagoEstado&#x27; in ch) || d.pagoEstado == &#x27;subido&#x27;)
+        &amp;&amp; (!(&#x27;citaEstado&#x27; in ch) || d.citaEstado in [&#x27;pendiente_revision&#x27;,&#x27;nueva_fecha&#x27;,&#x27;esperando_cliente&#x27;,&#x27;confirmada&#x27;,&#x27;reprogramar&#x27;,&#x27;cancelada&#x27;]);
+    }
+    function strOk(d) {
+      return (!(&#x27;nombre&#x27; in d) || (d.nombre is string &amp;&amp; d.nombre.size() &lt;= 200))
+          &amp;&amp; (!(&#x27;notas&#x27; in d) || (d.notas is string &amp;&amp; d.notas.size() &lt;= 3000))
+          &amp;&amp; (!(&#x27;curp&#x27; in d) || (d.curp is string &amp;&amp; d.curp.size() &lt;= 18))
+          &amp;&amp; (!(&#x27;nss&#x27; in d) || (d.nss is string &amp;&amp; d.nss.size() &lt;= 11));
+    }
+
+    // ---------- Recomendadores (los publica el admin desde su herramienta) ----------
+    match /recs/{email} {
+      allow read: if isAdmin() || (signedIn() &amp;&amp; myEmail() == email);
+      allow write: if isAdmin();
+    }
+
+    // ---------- Casos visibles para la recomendadora dueña ----------
+    match /casos/{casoId} {
+      allow read: if isAdmin()
+        || (isRec() &amp;&amp; resource.data.recomendadoraEmail == myEmail());
+
+      allow create: if strOk(request.resource.data) &amp;&amp; request.resource.data.keys().hasOnly(casoKeys()) &amp;&amp; (
+        isAdmin()
+        || (isRec()
+            &amp;&amp; request.resource.data.recomendadoraEmail == myEmail()
+            &amp;&amp; (!(&#x27;origen&#x27; in request.resource.data) || request.resource.data.origen == &#x27;panel&#x27;)
+            &amp;&amp; request.resource.data.estatus in [&#x27;borrador&#x27;,&#x27;enviado&#x27;]
+            &amp;&amp; request.resource.data.actualizadoPor == myEmail()
+            &amp;&amp; request.resource.data.keys().hasOnly(recEditKeys().concat([&#x27;recomendadoraEmail&#x27;,&#x27;origen&#x27;]))
+            &amp;&amp; recFlowOk(request.resource.data, request.resource.data.keys()))
+      );
+
+      allow update: if strOk(request.resource.data) &amp;&amp; request.resource.data.keys().hasOnly(casoKeys()) &amp;&amp; (
+        isAdmin()
+        || (isRec()
+            &amp;&amp; resource.data.recomendadoraEmail == myEmail()
+            &amp;&amp; request.resource.data.diff(resource.data).affectedKeys().hasOnly(recEditKeys())
+            &amp;&amp; recFlowOk(request.resource.data, request.resource.data.diff(resource.data).affectedKeys())
+            &amp;&amp; request.resource.data.actualizadoPor == myEmail())
+      );
+
+      // Nunca se borran expedientes desde la app
+      allow delete: if false;
+    }
+
+    // ---------- Documentos: SOLO metadatos (el archivo vive en Google Drive) ----------
+    match /docs/{docId} {
+      function docKeys() { return [&#x27;casoId&#x27;,&#x27;recEmail&#x27;,&#x27;tipo&#x27;,&#x27;version&#x27;,&#x27;fileId&#x27;,&#x27;link&#x27;,&#x27;nombreArchivo&#x27;,&#x27;mime&#x27;,&#x27;tamano&#x27;,&#x27;subidoPor&#x27;,&#x27;subidoAt&#x27;,&#x27;estado&#x27;,&#x27;nota&#x27;,&#x27;revisadoAt&#x27;,&#x27;copiaId&#x27;]; }
+      function docBase(d) {
+        return d.keys().hasOnly(docKeys()) &amp;&amp; d.tipo in [&#x27;contrato&#x27;,&#x27;pago&#x27;] &amp;&amp; d.version is int &amp;&amp; d.version &gt;= 1
+          &amp;&amp; d.fileId is string &amp;&amp; d.fileId.size() &lt;= 200 &amp;&amp; d.subidoPor == myEmail();
+      }
+      allow read: if isAdmin() || (isRec() &amp;&amp; resource.data.recEmail == myEmail());
+      allow create: if (isAdmin() &amp;&amp; docBase(request.resource.data))
+        || (isRec() &amp;&amp; docBase(request.resource.data) &amp;&amp; request.resource.data.estado == &#x27;pendiente&#x27;
+            &amp;&amp; request.resource.data.recEmail == myEmail()
+            &amp;&amp; getAfter(/databases/$(database)/documents/casos/$(request.resource.data.casoId)).data.recomendadoraEmail == myEmail());
+      // El admin revisa (aprobado / corregir); un reintento idéntico también se permite
+      allow update: if (isAdmin() &amp;&amp; request.resource.data.keys().hasOnly(docKeys())
+            &amp;&amp; request.resource.data.diff(resource.data).affectedKeys().hasOnly([&#x27;estado&#x27;,&#x27;nota&#x27;,&#x27;revisadoAt&#x27;,&#x27;copiaId&#x27;]))
+        || ((isAdmin() || isRec()) &amp;&amp; request.resource.data == resource.data);
+      allow delete: if false;
+    }
+
+    // ---------- Datos solo del admin (proveedor, pasos internos, notas internas, vínculo con su lista) ----------
+    match /casosAdmin/{casoId} {
+      allow read, write: if isAdmin();
+    }
+    match /meta/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- Bitácora de auditoría: solo agregar, nunca editar ni borrar ----------
+    match /audit/{entryId} {
+      function auditOk(d) {
+        return d.keys().hasOnly([&#x27;ts&#x27;,&#x27;actor&#x27;,&#x27;rol&#x27;,&#x27;accion&#x27;,&#x27;casoId&#x27;,&#x27;detalle&#x27;])
+          &amp;&amp; d.actor == myEmail() &amp;&amp; d.ts is number &amp;&amp; d.accion is string
+          &amp;&amp; (!(&#x27;detalle&#x27; in d) || (d.detalle is string &amp;&amp; d.detalle.size() &lt;= 300));
+      }
+      allow read: if isAdmin();
+      allow create: if (isAdmin() &amp;&amp; auditOk(request.resource.data) &amp;&amp; request.resource.data.rol == &#x27;admin&#x27;)
+        || (isRec() &amp;&amp; auditOk(request.resource.data) &amp;&amp; request.resource.data.rol == &#x27;rec&#x27;
+            &amp;&amp; request.resource.data.casoId is string
+            &amp;&amp; getAfter(/databases/$(database)/documents/casos/$(request.resource.data.casoId)).data.recomendadoraEmail == myEmail());
+      // Reintento idéntico (idempotente): se permite solo si no cambia NADA
+      allow update: if (isAdmin() || isRec()) &amp;&amp; request.resource.data == resource.data;
+      allow delete: if false;
+    }
+
+    // Todo lo demás: cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+</textarea>
+<pre class="notranslate" translate="no">rules_version = &#x27;2&#x27;;
+// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5
+// Pegar completo en Firebase Console &gt; Firestore Database &gt; Reglas &gt; Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Quién es quién ----------
+    function signedIn() { return request.auth != null &amp;&amp; request.auth.token.email_verified == true; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    // Administrador: Canek (cuenta de la consultoría)
+    function isAdmin() { return signedIn() &amp;&amp; myEmail() == &#x27;pensionyretiros@gmail.com&#x27;; }
+    // Recomendadora: su correo debe estar dado de alta por el admin en /recs/{correo} con activo == true
+    function isRec() {
+      return signedIn() &amp;&amp; !isAdmin()
+        &amp;&amp; exists(/databases/$(database)/documents/recs/$(myEmail()))
+        &amp;&amp; get(/databases/$(database)/documents/recs/$(myEmail())).data.activo == true;
+    }
+
+    // ---------- Campos permitidos en un caso (sin proveedor, sin pasos internos, sin notas internas) ----------
+    function casoKeys() {
+      return [&#x27;nombre&#x27;,&#x27;curp&#x27;,&#x27;nss&#x27;,&#x27;tel&#x27;,&#x27;email&#x27;,&#x27;afore&#x27;,&#x27;calle&#x27;,&#x27;colonia&#x27;,&#x27;municipio&#x27;,&#x27;entidad&#x27;,&#x27;cp&#x27;,&#x27;notas&#x27;,
+              &#x27;citaPropFecha&#x27;,&#x27;citaPropHora&#x27;,&#x27;consentimiento&#x27;,&#x27;recomendadoraEmail&#x27;,&#x27;recNombre&#x27;,&#x27;recSugerido&#x27;,
+              &#x27;refTexto&#x27;,&#x27;origen&#x27;,&#x27;estatus&#x27;,&#x27;creadoAt&#x27;,&#x27;actualizadoAt&#x27;,&#x27;actualizadoPor&#x27;,&#x27;enviadoAt&#x27;,&#x27;recibidoAt&#x27;,
+              &#x27;formMarca&#x27;,&#x27;v&#x27;,
+              // Fase 2: cita
+              &#x27;citaEstado&#x27;,&#x27;citaFecha&#x27;,&#x27;citaHora&#x27;,&#x27;citaDur&#x27;,&#x27;citaNota&#x27;,&#x27;citaPor&#x27;,&#x27;citaAt&#x27;,
+              // Fase 3: precalificación, contrato y aviso
+              &#x27;precalOk&#x27;,&#x27;precalFalta&#x27;,&#x27;precalAt&#x27;,&#x27;contratoEstado&#x27;,&#x27;contratoVer&#x27;,&#x27;contratoNota&#x27;,&#x27;avisoFirmado&#x27;,
+              // Fase 4: pendientes y fecha de solicitud (la fecha la publica solo el admin)
+              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;fechaSolicitud&#x27;,&#x27;fechaSolAt&#x27;,
+              // Fase 5: cierre
+              &#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,&#x27;pagoNota&#x27;,&#x27;cerradoAt&#x27;];
+    }
+    // Lo único que una recomendadora puede modificar de SU caso
+    function recEditKeys() {
+      return [&#x27;nombre&#x27;,&#x27;curp&#x27;,&#x27;nss&#x27;,&#x27;tel&#x27;,&#x27;email&#x27;,&#x27;afore&#x27;,&#x27;calle&#x27;,&#x27;colonia&#x27;,&#x27;municipio&#x27;,&#x27;entidad&#x27;,&#x27;cp&#x27;,&#x27;notas&#x27;,
+              &#x27;citaPropFecha&#x27;,&#x27;citaPropHora&#x27;,&#x27;estatus&#x27;,&#x27;enviadoAt&#x27;,&#x27;actualizadoAt&#x27;,&#x27;actualizadoPor&#x27;,&#x27;v&#x27;,
+              &#x27;citaEstado&#x27;,&#x27;citaFecha&#x27;,&#x27;citaHora&#x27;,&#x27;citaDur&#x27;,&#x27;citaNota&#x27;,&#x27;citaPor&#x27;,&#x27;citaAt&#x27;,
+              &#x27;precalOk&#x27;,&#x27;precalFalta&#x27;,&#x27;precalAt&#x27;,&#x27;contratoEstado&#x27;,&#x27;contratoVer&#x27;,&#x27;avisoFirmado&#x27;,
+              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;];
+    }
+    // La recomendadora solo puede marcar «subido» (aprobar / pedir corrección / cerrar es del admin)
+    function recFlowOk(d, ch) {
+      return (!(&#x27;estatus&#x27; in ch) || d.estatus in [&#x27;borrador&#x27;,&#x27;enviado&#x27;])
+        &amp;&amp; (!(&#x27;contratoEstado&#x27; in ch) || d.contratoEstado == &#x27;subido&#x27;)
+        &amp;&amp; (!(&#x27;pagoEstado&#x27; in ch) || d.pagoEstado == &#x27;subido&#x27;)
+        &amp;&amp; (!(&#x27;citaEstado&#x27; in ch) || d.citaEstado in [&#x27;pendiente_revision&#x27;,&#x27;nueva_fecha&#x27;,&#x27;esperando_cliente&#x27;,&#x27;confirmada&#x27;,&#x27;reprogramar&#x27;,&#x27;cancelada&#x27;]);
+    }
+    function strOk(d) {
+      return (!(&#x27;nombre&#x27; in d) || (d.nombre is string &amp;&amp; d.nombre.size() &lt;= 200))
+          &amp;&amp; (!(&#x27;notas&#x27; in d) || (d.notas is string &amp;&amp; d.notas.size() &lt;= 3000))
+          &amp;&amp; (!(&#x27;curp&#x27; in d) || (d.curp is string &amp;&amp; d.curp.size() &lt;= 18))
+          &amp;&amp; (!(&#x27;nss&#x27; in d) || (d.nss is string &amp;&amp; d.nss.size() &lt;= 11));
+    }
+
+    // ---------- Recomendadores (los publica el admin desde su herramienta) ----------
+    match /recs/{email} {
+      allow read: if isAdmin() || (signedIn() &amp;&amp; myEmail() == email);
+      allow write: if isAdmin();
+    }
+
+    // ---------- Casos visibles para la recomendadora dueña ----------
+    match /casos/{casoId} {
+      allow read: if isAdmin()
+        || (isRec() &amp;&amp; resource.data.recomendadoraEmail == myEmail());
+
+      allow create: if strOk(request.resource.data) &amp;&amp; request.resource.data.keys().hasOnly(casoKeys()) &amp;&amp; (
+        isAdmin()
+        || (isRec()
+            &amp;&amp; request.resource.data.recomendadoraEmail == myEmail()
+            &amp;&amp; (!(&#x27;origen&#x27; in request.resource.data) || request.resource.data.origen == &#x27;panel&#x27;)
+            &amp;&amp; request.resource.data.estatus in [&#x27;borrador&#x27;,&#x27;enviado&#x27;]
+            &amp;&amp; request.resource.data.actualizadoPor == myEmail()
+            &amp;&amp; request.resource.data.keys().hasOnly(recEditKeys().concat([&#x27;recomendadoraEmail&#x27;,&#x27;origen&#x27;]))
+            &amp;&amp; recFlowOk(request.resource.data, request.resource.data.keys()))
+      );
+
+      allow update: if strOk(request.resource.data) &amp;&amp; request.resource.data.keys().hasOnly(casoKeys()) &amp;&amp; (
+        isAdmin()
+        || (isRec()
+            &amp;&amp; resource.data.recomendadoraEmail == myEmail()
+            &amp;&amp; request.resource.data.diff(resource.data).affectedKeys().hasOnly(recEditKeys())
+            &amp;&amp; recFlowOk(request.resource.data, request.resource.data.diff(resource.data).affectedKeys())
+            &amp;&amp; request.resource.data.actualizadoPor == myEmail())
+      );
+
+      // Nunca se borran expedientes desde la app
+      allow delete: if false;
+    }
+
+    // ---------- Documentos: SOLO metadatos (el archivo vive en Google Drive) ----------
+    match /docs/{docId} {
+      function docKeys() { return [&#x27;casoId&#x27;,&#x27;recEmail&#x27;,&#x27;tipo&#x27;,&#x27;version&#x27;,&#x27;fileId&#x27;,&#x27;link&#x27;,&#x27;nombreArchivo&#x27;,&#x27;mime&#x27;,&#x27;tamano&#x27;,&#x27;subidoPor&#x27;,&#x27;subidoAt&#x27;,&#x27;estado&#x27;,&#x27;nota&#x27;,&#x27;revisadoAt&#x27;,&#x27;copiaId&#x27;]; }
+      function docBase(d) {
+        return d.keys().hasOnly(docKeys()) &amp;&amp; d.tipo in [&#x27;contrato&#x27;,&#x27;pago&#x27;] &amp;&amp; d.version is int &amp;&amp; d.version &gt;= 1
+          &amp;&amp; d.fileId is string &amp;&amp; d.fileId.size() &lt;= 200 &amp;&amp; d.subidoPor == myEmail();
+      }
+      allow read: if isAdmin() || (isRec() &amp;&amp; resource.data.recEmail == myEmail());
+      allow create: if (isAdmin() &amp;&amp; docBase(request.resource.data))
+        || (isRec() &amp;&amp; docBase(request.resource.data) &amp;&amp; request.resource.data.estado == &#x27;pendiente&#x27;
+            &amp;&amp; request.resource.data.recEmail == myEmail()
+            &amp;&amp; getAfter(/databases/$(database)/documents/casos/$(request.resource.data.casoId)).data.recomendadoraEmail == myEmail());
+      // El admin revisa (aprobado / corregir); un reintento idéntico también se permite
+      allow update: if (isAdmin() &amp;&amp; request.resource.data.keys().hasOnly(docKeys())
+            &amp;&amp; request.resource.data.diff(resource.data).affectedKeys().hasOnly([&#x27;estado&#x27;,&#x27;nota&#x27;,&#x27;revisadoAt&#x27;,&#x27;copiaId&#x27;]))
+        || ((isAdmin() || isRec()) &amp;&amp; request.resource.data == resource.data);
+      allow delete: if false;
+    }
+
+    // ---------- Datos solo del admin (proveedor, pasos internos, notas internas, vínculo con su lista) ----------
+    match /casosAdmin/{casoId} {
+      allow read, write: if isAdmin();
+    }
+    match /meta/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- Bitácora de auditoría: solo agregar, nunca editar ni borrar ----------
+    match /audit/{entryId} {
+      function auditOk(d) {
+        return d.keys().hasOnly([&#x27;ts&#x27;,&#x27;actor&#x27;,&#x27;rol&#x27;,&#x27;accion&#x27;,&#x27;casoId&#x27;,&#x27;detalle&#x27;])
+          &amp;&amp; d.actor == myEmail() &amp;&amp; d.ts is number &amp;&amp; d.accion is string
+          &amp;&amp; (!(&#x27;detalle&#x27; in d) || (d.detalle is string &amp;&amp; d.detalle.size() &lt;= 300));
+      }
+      allow read: if isAdmin();
+      allow create: if (isAdmin() &amp;&amp; auditOk(request.resource.data) &amp;&amp; request.resource.data.rol == &#x27;admin&#x27;)
+        || (isRec() &amp;&amp; auditOk(request.resource.data) &amp;&amp; request.resource.data.rol == &#x27;rec&#x27;
+            &amp;&amp; request.resource.data.casoId is string
+            &amp;&amp; getAfter(/databases/$(database)/documents/casos/$(request.resource.data.casoId)).data.recomendadoraEmail == myEmail());
+      // Reintento idéntico (idempotente): se permite solo si no cambia NADA
+      allow update: if (isAdmin() || isRec()) &amp;&amp; request.resource.data == resource.data;
+      allow delete: if false;
+    }
+
+    // Todo lo demás: cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+</pre>
+<script>document.getElementById('b').onclick=async()=>{const v=document.getElementById('t').value;try{await navigator.clipboard.writeText(v)}catch(e){const t=document.getElementById('t');t.select();document.execCommand('copy')}document.getElementById('ok').textContent='✓ Copiadas. Ahora pégalas en Firebase › Reglas y toca Publicar.'}</script></body></html>
