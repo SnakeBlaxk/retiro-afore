@@ -2,7 +2,7 @@
 <style>body{font-family:sans-serif;margin:12px}button{font-size:20px;padding:14px 20px;width:100%;background:#1a73e8;color:#fff;border:0;border-radius:10px}pre{white-space:pre-wrap;font-size:12px;background:#f3f3f3;padding:8px}#ok{color:green;font-size:18px}</style></head>
 <body translate="no"><button id="b">Copiar reglas</button><p id="ok"></p>
 <textarea id="t" readonly style="position:absolute;left:-9999px">rules_version = &#x27;2&#x27;;
-// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5
+// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5 + validación (22/11/2026)
 // Pegar completo en Firebase Console &gt; Firestore Database &gt; Reglas &gt; Publicar.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,7 +32,9 @@ service cloud.firestore {
               // Fase 4: pendientes y fecha de solicitud (la fecha la publica solo el admin)
               &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;fechaSolicitud&#x27;,&#x27;fechaSolAt&#x27;,
               // Fase 5: cierre
-              &#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,&#x27;pagoNota&#x27;,&#x27;cerradoAt&#x27;];
+              &#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,&#x27;pagoNota&#x27;,&#x27;cerradoAt&#x27;,
+              // Validación del cliente (solo resultados; los archivos viven en Google Drive)
+              &#x27;valSemanas&#x27;,&#x27;valVigente&#x27;,&#x27;valReporteFecha&#x27;,&#x27;valRetiroFecha&#x27;,&#x27;valRetiroFuente&#x27;,&#x27;valElegibleDesde&#x27;,&#x27;valOk&#x27;,&#x27;valAt&#x27;];
     }
     // Lo único que una recomendadora puede modificar de SU caso
     function recEditKeys() {
@@ -40,7 +42,8 @@ service cloud.firestore {
               &#x27;citaPropFecha&#x27;,&#x27;citaPropHora&#x27;,&#x27;estatus&#x27;,&#x27;enviadoAt&#x27;,&#x27;actualizadoAt&#x27;,&#x27;actualizadoPor&#x27;,&#x27;v&#x27;,
               &#x27;citaEstado&#x27;,&#x27;citaFecha&#x27;,&#x27;citaHora&#x27;,&#x27;citaDur&#x27;,&#x27;citaNota&#x27;,&#x27;citaPor&#x27;,&#x27;citaAt&#x27;,
               &#x27;precalOk&#x27;,&#x27;precalFalta&#x27;,&#x27;precalAt&#x27;,&#x27;contratoEstado&#x27;,&#x27;contratoVer&#x27;,&#x27;avisoFirmado&#x27;,
-              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;];
+              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,
+              &#x27;valSemanas&#x27;,&#x27;valVigente&#x27;,&#x27;valReporteFecha&#x27;,&#x27;valRetiroFecha&#x27;,&#x27;valRetiroFuente&#x27;,&#x27;valElegibleDesde&#x27;,&#x27;valOk&#x27;,&#x27;valAt&#x27;];
     }
     // La recomendadora solo puede marcar «subido» (aprobar / pedir corrección / cerrar es del admin)
     function recFlowOk(d, ch) {
@@ -95,7 +98,7 @@ service cloud.firestore {
     match /docs/{docId} {
       function docKeys() { return [&#x27;casoId&#x27;,&#x27;recEmail&#x27;,&#x27;tipo&#x27;,&#x27;version&#x27;,&#x27;fileId&#x27;,&#x27;link&#x27;,&#x27;nombreArchivo&#x27;,&#x27;mime&#x27;,&#x27;tamano&#x27;,&#x27;subidoPor&#x27;,&#x27;subidoAt&#x27;,&#x27;estado&#x27;,&#x27;nota&#x27;,&#x27;revisadoAt&#x27;,&#x27;copiaId&#x27;]; }
       function docBase(d) {
-        return d.keys().hasOnly(docKeys()) &amp;&amp; d.tipo in [&#x27;contrato&#x27;,&#x27;pago&#x27;] &amp;&amp; d.version is int &amp;&amp; d.version &gt;= 1
+        return d.keys().hasOnly(docKeys()) &amp;&amp; d.tipo in [&#x27;contrato&#x27;,&#x27;pago&#x27;,&#x27;semanas&#x27;,&#x27;retiro&#x27;] &amp;&amp; d.version is int &amp;&amp; d.version &gt;= 1
           &amp;&amp; d.fileId is string &amp;&amp; d.fileId.size() &lt;= 200 &amp;&amp; d.subidoPor == myEmail();
       }
       allow read: if isAdmin() || (isRec() &amp;&amp; resource.data.recEmail == myEmail());
@@ -143,7 +146,7 @@ service cloud.firestore {
 }
 </textarea>
 <pre class="notranslate" translate="no">rules_version = &#x27;2&#x27;;
-// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5
+// Reglas de Firestore · Retiro por desempleo (proyecto retiro-afore) · Fases 1 a 5 + validación (22/11/2026)
 // Pegar completo en Firebase Console &gt; Firestore Database &gt; Reglas &gt; Publicar.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -173,7 +176,9 @@ service cloud.firestore {
               // Fase 4: pendientes y fecha de solicitud (la fecha la publica solo el admin)
               &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;fechaSolicitud&#x27;,&#x27;fechaSolAt&#x27;,
               // Fase 5: cierre
-              &#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,&#x27;pagoNota&#x27;,&#x27;cerradoAt&#x27;];
+              &#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,&#x27;pagoNota&#x27;,&#x27;cerradoAt&#x27;,
+              // Validación del cliente (solo resultados; los archivos viven en Google Drive)
+              &#x27;valSemanas&#x27;,&#x27;valVigente&#x27;,&#x27;valReporteFecha&#x27;,&#x27;valRetiroFecha&#x27;,&#x27;valRetiroFuente&#x27;,&#x27;valElegibleDesde&#x27;,&#x27;valOk&#x27;,&#x27;valAt&#x27;];
     }
     // Lo único que una recomendadora puede modificar de SU caso
     function recEditKeys() {
@@ -181,7 +186,8 @@ service cloud.firestore {
               &#x27;citaPropFecha&#x27;,&#x27;citaPropHora&#x27;,&#x27;estatus&#x27;,&#x27;enviadoAt&#x27;,&#x27;actualizadoAt&#x27;,&#x27;actualizadoPor&#x27;,&#x27;v&#x27;,
               &#x27;citaEstado&#x27;,&#x27;citaFecha&#x27;,&#x27;citaHora&#x27;,&#x27;citaDur&#x27;,&#x27;citaNota&#x27;,&#x27;citaPor&#x27;,&#x27;citaAt&#x27;,
               &#x27;precalOk&#x27;,&#x27;precalFalta&#x27;,&#x27;precalAt&#x27;,&#x27;contratoEstado&#x27;,&#x27;contratoVer&#x27;,&#x27;avisoFirmado&#x27;,
-              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;];
+              &#x27;expedienteOk&#x27;,&#x27;nivel4Ok&#x27;,&#x27;pagoEstado&#x27;,&#x27;pagoVer&#x27;,
+              &#x27;valSemanas&#x27;,&#x27;valVigente&#x27;,&#x27;valReporteFecha&#x27;,&#x27;valRetiroFecha&#x27;,&#x27;valRetiroFuente&#x27;,&#x27;valElegibleDesde&#x27;,&#x27;valOk&#x27;,&#x27;valAt&#x27;];
     }
     // La recomendadora solo puede marcar «subido» (aprobar / pedir corrección / cerrar es del admin)
     function recFlowOk(d, ch) {
@@ -236,7 +242,7 @@ service cloud.firestore {
     match /docs/{docId} {
       function docKeys() { return [&#x27;casoId&#x27;,&#x27;recEmail&#x27;,&#x27;tipo&#x27;,&#x27;version&#x27;,&#x27;fileId&#x27;,&#x27;link&#x27;,&#x27;nombreArchivo&#x27;,&#x27;mime&#x27;,&#x27;tamano&#x27;,&#x27;subidoPor&#x27;,&#x27;subidoAt&#x27;,&#x27;estado&#x27;,&#x27;nota&#x27;,&#x27;revisadoAt&#x27;,&#x27;copiaId&#x27;]; }
       function docBase(d) {
-        return d.keys().hasOnly(docKeys()) &amp;&amp; d.tipo in [&#x27;contrato&#x27;,&#x27;pago&#x27;] &amp;&amp; d.version is int &amp;&amp; d.version &gt;= 1
+        return d.keys().hasOnly(docKeys()) &amp;&amp; d.tipo in [&#x27;contrato&#x27;,&#x27;pago&#x27;,&#x27;semanas&#x27;,&#x27;retiro&#x27;] &amp;&amp; d.version is int &amp;&amp; d.version &gt;= 1
           &amp;&amp; d.fileId is string &amp;&amp; d.fileId.size() &lt;= 200 &amp;&amp; d.subidoPor == myEmail();
       }
       allow read: if isAdmin() || (isRec() &amp;&amp; resource.data.recEmail == myEmail());
