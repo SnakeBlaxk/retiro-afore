@@ -689,6 +689,7 @@ function readSemanas(f,id){edoQ=edoQ.then(async()=>{semId=id;pwBox='semMsg';semM
  if(a.cot==null&&a.total==null&&!a.emps.length){semMsg('No se detectaron semanas en el archivo. Captúralas manualmente.');return}
  const sv=v=>v==null?'':String(v);c.semCot=sv(a.cot);c.semDesc=sv(a.desc);c.semReint=sv(a.reint);c.semTotalDoc=sv(a.total);if(a.rest!=null)c.semanas=String(a.rest);
  c.semVigente=a.vigentes.join('; ');c.semUltBaja=a.ultBaja||'';c.semUltBajaPat=a.ultBajaPat||'';c.semLeida=Date.now();c.semRevisa=!!(a.low||(R.ocrUsed&&a.desc==null));
+ {const em=semEmision(R.t);if(em||!c.semEmisionManual){c.semEmision=em||'';c.semEmisionManual=false}}
  hist(c,'tramite','Constancia de semanas leída: '+(a.cot??'?')+' cotizadas, '+(a.desc??'?')+' descontadas, '+(a.reint??0)+' reintegradas → '+(a.rest??'?')+' restantes; '+(a.vigentes.length?'VIGENTE con: '+c.semVigente:'sin patrón vigente')+(a.ultBaja?'; última baja '+human(a.ultBaja):''));
  save();if(cur===id)render();semMsg((c.semRevisa?'⚠️ <b>revisa</b>: lectura con baja confianza, verifica los datos. ':'✔ Datos leídos de la constancia, revísalos. ')+(a.emps.length?a.emps.length+' patrón(es) encontrados.':''))}).catch(()=>{});return edoQ}
 const loadScript=(src,g)=>new Promise((res,rej)=>{if(window[g])return res(window[g]);const s=document.createElement('script');s.src=src;s.onload=()=>window[g]?res(window[g]):rej(new Error('no'));s.onerror=()=>{s.remove();rej(new Error('cdn'))};document.head.appendChild(s);setTimeout(()=>rej(new Error('timeout')),25000)});
@@ -1358,7 +1359,7 @@ function avisoPrivPDF(doc,c){const L=48,W=499,FS=11,LH=15;let y=110;
  return doc}
 function contratoFalta(c){const f=[];if(!c.nombre.trim())f.push('nombre');if(!c.curp)f.push('CURP');if(!c.nss)f.push('NSS');if(!String(c.calle||'').trim()||!String(c.colonia||'').trim()||!String(c.municipio||'').trim())f.push(['dirección','calle']);if(!String(c.tel||'').trim())f.push(['teléfono','tel']);if(!String(c.afore||'').trim())f.push(['Afore','afore']);if(!String(c.email||'').trim())f.push(['correo','email']);if(!(calc(c).com>0))f.push('saldos de la Afore (Paso 4) para calcular la comisión del pagaré');return f}
 $('pdfMsg').onclick=e=>{const b=e.target.closest('[data-irf]');if(!b)return;const d=$('datosContrato');d.open=true;const i=d.querySelector('[data-f="'+b.dataset.irf+'"]');if(i){i.scrollIntoView({block:'center'});i.focus()}};
-$('btnPdf').onclick=()=>{const c=C(),f=contratoFalta(c),m=$('pdfMsg');if(REC_MODE&&c.fbId&&typeof fbValid==='function'&&!fbValid(c,fbCaso(c.fbId)||{}).ok){m.innerHTML='<div class="alert">Primero completa la «Validación del cliente» (en «Herramienta principal», más abajo): semanas cotizadas, que no esté vigente, reporte de los últimos 5 días y 5 años desde el último retiro.</div>';return}if(f.length){const t=f.map(x=>Array.isArray(x)?x[0]:x),bt=f.filter(Array.isArray).map(x=>'<button class="sec mini" data-irf="'+x[1]+'">Ir a '+esc(x[0])+'</button>').join(' ');m.innerHTML='<div class="alert">Falta: '+esc(t.join(', '))+'.<br>'+bt+'</div>';return}
+$('btnPdf').onclick=()=>{const c=C(),f=contratoFalta(c),m=$('pdfMsg');if(recValOk(c)===false){m.innerHTML='<div class="alert">Todavía no se puede generar el contrato. Revisa «¿Qué falta para el contrato?» (arriba). Falta: '+esc(recChk(c,(c.fbId&&fbCaso(c.fbId))||{}).falta.join('; '))+'.</div>';return}if(f.length){const t=f.map(x=>Array.isArray(x)?x[0]:x),bt=f.filter(Array.isArray).map(x=>'<button class="sec mini" data-irf="'+x[1]+'">Ir a '+esc(x[0])+'</button>').join(' ');m.innerHTML='<div class="alert">Falta: '+esc(t.join(', '))+'.<br>'+bt+'</div>';return}
 if(window.jspdf&&window.jspdf.jsPDF){try{const dF=new Date(),doc=contratoPDF(c,dF);{const d=dF,v=new Date(d.getFullYear(),d.getMonth(),d.getDate()+50);c.pagareVenc=dStr(v);c.pagareMonto=calc(c).com;save();renderContract(c)}doc.save('contrato-'+c.nombre.trim().replace(/\W+/g,'_')+'.pdf');m.innerHTML='<div class="ok">✔ Contrato generado (4 páginas, incluye aviso de privacidad).</div>';return}catch(e){}}
 $('printDoc').innerHTML=contratoHTML(c);m.innerHTML='<div class="warn">No se pudo generar el PDF; se abrió la impresión (elige «Guardar como PDF»).</div>';window.print()};
 // ===== Sincronización automática con el formulario (hoja «Contrato») =====
@@ -1577,14 +1578,14 @@ function buildStepper(){const cv=$('caseView'),head=cv.querySelector('.card'),cc
  for(const id of ['precalCard','tramCard','altaCard','imssCard','seg2Card','solCard'])$(id).classList.add('inStep');nav.classList.add('inStep');
  const gate=$('btnPdf').onclick;$('btnPdf').onclick=e=>{const c=C();if(c&&recValOk(c)===null&&!precalOK(c)&&!(c.pagareVenc||firmadoOK(c))){$('pdfMsg').innerHTML='<div class="alert">Primero completa el paso 1 «Validar requisitos» (o marca «Precalificado»). Falta: '+esc(etapa(c,'precal').falta.join(', '))+'.</div>';return}return gate.call($('btnPdf'),e)}}
 // En el panel de la recomendadora (casos del panel en línea), el paso 1 y el contrato dependen de la «Validación del cliente» (reglas de Canek 22/11/2026)
-function recValOk(c){if(!REC_MODE||!c||!c.fbId)return null;try{return fbValid(c,fbCaso(c.fbId)||{}).ok}catch(e){return null}}
+function recValOk(c){if(!REC_MODE||!c)return null;try{return recChk(c,(c.fbId&&fbCaso(c.fbId))||{}).val}catch(e){return null}}
 function estadoPasos(c){const E={};ETAPAS.forEach(([k])=>E[k]=etapa(c,k));const rv=recValOk(c),p1=rv===null?E.precal.done:rv,seg2On=!$('seg2Locked')||$('seg2Locked').classList.contains('hidden');
  const yaC=!!(c.pagareVenc||firmadoOK(c));return{p1:p1?'ok':'cur',p2:yaC?'ok':!p1?'lock':'cur',p3:E.firma.done?'ok':'cur',p4:E.exp.done&&E.alta.done?'ok':'cur',p5:E.pagos.done?'ok':'cur',p6:c.msgSegundoPasoEnviado?'ok':seg2On?'cur':'lock',p7:c.dineroSolicitado?'ok':'cur'}}
 function updStepper(){const c=C();if(!c||!$('stepper'))return;if(pasoCaso!==c.id){pasoCaso=c.id;for(const k in pasoAbierto)delete pasoAbierto[k]}
  const E=estadoPasos(c),actual=PASOS.map(p=>p[0]).find(k=>E[k]!=='ok');const TX={ok:'✓ Hecho',cur:'En curso',lock:'🔒 Bloqueado',pend:'Pendiente'};
  PASOS.forEach(([k])=>{const d=$('paso_'+k);let s=E[k];if(s==='cur'&&k!==actual)s='pend';d.dataset.st=s;d.classList.toggle('actual',k===actual);d.querySelector('.pSt').textContent=TX[s];
   const abierto=k in pasoAbierto?pasoAbierto[k]:!(autoColapsar()&&s==='ok');d.classList.toggle('closed',!abierto);d.querySelector('.pHead').setAttribute('aria-expanded',abierto)});
- const lk=E.p2==='lock';$('btnPdf').classList.toggle('off',lk);$('btnPdf').setAttribute('aria-disabled',lk);$('pdfLock').classList.toggle('hidden',!lk);if(lk)$('pdfLock').innerHTML=recValOk(c)===false?'🔒 El contrato se genera cuando la <b>«Validación del cliente»</b> está completa (en «Herramienta principal», más abajo).':'🔒 El contrato se genera cuando el cliente <b>cumple los requisitos</b> (paso 1). Falta: '+esc(etapa(c,'precal').falta.join(', '))+'.'}
+ const lk=E.p2==='lock';$('btnPdf').classList.toggle('off',lk);$('btnPdf').setAttribute('aria-disabled',lk);$('pdfLock').classList.toggle('hidden',!lk);if(lk)$('pdfLock').innerHTML=recValOk(c)===false?'🔒 Todavía no se puede generar el contrato. Revisa <b>«¿Qué falta para el contrato?»</b> (arriba). Falta: '+esc(recChk(c,(c.fbId&&fbCaso(c.fbId))||{}).falta.join('; '))+'.':'🔒 El contrato se genera cuando el cliente <b>cumple los requisitos</b> (paso 1). Falta: '+esc(etapa(c,'precal').falta.join(', '))+'.'}
 buildStepper();
 
 // ===== Mantener el lugar: ancla en el control tocado; render y mensajes no mueven la pantalla =====
@@ -2003,7 +2004,7 @@ async function fbAct(id,patch,accion,detalle,extra){if(!FB.user)throw new Error(
 const fbCaso=id=>FB.casos.find(k=>k._id===id);
 const fbDocsDe=(id,tipo)=>FB.docs.filter(d=>d.casoId===id&&(!tipo||d.tipo===tipo)).sort((a,b)=>b.version-a.version);
 const fbNomRec=x=>x.recNombre||recNom(x.recomendadoraEmail)||'Sin recomendadora';
-function fbPrecalDe(c){try{const e=etapa(c,'precal');return{precalOk:!!e.done,precalFalta:e.done?'':e.falta.join(', ').slice(0,300),avisoFirmado:!!(c.avisoPrivOk||c.avisoPriv||(c.contratoFirm||[]).length)}}catch(x){return{}}}
+function fbPrecalDe(c){try{if(REC_MODE){const K=recChk(c,(c.fbId&&fbCaso(c.fbId))||{});return{precalOk:K.val,precalFalta:K.listo?'':K.falta.join('; ').slice(0,300),precalAt:Date.now(),avisoFirmado:!!(c.avisoPrivOk||c.avisoPriv||(c.contratoFirm||[]).length)}}const e=etapa(c,'precal');return{precalOk:!!e.done,precalFalta:e.done?'':e.falta.join(', ').slice(0,300),avisoFirmado:!!(c.avisoPrivOk||c.avisoPriv||(c.contratoFirm||[]).length)}}catch(x){return{}}}
 // ================= Fase 2: citas =================
 const CITA_EST={pendiente_revision:'Pendiente de revisión',nueva_fecha:'Nueva fecha propuesta',esperando_cliente:'Esperando confirmación del cliente',confirmada:'Confirmada',reprogramar:'Reprogramar',cancelada:'Cancelada'};
 const CITA_OCUPA=['nueva_fecha','esperando_cliente','confirmada'];
@@ -2117,7 +2118,7 @@ const fbBtnTab=(k,t)=>'<button type="button" class="fbTabBtn'+(FB.tab===k&&!FB.s
 function fbDetalleHTML(x){const id=x._id,adm=fbIsAdmin()&&!REC_MODE,A=FB.adm[id]||{};if(adm)fbCargarAdm(id);
  const loc=Object.values(S.clients).find(c=>c.fbId===id);let h='<div class="fbDet"><button type="button" class="sec mini" data-cerrar="1">← Volver</button><h3>'+esc(x.nombre)+'</h3><small>'+esc(fbNomRec(x))+' · '+fbEtTxt(fbEtapa(x))+(x.tel?' · '+esc(x.tel):'')+'</small>';
  h+='<h4>📅 Cita</h4>'+fbCitaHTML(x);
- h+=fbValAdminHTML(x);
+ h+=recFaltaAdminHTML(x)+fbValAdminHTML(x);
  h+='<h4>📝 '+DOC_TIPO.contrato+'</h4>'+fbDocsHTML(id,'contrato')+(x.avisoFirmado?'<p><small>✓ Aviso de privacidad firmado junto con el contrato</small></p>':'');
  h+='<h4>📌 Pendientes</h4><label class="fbChk"><input type="checkbox" data-pend="expedienteOk" data-id="'+esc(id)+'"'+(x.expedienteOk?' checked':'')+'> Expediente electrónico</label><label class="fbChk"><input type="checkbox" data-pend="nivel4Ok" data-id="'+esc(id)+'"'+(x.nivel4Ok?' checked':'')+'> Cuenta / tarjeta nivel 4</label>';
  if(adm){const baja=A.fechaBaja||(loc&&loc.fechaBaja)||'',sol=baja?solDesdeBaja(baja):'';
@@ -2171,11 +2172,45 @@ function semEmision(t){const s=nrm(String(t||'')),hoy=todayStr();const iso=(d,m,
  const re=/\b(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\s+(?:de\s+|del\s+)?(\d{4})\b/g;let best=null;
  for(const x of s.matchAll(re)){const r=iso(x[1],VAL_MESES[x[2]],x[3]);if(r&&(!best||r>best))best=r}return best}
 function valDiasDesde(iso){return -diasA(iso)}
+// ===== ¿Qué falta para el contrato? (panel de la recomendadora; reglas de Canek 22/11/2026) =====
+// = precalificación EXISTENTE del paso 1 (sin pedir nada dos veces) + reporte de semanas de ≤5 días + 5 años (tolerancia de 3 meses) + datos completos del contrato.
+function repFecha(c,x){let t='';try{t=c.semTxt?semEmision(c.semTxt)||'':''}catch(e){}return c.semEmision||t||(x&&x.valReporteFecha)||''}
+const recPub=t=>/^⚠?\s*VIGENTE/i.test(t)?'tiene trabajo vigente':String(t).replace(/\s*\(tiene [^)]*\)/,'');
+function recChk(c,x){x=x||{};const e=etapa(c,'precal'),L=[];
+ L.push({k:'precal',ok:e.done,n:'Requisitos del paso 1 (precalificación)',d:e.done?'Cumple los requisitos':'Falta: '+e.falta.map(recPub).join(', '),pub:'paso 1: '+e.falta.map(recPub).join(', ')});
+ const rep=repFecha(c,x),dr=rep?-diasA(rep):null,rok=!!rep&&dr>=0&&dr<=VAL_REP_DIAS;
+ L.push({k:'rep',ok:rok,n:'Reporte de semanas emitido hace '+VAL_REP_DIAS+' días o menos',d:rep?'Emitido el '+fDMY(rep)+(dr<0?' (fecha futura: revísala)':rok?' (hace '+dr+(dr===1?' día':' días')+')':' (tiene '+dr+' días: pide un reporte nuevo)'):'Escribe la fecha de emisión del reporte de semanas',pub:rep?'reporte de semanas de más de '+VAL_REP_DIAS+' días':'fecha de emisión del reporte de semanas'});
+ const r=r5Pre(c),f=c.comp5Fecha||(c.r5Conf&&c.r5InfFecha)||'';let ok5,d5,desde='',cinco='';
+ if(r.na){ok5=true;d5='Sin retiros previos (0 semanas descontadas)'}
+ else if(f){cinco=addY(f,5);desde=addM(cinco,-VAL_TOL_MESES);ok5=todayStr()>=desde;d5='Último retiro '+fDMY(f)+' → 5 años el '+fDMY(cinco)+(ok5?'':'. Podrá continuar a partir del '+fDMY(desde))}
+ else{ok5=!!r.ok;d5=ok5?'El cliente confirma que ya pasaron 5 años':'Confirma los 5 años en el paso 1 (o sube el documento del último retiro)'}
+ L.push({k:'r5',ok:ok5,n:'5 años desde el último retiro (o faltan 3 meses o menos)',d:d5,desde:ok5?'':desde,pub:desde?'5 años (podrá continuar desde el '+fDMY(desde)+')':'5 años desde el último retiro'});
+ const fal=contratoFalta(c).map(z=>Array.isArray(z)?z[0]:z);
+ L.push({k:'datos',ok:!fal.length,n:'Datos del contrato completos',d:fal.length?'Falta: '+fal.join(', '):'Completos',pub:'datos del contrato: '+fal.join(', ')});
+ const val=L[0].ok&&L[1].ok&&L[2].ok;return{L,val,listo:val&&L[3].ok,falta:L.filter(i=>!i.ok).map(i=>i.pub)}}
+function recFaltaHTML(c,x){const K=recChk(c,x);let h='<h3>📋 ¿Qué falta para el contrato?</h3>';
+ K.L.forEach(i=>{h+=vOk(i.ok,'<b>'+esc(i.n)+'</b><br><small>'+esc(i.d)+'</small>');
+  if(i.k==='rep'&&!i.ok)h+='<label>Fecha de emisión del reporte de semanas</label><input type="date" data-rf="semEmision" value="'+esc(c.semEmision||'')+'">';
+  if(i.k==='r5'&&!i.ok&&i.desde&&x&&x._id)h+='<button class="sec" data-valcita="1" data-id="'+esc(x._id)+'">📅 Agendar cita para continuar</button>'});
+ h+=K.listo?'<div class="ok"><b>✅ Todo listo:</b> ya puedes generar el contrato (paso 2).</div>':'<div class="warn">Cuando todo esté en ✅ se desbloquea «Generar contrato PDF».</div>';
+ if(!c.fbId)h+='<small>Este cliente aún no está en el panel en línea: envíalo con «Enviar a herramienta principal» para que la consultoría vea este resumen.</small>';
+ return h}
+// Publica en el caso SOLO nombres de lo que falta (sin CURP, NSS, domicilio ni documentos) para que el admin vea lo mismo
+let recPubT=null;const recPubF={};function recFaltaPub(c){const x=c&&c.fbId&&fbCaso(c.fbId);if(!x||!FB.user||fbIsAdmin()||!REC_MODE)return;clearTimeout(recPubT);recPubT=setTimeout(async()=>{const x2=fbCaso(c.fbId);if(!x2)return;
+ const K=recChk(c,x2),p=Object.assign(fbValPatch(c,x2),{precalOk:K.val,precalFalta:K.listo?'':K.falta.join('; ').slice(0,300),precalAt:Date.now()});
+ if(['precalOk','precalFalta','valSemanas','valVigente','valReporteFecha','valRetiroFecha','valRetiroFuente','valElegibleDesde','valOk'].every(k=>(x2[k]??null)===(p[k]??null)))return;
+ const sig=x2._id+'|'+K.val+'|'+p.precalFalta+'|'+p.valReporteFecha+'|'+p.valSemanas;if(recPubF[sig]&&Date.now()-recPubF[sig]<6e5)return;
+ try{await fbAct(x2._id,p,'requisitos'+(K.listo?'_ok':''),'¿Qué falta para el contrato?: '+(K.listo?'nada, listo para contrato':p.precalFalta))}catch(e){recPubF[sig]=Date.now()}},1200)}
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.dataset||t.dataset.rf!=='semEmision')return;const c=C();if(!c)return;c.semEmision=t.value;c.semEmisionManual=true;hist(c,'nota','Fecha de emisión del reporte de semanas: '+(t.value?fDMY(t.value):'(borrada)'));save();render()});
+// Resumen para el admin (lo que publicó la recomendadora)
+function recFaltaAdminHTML(x){let h='<h4>📋 ¿Qué falta para el contrato?</h4>';if(x.precalAt==null&&x.precalOk==null)return h+'<p><small>La recomendadora aún no ha abierto este caso con la versión nueva.</small></p>';
+ if(x.precalOk&&!x.precalFalta)return h+'<div class="ok">✅ Listo para contrato (requisitos, reporte reciente, 5 años y datos completos).</div>';
+ const it=String(x.precalFalta||'').split(/;\s*/).filter(Boolean);return h+(x.precalOk?'<div class="ok">✅ Requisitos y validación completos</div>':'')+(it.length?it.map(t=>vOk(false,esc(t))).join(''):'<p><small>Sin detalle.</small></p>')+(x.precalAt?'<small>Actualizado: '+new Date(+x.precalAt).toLocaleString('es-MX')+'</small>':'')}
 // Calcula la validación con los datos locales (y, si faltan, con lo ya publicado en el panel)
 function fbValid(c,x){x=x||{};const leida=!!c.semLeida||c.semManual;
  const semN=leida&&c.semanas!==''&&c.semanas!=null?num(c.semanas):(x.valSemanas!=null&&x.valSemanas!==''?+x.valSemanas:null);
  const vig=leida?String(c.semVigente||'').trim():(x.valVigente?'sí':'');const vigSabe=leida||x.valVigente!=null;
- const rep=c.semEmision||x.valReporteFecha||'';const dRep=rep?valDiasDesde(rep):null;
+ const rep=repFecha(c,x);const dRep=rep?valDiasDesde(rep):null;
  const chk={sem:semN!=null&&semN>=VAL_SEM_MIN,vig:vigSabe&&!vig,rep:!!rep&&dRep>=0&&dRep<=VAL_REP_DIAS};
  // 5 años (misma regla de la herramienta: si la constancia muestra 0 semanas descontadas, no hay retiro previo)
  const d=c.semDesc,sinRet=leida&&d!==''&&d!=null&&String(d).trim()!==''&&num(d)===0;
@@ -2185,7 +2220,7 @@ function fbValid(c,x){x=x||{};const leida=!!c.semLeida||c.semManual;
  else if(f){r5.cinco=addY(f,5);r5.desde=addM(r5.cinco,-VAL_TOL_MESES);r5.dias=diasA(r5.cinco);r5.ok=todayStr()>=r5.desde}
  const ok=chk.sem&&chk.vig&&chk.rep&&r5.ok;
  return{semN,vig,vigSabe,rep,dRep,chk,r5,ok,bloq5:!!(f&&!r5.ok)}}
-function fbValPatch(c,x){const v=fbValid(c,x);return{valSemanas:v.semN==null?null:v.semN,valVigente:v.vigSabe?!!v.vig:null,valReporteFecha:v.rep||'',valRetiroFecha:v.r5.f||'',valRetiroFuente:v.r5.fuente||'',valElegibleDesde:v.r5.desde||'',valOk:!!v.ok,valAt:Date.now()}}
+function fbValPatch(c,x){const v=fbValid(c,x),K=recChk(c,x);v.ok=K.val;return{valSemanas:v.semN==null?null:v.semN,valVigente:v.vigSabe?!!v.vig:null,valReporteFecha:v.rep||'',valRetiroFecha:v.r5.f||'',valRetiroFuente:v.r5.fuente||'',valElegibleDesde:v.r5.desde||'',valOk:!!v.ok,valAt:Date.now()}}
 function fbValTxt(v){return (v.semN==null?'semanas ?':v.semN+' semanas')+' · '+(v.vigSabe?(v.vig?'VIGENTE':'sin vigente'):'vigencia ?')+' · reporte '+(v.rep?fDMY(v.rep):'?')+' · 5 años: '+(v.r5.fuente==='sin_retiros'?'sin retiros previos':v.r5.f?'último retiro '+fDMY(v.r5.f)+' ('+v.r5.fuente+')':v.r5.fuente==='cliente'?'lo informa el cliente':'?')+' → '+(v.ok?'APTO':v.bloq5?'podrá continuar desde '+fDMY(v.r5.desde):'pendiente')}
 // Guarda el resultado en el panel (solo resultados, sin CURP/NSS ni el archivo)
 async function fbValGuardar(c,extra){const x=c.fbId&&fbCaso(c.fbId);if(!x||!FB.user)return;const p=fbValPatch(c,x),v=fbValid(c,x);
@@ -2217,8 +2252,8 @@ async function fbValCita(c){const x=c.fbId&&fbCaso(c.fbId),v=fbValid(c,x);if(!x|
  try{const r=await fbAct(x._id,{citaEstado:'nueva_fecha',citaFecha:fecha,citaHora:hora,citaDur:60,citaNota:'Continuar trámite (5 años desde el último retiro)',citaPor:'rec',citaAt:Date.now()},'cita_nueva_fecha','Cita para continuar (5 años): '+fDMY(fecha)+' '+hora);
   gToast(r==='ok'?'Cita propuesta para el '+fDMY(fecha)+' a las '+hora+'. Avísale al cliente.':'Sin conexión: se guardará al volver internet.','ok')}catch(e){gToast('No se pudo agendar ('+(e&&e.message||e)+').')}}
 const vOk=(b,t)=>'<div class="fbChkRes '+(b?'ok':b===false?'no':'na')+'">'+(b?'✅':b===false?'❌':'⏳')+' '+t+'</div>';
-function fbValHTML(c,x){const v=fbValid(c,x),id=esc(x._id),ley=c.valLeyendo;let h='<h4>🔎 Validación del cliente</h4><div class="fbVal">';
- h+='<p><b>1. Semanas cotizadas</b><br><small>Sube el reporte de semanas cotizadas del IMSS (PDF o foto). Debe ser de los últimos '+VAL_REP_DIAS+' días.</small></p>';
+function fbValHTML(c,x){const v=fbValid(c,x),K=recChk(c,x),id=esc(x._id),ley=c.valLeyendo;let h='<h4>🔎 Validación del cliente</h4><div class="fbVal">';
+ h+='<p><small>Si ya llenaste el paso 1 (semanas, vigencia y 5 años), no tienes que repetirlo: aquí solo se agrega lo que haga falta.</small></p><p><b>1. Semanas cotizadas</b><br><small>Si no subiste la constancia en el paso 1, sube aquí el reporte de semanas cotizadas del IMSS (PDF o foto). Debe ser de los últimos '+VAL_REP_DIAS+' días.</small></p>';
  h+=fbDocsHTML(x._id,'semanas')+'<label class="file">📤 '+(c.semLeida||fbDocsDe(x._id,'semanas').length?'Subir otro reporte':'Subir reporte de semanas cotizadas')+'<input type="file" accept="image/*,application/pdf" data-val="semanas" data-id="'+id+'"></label>';
  if(ley==='sem')h+='<div class="warn">Leyendo el reporte… (puede tardar un poco)</div>';else if(c.valMsg)h+='<small>'+esc(c.valMsg)+'</small>';
  if(c.semLeida||c.semManual||v.rep||v.semN!=null){
@@ -2238,9 +2273,9 @@ function fbValHTML(c,x){const v=fbValid(c,x),id=esc(x._id),ley=c.valLeyendo;let 
  else if(v.r5.fuente==='cliente')h+=vOk(true,'El cliente informa que ya pasaron 5 años');
  else if(v.r5.fuente!=='sin_retiros')h+=vOk(null,'Marca lo que informa el cliente o sube el documento');
  h+='</div>';
- if(v.ok)h+='<div class="ok"><b>✅ Validación completa.</b> Ya puedes generar el contrato.</div>';
- else if(v.bloq5)h+='<div class="alert"><b>⛔ Todavía no se puede hacer el contrato.</b> Podrá continuar a partir del <b>'+fDMY(v.r5.desde)+'</b> (3 meses antes de cumplir 5 años el '+fDMY(v.r5.cinco)+').</div><button data-valcita="1" data-id="'+id+'">📅 Agendar cita para continuar</button><small>Solo si el cliente aún quiere seguir con el trámite.</small>';
- else h+='<div class="warn">Completa la validación para poder generar el contrato.</div>';
+ if(K.val)h+='<div class="ok"><b>✅ Validación completa.</b> Ya puedes generar el contrato.</div>';
+ else if(v.bloq5&&!K.L[2].ok)h+='<div class="alert"><b>⛔ Todavía no se puede hacer el contrato.</b> Podrá continuar a partir del <b>'+fDMY(v.r5.desde)+'</b> (3 meses antes de cumplir 5 años el '+fDMY(v.r5.cinco)+').</div><button data-valcita="1" data-id="'+id+'">📅 Agendar cita para continuar</button><small>Solo si el cliente aún quiere seguir con el trámite.</small>';
+ else h+='<div class="warn">Revisa «¿Qué falta para el contrato?» (arriba).</div>';
  return h}
 function fbValCambio(t){const c=Object.values(S.clients).find(k=>k.fbId===t.dataset.id);if(!c)return;
  if(t.dataset.val&&t.files&&t.files[0]){const f=t.files[0];t.value='';return t.dataset.val==='semanas'?fbValSemanas(c,f):fbValRetiro(c,f)}
@@ -2255,17 +2290,18 @@ function fbValAdminHTML(x){if(x.valAt==null&&!fbDocsDe(x._id,'semanas').length&&
  return '<h4>🔎 Validación</h4>'+(x.valOk?'<div class="ok">✅ Apto para contrato</div>':x.valElegibleDesde&&todayStr()<x.valElegibleDesde?'<div class="alert">⛔ Podrá continuar desde el '+fDMY(x.valElegibleDesde)+'</div>':'<div class="warn">Validación incompleta</div>')+
   '<small>Semanas: '+(x.valSemanas??'—')+' · Vigente: '+(x.valVigente==null?'—':x.valVigente?'SÍ':'no')+' · Reporte: '+(x.valReporteFecha?fDMY(x.valReporteFecha):'—')+' · Último retiro: '+(x.valRetiroFecha?fDMY(x.valRetiroFecha):'—')+' ('+fT+')</small>'+fbDocsHTML(x._id,'semanas')+fbDocsHTML(x._id,'retiro').replace('<small>Sin archivos.</small>','')}
 // Tarjeta dentro del caso (vista de la recomendadora)
-function fbRecCase(){if(!REC_MODE)return;const c=C(),x0=$('recCase');if(!c||!x0)return;let d=$('fbRecCase');if(!d){d=document.createElement('div');d.id='fbRecCase';d.className='fbBox';x0.appendChild(d)}
+function fbRecCase(){if(!REC_MODE)return;const c=C();if(c&&$('stepper')){let rf=$('recFalta');if(!rf){rf=document.createElement('div');rf.id='recFalta';rf.className='card';$('stepper').before(rf)}const xf=(c.fbId&&fbCaso(c.fbId))||{};rf.innerHTML=recFaltaHTML(c,xf);recFaltaPub(c)}
+ const x0=$('recCase');if(!c||!x0)return;let d=$('fbRecCase');if(!d){d=document.createElement('div');d.id='fbRecCase';d.className='fbBox';x0.appendChild(d)}
  const x=c.fbId&&fbCaso(c.fbId);let h='<h3>☁️ Herramienta principal</h3>';
  h+=(x&&x.estatus==='recibido'?'<div class="ok">✓ La consultoría ya lo recibió</div>':c.fbEnviado?'<div class="ok">✓ Enviado el '+new Date(c.fbEnviado).toLocaleString('es-MX')+'</div>':'')+'<button id="btnFbEnviar">📤 '+(c.fbEnviado?'Volver a enviar cambios':'Enviar a herramienta principal')+'</button><small>Envía los datos del cliente (sin documentos). Puedes repetirlo: no se duplica.</small>';
  if(x){h+='<h4>📅 Cita</h4>'+fbCitaHTML(x);
   h+=fbValHTML(c,x);
   // Contrato: solo con la validación completa (semanas, vigencia, reporte reciente y 5 años) y datos completos (mismas reglas que «Generar contrato PDF»)
-  const pre=fbValid(c,x).ok,fal=contratoFalta(c),listo=pre&&!fal.length;
+  const K=recChk(c,x),pre=K.val,fal=contratoFalta(c),listo=K.listo;
   if(listo&&x.contratoEstado!=='aprobado')h+='<button id="btnFbPdf" class="sec">📄 Generar contrato PDF para firmar (incluye aviso de privacidad)</button>';
   h+='<h4>📝 '+DOC_TIPO.contrato+'</h4>'+fbDocsHTML(x._id,'contrato')+(x.contratoEstado==='corregir'&&x.contratoNota?'<div class="warn">Corrección pedida: '+esc(x.contratoNota)+'</div>':'')+
    (listo?(x.contratoEstado==='aprobado'?'':'<label class="file">📤 Subir contrato firmado (foto o PDF, incluye el aviso de privacidad firmado)<input type="file" accept="image/*,application/pdf" data-subir="contrato" data-id="'+esc(x._id)+'"></label>'):
-    '<div class="alert">Para generar y subir el contrato primero completa '+(!pre?'la «Validación del cliente» (arriba)':'los datos del contrato (falta: '+esc(fal.map(z=>Array.isArray(z)?z[0]:z).join(', '))+')')+'.</div>');
+    '<div class="alert">Para generar y subir el contrato revisa «¿Qué falta para el contrato?» (arriba). Falta: '+esc(K.falta.join('; '))+'.</div>');
   h+='<h4>📌 Pendientes</h4><label class="fbChk"><input type="checkbox" data-pend="expedienteOk" data-id="'+esc(x._id)+'"'+(x.expedienteOk?' checked':'')+'> Expediente electrónico</label><label class="fbChk"><input type="checkbox" data-pend="nivel4Ok" data-id="'+esc(x._id)+'"'+(x.nivel4Ok?' checked':'')+'> Cuenta / tarjeta nivel 4</label>';
   h+='<h4>📆 Fecha de solicitud del dinero (46 días de la baja)</h4>'+fbSol46HTML(x);
   h+='<h4>💵 '+DOC_TIPO.pago+'</h4>'+fbDocsHTML(x._id,'pago')+(x.pagoEstado==='corregir'&&x.pagoNota?'<div class="warn">Corrección pedida: '+esc(x.pagoNota)+'</div>':'')+(x.cerradoAt?'<div class="ok">🎉 Caso cerrado</div>':x.contratoEstado==='aprobado'?'<label class="file">📤 Subir comprobante de pago<input type="file" accept="image/*,application/pdf" data-subir="pago" data-id="'+esc(x._id)+'"></label>':'<small>Se habilita cuando la consultoría aprueba el contrato.</small>')}
